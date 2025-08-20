@@ -148,12 +148,16 @@ export default function PublicProfile() {
             <div className="relative inline-block px-8 py-6 bg-gradient-to-br from-white/95 via-blue-50/90 to-white/95 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50">
               <div className="flex items-center justify-center gap-4 text-gray-800">
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl">🌅</span>
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
                   <span className="text-lg font-medium">{formatDate(profile.birth_date)}</span>
                 </div>
                 <div className="w-8 h-px bg-gradient-to-r from-gray-400 to-gray-600"></div>
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl">🌆</span>
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 2L12 22M5 9L19 9" />
+                  </svg>
                   <span className="text-lg font-medium">{formatDate(profile.death_date)}</span>
                 </div>
               </div>
@@ -176,7 +180,7 @@ export default function PublicProfile() {
           </div>
         </div>
 
-        {/* Description */}
+        {/* 1. En memoria */}
         {profile.description && (
           <div className={`${templateStyles.card} p-6 mb-8 relative overflow-hidden`}>
             {/* Patrón decorativo de fondo */}
@@ -190,45 +194,9 @@ export default function PublicProfile() {
           </div>
         )}
 
-        {/* Favorite Music */}
-        <FavoriteMusic 
-          favoriteMusic={profile.favorite_music || ''} 
-          accentColor={templateStyles.accent}
-        />
-
-        {/* Gallery */}
-        {profile.gallery_images && profile.gallery_images.length > 0 && (
-          <div className={`${templateStyles.card} p-6 mb-8`}>
-            <h2 className={`text-xl font-semibold ${templateStyles.accent} mb-4 flex items-center gap-2`}>
-              <span>🖼️</span> Galería de recuerdos
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-              {profile.gallery_images.slice(0, 6).map((image, index) => (
-                <div 
-                  key={index} 
-                  className="relative group cursor-pointer" 
-                  onClick={() => {
-                    setModalImageIndex(index)
-                    setModalOpen(true)
-                  }}
-                >
-                  <img
-                    src={image}
-                    alt={`Recuerdo ${index + 1}`}
-                    className="w-full h-40 object-cover rounded-lg transition-transform group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all flex items-center justify-center">
-                    <span className="text-white opacity-0 group-hover:opacity-100 text-2xl">🔍</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Video */}
+        {/* 2. Video Conmemorativo */}
         {profile.memorial_video_url && (
-          <div className={`${templateStyles.card} p-6 relative overflow-hidden`}>
+          <div className={`${templateStyles.card} p-6 mb-8 relative overflow-hidden`}>
             <div className="absolute top-0 left-0 w-16 h-16 opacity-5">
               <div className="text-4xl">🎥</div>
             </div>
@@ -248,6 +216,42 @@ export default function PublicProfile() {
             </div>
           </div>
         )}
+
+        {/* 3. Galería de Recuerdos */}
+        {profile.gallery_images && profile.gallery_images.length > 0 && (
+          <div className={`${templateStyles.card} p-6 mb-8`}>
+            <h2 className={`text-xl font-semibold ${templateStyles.accent} mb-4 flex items-center gap-2`}>
+              <span>🖼️</span> Galería de recuerdos
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              {profile.gallery_images.slice(0, 6).map((image, index) => (
+                <div 
+                  key={index} 
+                  className="relative group cursor-pointer overflow-hidden rounded-lg bg-gray-50" 
+                  onClick={() => {
+                    setModalImageIndex(index)
+                    setModalOpen(true)
+                  }}
+                >
+                  <img
+                    src={image}
+                    alt={`Recuerdo ${index + 1}`}
+                    className="w-full h-auto object-contain rounded-lg transition-transform group-hover:scale-105 bg-gray-50"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all flex items-center justify-center">
+                    <span className="text-white opacity-0 group-hover:opacity-100 text-2xl">🔍</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 4. Su canción Favorita */}
+        <FavoriteMusic 
+          favoriteMusic={profile.favorite_music || ''} 
+          accentColor={templateStyles.accent}
+        />
 
         {/* Footer decorativo */}
         <div className="text-center py-8">

@@ -96,7 +96,7 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
       
       setShowSuccess(true)
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error)
       alert(`Error: ${error.message}`)
     } finally {
