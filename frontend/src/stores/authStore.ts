@@ -169,8 +169,7 @@ export const useAuthStore = create<AuthState>()(
               email,
               password,
               options: {
-                data: { name },
-                emailRedirectTo: `https://eterno-vinculo.vercel.app/verify-email`
+                data: { name }
               }
             })
 
