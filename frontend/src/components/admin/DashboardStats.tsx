@@ -8,6 +8,14 @@ interface DashboardData {
   total_revenue: number
 }
 
+interface RecentActivity {
+  id: string
+  type: 'payment' | 'user' | 'order'
+  message: string
+  details: string
+  created_at: string
+}
+
 type AdminView = 'dashboard' | 'users' | 'orders' | 'settings'
 
 interface DashboardStatsProps {
@@ -16,6 +24,7 @@ interface DashboardStatsProps {
 
 function DashboardStats({ onViewChange }: DashboardStatsProps) {
   const [data, setData] = useState<DashboardData | null>(null)
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -41,7 +50,7 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
         const { data: paidOrders } = await supabase
           .from('orders')
           .select('amount')
-          .neq('paid_at', null)
+          .not('paid_at', 'is', null)
 
         const totalRevenue = paidOrders?.reduce((sum, order) => sum + (order.amount || 0), 0) || 0
 
@@ -51,6 +60,69 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
           pending_orders: pendingCount || 0,
           total_revenue: totalRevenue
         })
+
+        // Obtener actividad reciente
+        const activities: RecentActivity[] = []
+        
+        // Últimas órdenes pagadas
+        const { data: recentPaidOrders } = await supabase
+          .from('orders')
+          .select('*, users(email)')
+          .not('paid_at', 'is', null)
+          .order('paid_at', { ascending: false })
+          .limit(3)
+        
+        recentPaidOrders?.forEach(order => {
+          activities.push({
+            id: order.id,
+            type: 'payment',
+            message: 'Pago verificado',
+            details: `Usuario: ${order.users?.email} - $${order.amount?.toLocaleString()}`,
+            created_at: order.paid_at
+          })
+        })
+        
+        // Últimos usuarios registrados
+        const { data: recentUsers } = await supabase
+          .from('users')
+          .select('email, created_at')
+          .order('created_at', { ascending: false })
+          .limit(2)
+        
+        recentUsers?.forEach(user => {
+          activities.push({
+            id: user.email,
+            type: 'user',
+            message: 'Nuevo usuario registrado',
+            details: user.email,
+            created_at: user.created_at
+          })
+        })
+        
+        // Últimas órdenes pendientes
+        const { data: recentPendingOrders } = await supabase
+          .from('orders')
+          .select('*, users(email)')
+          .is('paid_at', null)
+          .order('created_at', { ascending: false })
+          .limit(2)
+        
+        recentPendingOrders?.forEach(order => {
+          activities.push({
+            id: order.id,
+            type: 'order',
+            message: 'Pago pendiente',
+            details: `${order.users?.email} - Ref: ${order.payment_reference || 'Sin ref'}`,
+            created_at: order.created_at
+          })
+        })
+        
+        // Ordenar por fecha y tomar los 6 más recientes
+        const sortedActivities = activities
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .slice(0, 6)
+        
+        setRecentActivity(sortedActivities)
       } catch (error) {
         console.error('Error fetching dashboard data:', error)
       } finally {
@@ -176,38 +248,47 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
       <div className="bg-white rounded-xl shadow-sm border p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Actividad Reciente</h3>
         <div className="space-y-4">
-          <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-              <span className="text-green-600 text-sm">✓</span>
+          {recentActivity.length > 0 ? (
+            recentActivity.map((activity) => {
+              const getActivityIcon = (type: string) => {
+                switch (type) {
+                  case 'payment':
+                    return { bg: 'bg-green-100', icon: '✓', color: 'text-green-600' }
+                  case 'user':
+                    return { bg: 'bg-blue-100', icon: '👤', color: 'text-blue-600' }
+                  case 'order':
+                    return { bg: 'bg-yellow-100', icon: '⏳', color: 'text-yellow-600' }
+                  default:
+                    return { bg: 'bg-gray-100', icon: '•', color: 'text-gray-600' }
+                }
+              }
+              
+              const iconConfig = getActivityIcon(activity.type)
+              const timeAgo = new Date(activity.created_at).toLocaleString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+              })
+              
+              return (
+                <div key={activity.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                  <div className={`w-8 h-8 ${iconConfig.bg} rounded-full flex items-center justify-center`}>
+                    <span className={`${iconConfig.color} text-sm`}>{iconConfig.icon}</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">{activity.message}</p>
+                    <p className="text-xs text-gray-500">{activity.details}</p>
+                  </div>
+                  <span className="text-xs text-gray-400">{timeAgo}</span>
+                </div>
+              )
+            })
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p>No hay actividad reciente</p>
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">Pago verificado</p>
-              <p className="text-xs text-gray-500">Usuario: juan@email.com - $150.000</p>
-            </div>
-            <span className="text-xs text-gray-400">Hace 2 horas</span>
-          </div>
-
-          <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-blue-600 text-sm">👤</span>
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">Nuevo usuario registrado</p>
-              <p className="text-xs text-gray-500">maria@email.com</p>
-            </div>
-            <span className="text-xs text-gray-400">Hace 4 horas</span>
-          </div>
-
-          <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-            <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-              <span className="text-yellow-600 text-sm">⏳</span>
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">Pago pendiente</p>
-              <p className="text-xs text-gray-500">carlos@email.com - Ref: 123456789</p>
-            </div>
-            <span className="text-xs text-gray-400">Hace 6 horas</span>
-          </div>
+          )}
         </div>
       </div>
     </div>
