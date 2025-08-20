@@ -49,10 +49,10 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
         // Obtener ingresos totales
         const { data: paidOrders } = await supabase
           .from('orders')
-          .select('amount')
+          .select('total_amount')
           .not('paid_at', 'is', null)
 
-        const totalRevenue = paidOrders?.reduce((sum, order) => sum + (order.amount || 0), 0) || 0
+        const totalRevenue = paidOrders?.reduce((sum, order) => sum + (parseFloat(order.total_amount) || 0), 0) || 0
 
         setData({
           users: usersCount || 0,
@@ -77,7 +77,7 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
             id: order.id,
             type: 'payment',
             message: 'Pago verificado',
-            details: `Usuario: ${order.users?.email} - $${order.amount?.toLocaleString()}`,
+            details: `Usuario: ${order.users?.email} - $${parseFloat(order.total_amount || 0).toLocaleString()}`,
             created_at: order.paid_at
           })
         })
