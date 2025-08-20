@@ -21,22 +21,36 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        const token = session?.access_token
-        
-        if (!token) return
+        // Obtener total de usuarios
+        const { count: usersCount } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true })
 
-        const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api'
-        const response = await fetch(`${API_URL}/admin/dashboard`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+        // Obtener total de órdenes
+        const { count: ordersCount } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+
+        // Obtener órdenes pendientes (sin pagar)
+        const { count: pendingCount } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .is('paid_at', null)
+
+        // Obtener ingresos totales
+        const { data: paidOrders } = await supabase
+          .from('orders')
+          .select('amount')
+          .not('paid_at', 'is', null)
+
+        const totalRevenue = paidOrders?.reduce((sum, order) => sum + (order.amount || 0), 0) || 0
+
+        setData({
+          users: usersCount || 0,
+          orders: ordersCount || 0,
+          pending_orders: pendingCount || 0,
+          total_revenue: totalRevenue
         })
-
-        if (response.ok) {
-          const result = await response.json()
-          setData(result.data)
-        }
       } catch (error) {
         console.error('Error fetching dashboard data:', error)
       } finally {
