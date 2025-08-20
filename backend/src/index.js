@@ -27,6 +27,8 @@ app.use(notFoundHandler)
 app.use(errorHandler)
 
 const server = app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`)
+  console.log(`🌐 CORS origin: ${process.env.FRONTEND_URL}`)
 })
 
 // Manejar errores de puerto ocupado
