@@ -152,24 +152,8 @@ export const useAuthStore = create<AuthState>()(
               throw new Error(errorMessage)
             }
 
-            // Crear registro en tabla users
-            if (data.user) {
-              const [firstName, ...lastNameParts] = name.split(' ')
-              const lastName = lastNameParts.join(' ')
-              
-              const { error: insertError } = await supabase
-                .from('users')
-                .insert({
-                  id: data.user.id,
-                  email: data.user.email,
-                  first_name: firstName,
-                  last_name: lastName || ''
-                })
-
-              if (insertError) {
-                throw new Error('Error al crear el perfil de usuario')
-              }
-            }
+            // El perfil de usuario se creará automáticamente por el trigger de Supabase
+            // o por el backend cuando el usuario confirme su email
 
             set({ loading: false, error: null })
             
