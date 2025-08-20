@@ -267,6 +267,7 @@ export default function PreviewProfile() {
               <video
                 src={profile.memorial_video_url}
                 controls
+                preload="metadata"
                 className="w-full h-full rounded-lg shadow-lg"
               >
                 Tu navegador no soporta el elemento de video.

@@ -219,6 +219,7 @@ const ReviewStep = ({ onPrev }: ReviewStepProps) => {
               <video
                 src={profileData.memorial_video_url}
                 controls
+                preload="metadata"
                 className="w-full max-w-md rounded"
               >
                 Tu navegador no soporta la reproducción de video.

@@ -187,6 +187,7 @@ const VideoUpload = ({
             ref={videoRef}
             src={video}
             controls
+            preload="metadata"
             className="w-full max-w-2xl mx-auto rounded-lg shadow-sm"
             onLoadedMetadata={() => {
               if (videoRef.current) {
@@ -286,7 +287,7 @@ const VideoUpload = ({
             <ul className="text-sm text-gray-600 space-y-1">
               <li>• Usa videos con buena calidad de imagen y sonido</li>
               <li>• Evita contenido con derechos de autor en el audio</li>
-              <li>• El video se reproducirá automáticamente sin sonido</li>
+              <li>• El video incluirá audio cuando se reproduzca</li>
             </ul>
           </div>
         </div>

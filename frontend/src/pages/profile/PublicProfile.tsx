@@ -239,6 +239,7 @@ export default function PublicProfile() {
               <video
                 src={profile.memorial_video_url}
                 controls
+                preload="metadata"
                 className="w-full h-full rounded-lg shadow-lg"
                 poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 225'%3E%3Crect width='400' height='225' fill='%23f3f4f6'/%3E%3Ctext x='200' y='112' text-anchor='middle' fill='%236b7280' font-size='16'%3EVideo Memorial%3C/text%3E%3C/svg%3E"
               >
