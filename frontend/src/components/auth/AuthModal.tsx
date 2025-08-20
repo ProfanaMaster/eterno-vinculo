@@ -124,6 +124,14 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
     resetForm()
   }
 
+  /**
+   * Manejar cierre del modal
+   */
+  const handleClose = () => {
+    onClose()
+    resetForm()
+  }
+
   // Si el registro fue exitoso, mostrar mensaje de éxito
   if (showSuccess) {
     return (
@@ -160,14 +168,6 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
         </div>
       </Modal>
     )
-  }
-
-  /**
-   * Manejar cierre del modal
-   */
-  const handleClose = () => {
-    onClose()
-    resetForm()
   }
 
   return (
