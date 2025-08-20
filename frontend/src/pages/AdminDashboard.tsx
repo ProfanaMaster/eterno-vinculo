@@ -42,7 +42,8 @@ function AdminDashboard() {
           return
         }
 
-        const response = await fetch('http://localhost:3002/api/admin/dashboard', {
+        const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api'
+        const response = await fetch(`${API_URL}/admin/dashboard`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
