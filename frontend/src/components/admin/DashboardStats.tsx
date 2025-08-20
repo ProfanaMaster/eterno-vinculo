@@ -41,7 +41,7 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
         const { data: paidOrders } = await supabase
           .from('orders')
           .select('amount')
-          .not('paid_at', 'is', null)
+          .neq('paid_at', null)
 
         const totalRevenue = paidOrders?.reduce((sum, order) => sum + (order.amount || 0), 0) || 0
 
