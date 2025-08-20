@@ -51,7 +51,7 @@ export const useCartStore = create<CartState>()(
 
       // Agregar producto al carrito
       addItem: (pkg: Package) => {
-        set((state) => {
+        set(() => {
           // Solo permitir un paquete a la vez
           return {
             items: [{ package: pkg, quantity: 1 }],

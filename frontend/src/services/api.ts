@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { supabase } from '@/config/supabase'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api'
+const API_BASE_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api'
 
 // Cache para el token
 let cachedToken: string | null = null

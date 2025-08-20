@@ -7,7 +7,7 @@ interface User {
   email: string
   name?: string
   subscription?: {
-    plan: 'basic' | 'premium' | 'family'
+    plan: 'basic' | 'premium' | 'family' | 'complete'
     status: 'active' | 'inactive' | 'expired'
     expires_at?: string
   }
