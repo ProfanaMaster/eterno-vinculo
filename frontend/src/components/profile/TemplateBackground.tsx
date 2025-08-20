@@ -1,0 +1,48 @@
+import { getTemplateBackground, MOBILE_BREAKPOINT, TEMPLATE_VIDEOS } from '@/utils/templateBackgrounds'
+import { useEffect, useState } from 'react'
+
+interface TemplateBackgroundProps {
+  templateId: string
+  className?: string
+}
+
+const TemplateBackground = ({ templateId, className = '' }: TemplateBackgroundProps) => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= MOBILE_BREAKPOINT)
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT)
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const backgroundImage = getTemplateBackground(templateId, isMobile)
+  const templateVideo = TEMPLATE_VIDEOS[templateId]
+
+  if (!backgroundImage && !templateVideo) return null
+
+  return (
+    <div className={`absolute inset-x-0 top-0 ${className}`} style={{ height: isMobile ? '40vh' : '50vh', zIndex: -1 }}>
+      {templateVideo && isMobile ? (
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="w-full h-full object-cover"
+        >
+          <source src={templateVideo} type="video/mp4" />
+        </video>
+      ) : (
+        <div 
+          className="w-full h-full bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${backgroundImage})` }}
+        />
+      )}
+    </div>
+  )
+}
+
+export default TemplateBackground
