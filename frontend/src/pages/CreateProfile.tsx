@@ -223,7 +223,7 @@ function CreateProfile() {
     }
     
     if (!formData.template_id || formData.template_id === 'default') {
-      newErrors.template_id = 'Debes seleccionar una plantilla de diseño'
+      newErrors['template_id'] = 'Debes seleccionar una plantilla de diseño'
     }
     
     if (formData.birthDate && formData.deathDate) {
@@ -365,7 +365,7 @@ function CreateProfile() {
                       Plantilla de diseño *
                     </label>
                     <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 ${
-                      showErrors && errors.template_id ? 'border-2 border-red-200 rounded-lg p-2' : ''
+                      showErrors && (errors as any).template_id ? 'border-2 border-red-200 rounded-lg p-2' : ''
                     }`}>
                       {templates.map((template: any) => (
                         <div
@@ -389,8 +389,8 @@ function CreateProfile() {
                         </div>
                       ))}
                     </div>
-                    {showErrors && errors.template_id && (
-                      <p className="text-red-600 text-sm mt-1">{errors.template_id}</p>
+                    {showErrors && (errors as any).template_id && (
+                      <p className="text-red-600 text-sm mt-1">{(errors as any).template_id}</p>
                     )}
                   </div>
 

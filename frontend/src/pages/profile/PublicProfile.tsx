@@ -4,7 +4,7 @@ import { api } from '@/services/api'
 import FavoriteMusic from '@/components/FavoriteMusic'
 import ImageModal from '@/components/ImageModal'
 import { ResponsiveBackground } from '@/components/ui'
-import { sanitizeText, sanitizeUrl } from '@/utils/sanitize'
+import { sanitizeText } from '@/utils/sanitize'
 import TemplateBackground from '@/components/profile/TemplateBackground'
 
 interface Profile {
