@@ -157,8 +157,7 @@ export const useAuthStore = create<AuthState>()(
 
             set({ loading: false, error: null })
             
-            // Mostrar mensaje de verificación
-            alert('Registro exitoso. Revisa tu email para verificar tu cuenta.')
+            // No mostrar alert, el modal manejará el mensaje de éxito
 
           } catch (error: any) {
             set({ 

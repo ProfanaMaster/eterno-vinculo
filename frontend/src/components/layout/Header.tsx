@@ -159,18 +159,66 @@ function Header() {
                 FAQ
               </a>
               <div className="flex flex-col space-y-3 pt-4 mt-4 border-t border-gray-100">
-                <button 
-                  onClick={() => { setAuthMode('login'); setAuthModalOpen(true); setIsMenuOpen(false) }}
-                  className="btn btn-secondary w-full"
-                >
-                  Iniciar Sesión
-                </button>
-                <button 
-                  onClick={handleCreateMemorial}
-                  className="btn btn-primary w-full"
-                >
-                  Crear Memorial
-                </button>
+                {isAuthenticated ? (
+                  <>
+                    {/* Carrito */}
+                    <button 
+                      onClick={() => { toggleCart(); setIsMenuOpen(false) }}
+                      className="flex items-center justify-center space-x-2 p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors duration-200"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5-6m0 0h15M17 21a2 2 0 100-4 2 2 0 000 4zM9 21a2 2 0 100-4 2 2 0 000 4z" />
+                      </svg>
+                      <span>Carrito</span>
+                      {getItemCount() > 0 && (
+                        <span className="bg-primary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                          {getItemCount()}
+                        </span>
+                      )}
+                    </button>
+                    
+                    {/* Usuario */}
+                    <div className="flex items-center space-x-3 px-3 py-2 bg-gray-50 rounded-lg">
+                      <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">
+                          {user?.name?.charAt(0) || user?.email?.charAt(0)}
+                        </span>
+                      </div>
+                      <span className="text-gray-700 font-medium">{user?.name || 'Usuario'}</span>
+                    </div>
+                    
+                    {/* Dashboard */}
+                    <button 
+                      onClick={() => { window.location.href = '/dashboard'; setIsMenuOpen(false) }}
+                      className="btn btn-secondary w-full"
+                    >
+                      Dashboard
+                    </button>
+                    
+                    {/* Cerrar Sesión */}
+                    <button 
+                      onClick={() => { logout(); setIsMenuOpen(false) }}
+                      className="btn btn-outline w-full"
+                    >
+                      Cerrar Sesión
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button 
+                      onClick={() => { setAuthMode('login'); setAuthModalOpen(true); setIsMenuOpen(false) }}
+                      className="btn btn-secondary w-full"
+                    >
+                      Iniciar Sesión
+                    </button>
+                    <button 
+                      onClick={() => { handleCreateMemorial(); setIsMenuOpen(false) }}
+                      className="btn btn-primary w-full"
+                    >
+                      Crear Memorial
+                    </button>
+                  </>
+                )}
               </div>
             </nav>
           </div>

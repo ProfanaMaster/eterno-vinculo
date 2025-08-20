@@ -21,6 +21,7 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
     confirmPassword: ''
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [showSuccess, setShowSuccess] = useState(false)
 
   const { login, register, loading, error, clearError } = useAuthStore()
 
@@ -91,8 +92,7 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
         await register(formData.email, formData.password, formData.name)
         
         // Si llegamos aquí sin excepción, el registro fue exitoso
-        onClose()
-        resetForm()
+        setShowSuccess(true)
       }
     } catch (err) {
       // Error manejado por el store - el modal permanece abierto
@@ -112,6 +112,7 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
       confirmPassword: ''
     })
     setErrors({})
+    setShowSuccess(false)
     clearError()
   }
 
@@ -121,6 +122,44 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
   const switchMode = () => {
     setMode(mode === 'login' ? 'register' : 'login')
     resetForm()
+  }
+
+  // Si el registro fue exitoso, mostrar mensaje de éxito
+  if (showSuccess) {
+    return (
+      <Modal
+        isOpen={isOpen}
+        onClose={handleClose}
+        title="¡Registro Exitoso!"
+        size="md"
+      >
+        <div className="text-center py-6">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            ¡Cuenta creada exitosamente!
+          </h3>
+          <p className="text-gray-600 mb-6">
+            Hemos enviado un enlace de verificación a <strong>{formData.email}</strong>.
+            <br />Revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.
+          </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p className="text-blue-800 text-sm">
+              📬 Si no ves el email, revisa tu carpeta de spam o correo no deseado.
+            </p>
+          </div>
+          <button
+            onClick={handleClose}
+            className="btn btn-primary w-full"
+          >
+            Entendido
+          </button>
+        </div>
+      </Modal>
+    )
   }
 
   /**
