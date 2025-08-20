@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Modal, Button, Input } from '@/components/ui'
 import SuccessModal from '@/components/ui/SuccessModal'
 import { useCartStore } from '@/stores/cartStore'
@@ -16,6 +17,7 @@ interface PaymentModalProps {
  * Maneja Transfiya, Nequi, Bancolombia
  */
 function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
+  const navigate = useNavigate()
   const [paymentData, setPaymentData] = useState({
     method: 'bancolombia',
     reference: '',
@@ -94,7 +96,8 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
       clearCart()
       onClose()
       
-      setShowSuccess(true)
+      // Redirigir al dashboard con mensaje de éxito
+      navigate('/dashboard?payment=success')
       
     } catch (error: any) {
       console.error('Error:', error)

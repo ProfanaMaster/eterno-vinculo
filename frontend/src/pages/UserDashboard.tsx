@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { useProfiles } from '@/hooks/useProfiles'
 import { api } from '@/services/api'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 
 interface Order {
@@ -16,11 +16,13 @@ interface Order {
 function UserDashboard() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { memorials, loading: memorialsLoading, deleteMemorial: deleteMemorialHook } = useProfiles()
   const [orders, setOrders] = useState<Order[]>([])
   const [ordersLoading, setOrdersLoading] = useState(true)
   const [dataFetched, setDataFetched] = useState(false)
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; memorialId: string | null }>({ isOpen: false, memorialId: null })
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
 
   useEffect(() => {
     if (user && user.id && !dataFetched) {
@@ -28,7 +30,14 @@ function UserDashboard() {
     } else if (user === null) {
       navigate('/')
     }
-  }, [user, navigate, dataFetched])
+    
+    // Verificar si viene de pago exitoso
+    if (searchParams.get('payment') === 'success') {
+      setShowPaymentSuccess(true)
+      // Limpiar el parámetro de la URL
+      navigate('/dashboard', { replace: true })
+    }
+  }, [user, navigate, dataFetched, searchParams])
 
   const fetchOrders = async () => {
     if (dataFetched) return
@@ -138,6 +147,36 @@ function UserDashboard() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Mensaje de éxito de pago */}
+        {showPaymentSuccess && (
+          <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-green-900">¡Comprobante Enviado Exitosamente!</h3>
+                <p className="text-green-700">
+                  Espera un máximo de 15 minutos, mientras se activa la creación del Memorial.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPaymentSuccess(false)}
+                className="ml-auto text-green-600 hover:text-green-800"
+              >
+                ×
+              </button>
+            </div>
+            <div className="bg-green-100 rounded-lg p-4">
+              <p className="text-sm text-green-800">
+                📬 Te notificaremos por email cuando tu pago sea confirmado y puedas crear tu memorial.
+              </p>
+            </div>
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Mis Órdenes */}
           <div className="bg-white rounded-lg shadow-sm p-6">
