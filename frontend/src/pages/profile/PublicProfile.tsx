@@ -166,7 +166,7 @@ export default function PublicProfile() {
 
         {/* Barra decorativa con iconos */}
         <div className="relative mb-8">
-          <div className={`h-1 ${templateStyles.background} rounded-full mx-8`}></div>
+          <div className="h-1 bg-gradient-to-r from-gray-300 to-gray-400 rounded-full mx-8"></div>
           <div className="flex justify-center gap-6 -mt-4">
             {templateStyles.icons.map((icon, index) => (
               <div key={index} className="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center">
