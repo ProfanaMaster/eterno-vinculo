@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '@/stores/authStore'
+
 import { api } from '@/services/api'
 import { useNavigate } from 'react-router-dom'
 import UploadService from '@/services/uploadService'

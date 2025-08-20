@@ -65,7 +65,7 @@ function Pricing() {
               <span className="text-gradient"> transparentes</span>
             </h2>
             {/* Botón de actualización (solo en desarrollo) */}
-            {import.meta.env.DEV && (
+            {(import.meta as any).env.DEV && (
               <button
                 onClick={async () => {
                   await refreshSettings()
@@ -113,7 +113,7 @@ function Pricing() {
             </div>
 
             <ul className="space-y-4 mb-8">
-              {packageData.features.map((feature, index) => (
+              {packageData.features.map((feature: string, index: number) => (
                 <li key={index} className="flex items-center gap-3">
                   <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-green-600 text-sm">✓</span>
