@@ -93,7 +93,7 @@ function AdminDashboard() {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'dashboard':
-        return <DashboardStats onViewChange={setCurrentView} />
+        return <DashboardStats onViewChange={(view: string) => setCurrentView(view as AdminView)} />
       case 'users':
         return <UsersManagement />
       case 'orders':
@@ -101,7 +101,7 @@ function AdminDashboard() {
       case 'settings':
         return <SiteSettings />
       default:
-        return <DashboardStats onViewChange={setCurrentView} />
+        return <DashboardStats onViewChange={(view: string) => setCurrentView(view as AdminView)} />
     }
   }
 
@@ -110,7 +110,7 @@ function AdminDashboard() {
       {/* Sidebar */}
       <AdminSidebar 
         currentView={currentView} 
-        onViewChange={setCurrentView} 
+        onViewChange={(view: string) => setCurrentView(view as AdminView)} 
       />
       
       {/* Main Content */}

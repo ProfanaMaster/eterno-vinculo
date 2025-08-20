@@ -10,7 +10,7 @@ import '@/styles/datepicker.css'
 function CreateProfile() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
-  const { user } = useAuthStore()
+  // const { user } = useAuthStore()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -59,7 +59,7 @@ function CreateProfile() {
   const [errors, setErrors] = useState<any>({})
   const [showErrors, setShowErrors] = useState(false)
 
-  const [templates, setTemplates] = useState([])
+  const [templates, setTemplates] = useState<any[]>([])
   const [toast, setToast] = useState({ message: '', type: 'info' as 'success' | 'error' | 'info', isVisible: false })
 
   const handleInputChange = (field: string, value: string) => {
@@ -150,7 +150,7 @@ function CreateProfile() {
         try {
           UploadService.validateImageFile(formData.profileImage)
           profileImageUrl = await UploadService.uploadImage(formData.profileImage, 'profile')
-        } catch (error) {
+        } catch (error: any) {
           setToast({ message: `Error subiendo imagen de perfil: ${error.message}`, type: 'error', isVisible: true })
           return
         }
@@ -163,7 +163,7 @@ function CreateProfile() {
         try {
           formData.galleryImages.forEach(img => UploadService.validateImageFile(img))
           galleryImageUrls = await UploadService.uploadGalleryImages(formData.galleryImages)
-        } catch (error) {
+        } catch (error: any) {
           setToast({ message: `Error subiendo galería: ${error.message}`, type: 'error', isVisible: true })
           return
         }
@@ -174,7 +174,7 @@ function CreateProfile() {
         try {
           UploadService.validateVideoFile(formData.video)
           videoUrl = await UploadService.uploadVideo(formData.video)
-        } catch (error) {
+        } catch (error: any) {
           setToast({ message: `Error subiendo video: ${error.message}`, type: 'error', isVisible: true })
           return
         }
@@ -201,7 +201,7 @@ function CreateProfile() {
       }
     } catch (error) {
       console.error('Error creating profile:', error)
-      setToast({ message: `Error al crear el memorial: ${error.response?.data?.error || error.message}`, type: 'error', isVisible: true })
+      setToast({ message: `Error al crear el memorial: ${(error as any).response?.data?.error || (error as any).message}`, type: 'error', isVisible: true })
     } finally {
       setLoading(false)
     }
