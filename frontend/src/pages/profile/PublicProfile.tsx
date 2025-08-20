@@ -148,17 +148,17 @@ export default function PublicProfile() {
             <div className="relative inline-block px-8 py-6 bg-gradient-to-br from-white/95 via-blue-50/90 to-white/95 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50">
               <div className="flex items-center justify-center gap-4 text-gray-800">
                 <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
                   <span className="text-lg font-medium">{formatDate(profile.birth_date)}</span>
                 </div>
                 <div className="w-8 h-px bg-gradient-to-r from-gray-400 to-gray-600"></div>
                 <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span className="text-lg font-medium">{formatDate(profile.death_date)}</span>
+                  <svg className="w-7 h-7 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 2L12 22M5 9L19 9" />
                   </svg>
-                  <span className="text-lg font-medium">{formatDate(profile.death_date)}</span>
                 </div>
               </div>
               <p className="text-sm text-gray-600 italic mt-3 text-center">
