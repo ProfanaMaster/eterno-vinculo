@@ -52,18 +52,26 @@ const upload = multer({
 
 // Función para optimizar imagen
 const optimizeImage = async (buffer, type) => {
-  const sizes = {
+  const maxSizes = {
     profile: { width: 400, height: 400 },
-
-    gallery: { width: 800, height: 600 }
+    gallery: { width: 1200 } // Solo ancho máximo para galería
   }
   
-  const size = sizes[type] || sizes.gallery
+  const config = maxSizes[type] || maxSizes.gallery
   
-  return await sharp(buffer)
-    .resize(size.width, size.height, { fit: 'cover' })
-    .webp({ quality: 85 })
-    .toBuffer()
+  if (type === 'profile') {
+    // Para perfil mantener cuadrado con fit inside
+    return await sharp(buffer)
+      .resize(config.width, config.height, { fit: 'inside', background: { r: 255, g: 255, b: 255, alpha: 1 } })
+      .webp({ quality: 85 })
+      .toBuffer()
+  } else {
+    // Para galería solo redimensionar por ancho manteniendo proporción
+    return await sharp(buffer)
+      .resize(config.width, null, { fit: 'inside' })
+      .webp({ quality: 85 })
+      .toBuffer()
+  }
 }
 
 // Upload de imagen
