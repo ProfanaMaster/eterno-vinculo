@@ -87,7 +87,44 @@ export const useAuthStore = create<AuthState>()(
               .single()
 
             if (userError) {
-              throw new Error('Error al obtener datos del usuario')
+              // Si el usuario no existe en la tabla users, crearlo
+              if (userError.code === 'PGRST116') {
+                const { error: insertError } = await supabase
+                  .from('users')
+                  .insert({
+                    id: data.user.id,
+                    email: data.user.email,
+                    first_name: data.user.user_metadata?.name?.split(' ')[0] || '',
+                    last_name: data.user.user_metadata?.name?.split(' ').slice(1).join(' ') || ''
+                  })
+                
+                if (insertError) {
+                  throw new Error('Error al crear el perfil de usuario')
+                }
+                
+                // Intentar obtener el usuario nuevamente
+                const { data: newUserData, error: newUserError } = await supabase
+                  .from('users')
+                  .select(`
+                    *,
+                    orders (
+                      id,
+                      package_id,
+                      status,
+                      paid_at
+                    )
+                  `)
+                  .eq('id', data.user.id)
+                  .single()
+                
+                if (newUserError) {
+                  throw new Error('Error al obtener datos del usuario')
+                }
+                
+                userData = newUserData
+              } else {
+                throw new Error('Error al obtener datos del usuario')
+              }
             }
 
             // Determinar suscripción activa
