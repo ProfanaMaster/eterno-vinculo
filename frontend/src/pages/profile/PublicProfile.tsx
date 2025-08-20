@@ -227,7 +227,7 @@ export default function PublicProfile() {
               {profile.gallery_images.slice(0, 6).map((image, index) => (
                 <div 
                   key={index} 
-                  className="relative group cursor-pointer overflow-hidden rounded-lg bg-gray-50" 
+                  className="relative group cursor-pointer overflow-hidden rounded-lg bg-gray-50 aspect-square" 
                   onClick={() => {
                     setModalImageIndex(index)
                     setModalOpen(true)
@@ -236,7 +236,7 @@ export default function PublicProfile() {
                   <img
                     src={image}
                     alt={`Recuerdo ${index + 1}`}
-                    className="w-full h-auto object-contain rounded-lg transition-transform group-hover:scale-105 bg-gray-50"
+                    className="w-full h-full object-cover rounded-lg transition-transform group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all flex items-center justify-center">
                     <span className="text-white opacity-0 group-hover:opacity-100 text-2xl">🔍</span>
