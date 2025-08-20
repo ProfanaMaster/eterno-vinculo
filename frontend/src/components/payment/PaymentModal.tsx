@@ -67,7 +67,8 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
         throw new Error('No hay sesión activa')
       }
 
-      const response = await fetch('http://localhost:3002/api/orders', {
+      const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api'
+      const response = await fetch(`${API_URL}/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

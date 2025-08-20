@@ -143,23 +143,26 @@ function Header() {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-100 animate-fade-in">
             <nav className="flex flex-col space-y-2">
-              <a href="#inicio" className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium">
+              <a href="#inicio" onClick={() => setIsMenuOpen(false)} className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium">
                 Inicio
               </a>
-              <a href="#caracteristicas" className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium">
+              <a href="#caracteristicas" onClick={() => setIsMenuOpen(false)} className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium">
                 Características
               </a>
-              <a href="#ejemplos" className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium">
+              <a href="#ejemplos" onClick={() => setIsMenuOpen(false)} className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium">
                 Ejemplos
               </a>
-              <a href="#precios" className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium">
+              <a href="#precios" onClick={() => setIsMenuOpen(false)} className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium">
                 Precios
               </a>
-              <a href="#faq" className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium">
+              <a href="#faq" onClick={() => setIsMenuOpen(false)} className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium">
                 FAQ
               </a>
               <div className="flex flex-col space-y-3 pt-4 mt-4 border-t border-gray-100">
-                <button className="btn btn-secondary w-full">
+                <button 
+                  onClick={() => { setAuthMode('login'); setAuthModalOpen(true); setIsMenuOpen(false) }}
+                  className="btn btn-secondary w-full"
+                >
                   Iniciar Sesión
                 </button>
                 <button 

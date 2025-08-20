@@ -34,7 +34,8 @@ function SiteSettings() {
       
       if (!token) return
       
-      const response = await fetch('http://localhost:3002/api/admin/settings', {
+      const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api'
+      const response = await fetch(`${API_URL}/admin/settings`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -83,7 +84,8 @@ function SiteSettings() {
       
       if (!token) return
       
-      const response = await fetch(`http://localhost:3002/api/admin/settings/${key}`, {
+      const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api'
+      const response = await fetch(`${API_URL}/admin/settings/${key}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -114,7 +116,8 @@ function SiteSettings() {
       
       if (!token) return
       
-      const response = await fetch('http://localhost:3002/api/admin/settings/init', {
+      const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api'
+      const response = await fetch(`${API_URL}/admin/settings/init`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
