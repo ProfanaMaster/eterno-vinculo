@@ -10,7 +10,7 @@ import '@/styles/datepicker.css'
 function CreateProfile() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
-  // const { user } = useAuthStore()
+
   const navigate = useNavigate()
 
   useEffect(() => {

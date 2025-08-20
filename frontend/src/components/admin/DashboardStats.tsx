@@ -8,8 +8,10 @@ interface DashboardData {
   total_revenue: number
 }
 
+type AdminView = 'dashboard' | 'users' | 'orders' | 'settings'
+
 interface DashboardStatsProps {
-  onViewChange?: (view: string) => void
+  onViewChange?: (view: AdminView) => void
 }
 
 function DashboardStats({ onViewChange }: DashboardStatsProps) {

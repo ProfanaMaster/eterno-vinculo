@@ -1,6 +1,8 @@
+type AdminView = 'dashboard' | 'users' | 'orders' | 'settings'
+
 interface AdminSidebarProps {
-  currentView: string
-  onViewChange: (view: string) => void
+  currentView: AdminView
+  onViewChange: (view: AdminView) => void
 }
 
 function AdminSidebar({ currentView, onViewChange }: AdminSidebarProps) {
@@ -52,7 +54,7 @@ function AdminSidebar({ currentView, onViewChange }: AdminSidebarProps) {
           {menuItems.map((item) => (
             <li key={item.id}>
               <button
-                onClick={() => onViewChange(item.id)}
+                onClick={() => onViewChange(item.id as AdminView)}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 ${
                   currentView === item.id
                     ? 'bg-primary-50 text-primary-700 border-l-4 border-primary-600'
