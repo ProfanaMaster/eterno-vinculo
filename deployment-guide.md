@@ -1,5 +1,7 @@
 # 🚀 Guía de Despliegue - Eterno Vínculo
 
+**🔗 Repositorio**: https://github.com/ProfanaMaster/eterno-vinculo
+
 ## 📋 Resumen del Proyecto
 - **Frontend**: React + TypeScript + Vite
 - **Backend**: Node.js + Express + TypeScript  
@@ -14,7 +16,7 @@
 
 #### Frontend en Vercel
 ```bash
-# 1. Conectar repositorio a Vercel
+# 1. Conectar repositorio: https://github.com/ProfanaMaster/eterno-vinculo
 # 2. Configurar variables de entorno:
 VITE_SUPABASE_URL=https://bhbnmuernqfbahkazbyg.supabase.co
 VITE_SUPABASE_ANON_KEY=tu_anon_key
@@ -28,7 +30,7 @@ Root Directory: frontend
 
 #### Backend en Railway
 ```bash
-# 1. Conectar repositorio a Railway
+# 1. Conectar repositorio: https://github.com/ProfanaMaster/eterno-vinculo
 # 2. Configurar variables de entorno:
 NODE_ENV=production
 PORT=3002

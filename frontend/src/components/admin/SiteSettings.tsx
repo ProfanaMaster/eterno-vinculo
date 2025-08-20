@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Button, Input } from '@/components/ui'
 import { supabase } from '@/config/supabase'
 import { useSettings } from '@/contexts/SettingsContext'
@@ -142,7 +142,7 @@ function SiteSettings() {
         <div className="space-y-4">
           <Input
             label="Título Principal"
-            value={heroData.title}
+            value={heroData.title || ''}
             onChange={(e) => setHeroData({...heroData, title: e.target.value})}
           />
           <div>
@@ -150,18 +150,18 @@ function SiteSettings() {
             <textarea
               className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               rows={3}
-              value={heroData.subtitle}
+              value={heroData.subtitle || ''}
               onChange={(e) => setHeroData({...heroData, subtitle: e.target.value})}
             />
           </div>
           <Input
             label="Botón Primario"
-            value={heroData.cta_primary}
+            value={heroData.cta_primary || ''}
             onChange={(e) => setHeroData({...heroData, cta_primary: e.target.value})}
           />
           <Input
             label="Botón Secundario"
-            value={heroData.cta_secondary}
+            value={heroData.cta_secondary || ''}
             onChange={(e) => setHeroData({...heroData, cta_secondary: e.target.value})}
           />
           <Button
@@ -183,27 +183,27 @@ function SiteSettings() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Nombre de la Empresa"
-            value={footerData.company_name}
+            value={footerData.company_name || ''}
             onChange={(e) => setFooterData({...footerData, company_name: e.target.value})}
           />
           <Input
             label="Descripción"
-            value={footerData.description}
+            value={footerData.description || ''}
             onChange={(e) => setFooterData({...footerData, description: e.target.value})}
           />
           <Input
             label="Dirección"
-            value={footerData.address}
+            value={footerData.address || ''}
             onChange={(e) => setFooterData({...footerData, address: e.target.value})}
           />
           <Input
             label="Teléfono"
-            value={footerData.phone}
+            value={footerData.phone || ''}
             onChange={(e) => setFooterData({...footerData, phone: e.target.value})}
           />
           <Input
             label="Email"
-            value={footerData.email}
+            value={footerData.email || ''}
             onChange={(e) => setFooterData({...footerData, email: e.target.value})}
           />
           <div className="md:col-span-2">
@@ -211,26 +211,26 @@ function SiteSettings() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Input
                 label="Facebook"
-                value={footerData.social?.facebook || ''}
+                value={(footerData as any).social?.facebook || ''}
                 onChange={(e) => setFooterData({
                   ...footerData, 
-                  social: {...footerData.social, facebook: e.target.value}
+                  social: {...(footerData as any).social, facebook: e.target.value}
                 })}
               />
               <Input
                 label="Instagram"
-                value={footerData.social?.instagram || ''}
+                value={(footerData as any).social?.instagram || ''}
                 onChange={(e) => setFooterData({
                   ...footerData, 
-                  social: {...footerData.social, instagram: e.target.value}
+                  social: {...(footerData as any).social, instagram: e.target.value}
                 })}
               />
               <Input
                 label="Twitter"
-                value={footerData.social?.twitter || ''}
+                value={(footerData as any).social?.twitter || ''}
                 onChange={(e) => setFooterData({
                   ...footerData, 
-                  social: {...footerData.social, twitter: e.target.value}
+                  social: {...(footerData as any).social, twitter: e.target.value}
                 })}
               />
             </div>

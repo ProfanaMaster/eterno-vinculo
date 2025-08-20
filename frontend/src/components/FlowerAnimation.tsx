@@ -4,7 +4,7 @@ interface FlowerAnimationProps {
   accentColor: string
 }
 
-export default function FlowerAnimation({ accentColor }: FlowerAnimationProps) {
+export default function FlowerAnimation({ }: FlowerAnimationProps) {
   const [showFlowers, setShowFlowers] = useState(false)
 
   useEffect(() => {
