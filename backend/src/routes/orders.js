@@ -16,6 +16,10 @@ router.post('/', async (req, res) => {
 
     const user = await getUserFromToken(token);
     
+    if (!user) {
+      return res.status(401).json({ error: 'Token inválido' });
+    }
+    
     const {
       package_id,
       amount,
@@ -92,6 +96,10 @@ router.get('/', async (req, res) => {
     }
 
     const user = await getUserFromToken(token);
+    
+    if (!user) {
+      return res.status(401).json({ error: 'Token inválido' });
+    }
 
     const { data: orders, error } = await supabaseAdmin
       .from('orders')
