@@ -4,6 +4,7 @@ import { useProfiles } from '@/hooks/useProfiles'
 import { api } from '@/services/api'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import ConfirmModal from '@/components/ui/ConfirmModal'
+import MemoriesManager from '@/components/MemoriesManager'
 
 interface Order {
   id: string
@@ -177,7 +178,13 @@ function UserDashboard() {
           </div>
         )}
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
+          {/* Gestión de Recuerdos - Solo si tiene memorial */}
+          {hasMemorial && memorials?.[0] && (
+            <MemoriesManager profileId={memorials[0].id} />
+          )}
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Mis Órdenes */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-semibold mb-4">Mis Órdenes</h2>
@@ -287,6 +294,7 @@ function UserDashboard() {
                 </button>
               </div>
             )}
+          </div>
           </div>
         </div>
       </div>

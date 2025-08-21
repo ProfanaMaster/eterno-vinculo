@@ -6,6 +6,7 @@ import ImageModal from '@/components/ImageModal'
 import { ResponsiveBackground } from '@/components/ui'
 import { sanitizeText } from '@/utils/sanitize'
 import TemplateBackground from '@/components/profile/TemplateBackground'
+import MemoryWall from '@/components/MemoryWall'
 
 interface Profile {
   id: string
@@ -253,6 +254,12 @@ export default function PublicProfile() {
         <FavoriteMusic 
           favoriteMusic={profile.favorite_music || ''} 
           accentColor={templateStyles.accent}
+        />
+
+        {/* 5. Muro de los Recuerdos */}
+        <MemoryWall 
+          profileId={profile.id}
+          profileName={profile.profile_name}
         />
 
         {/* Footer decorativo */}

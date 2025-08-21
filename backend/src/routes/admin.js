@@ -325,7 +325,7 @@ router.put('/users/:id', requireAdmin, async (req, res) => {
 
 /**
  * DELETE /api/admin/users/:id
- * Eliminar usuario
+ * Eliminar usuario y todos sus archivos multimedia
  */
 router.delete('/users/:id', requireAdmin, async (req, res) => {
   try {
@@ -342,11 +342,79 @@ router.delete('/users/:id', requireAdmin, async (req, res) => {
       return res.status(403).json({ error: 'No puedes eliminar un super_admin' });
     }
 
+    // Obtener todos los perfiles del usuario para eliminar archivos
+    const { data: profiles } = await supabaseAdmin
+      .from('memorial_profiles')
+      .select('profile_image_url, banner_image_url, gallery_images, memorial_video_url')
+      .eq('user_id', id);
+
+    // Obtener recuerdos del usuario para eliminar fotos
+    const { data: memories } = await supabaseAdmin
+      .from('memories')
+      .select('photo_url')
+      .in('memorial_profile_id', 
+        profiles?.map(p => p.id) || []
+      );
+
+    // Recopilar todas las URLs de archivos a eliminar
+    const filesToDelete = [];
+    
+    if (profiles) {
+      profiles.forEach(profile => {
+        // Imagen de perfil
+        if (profile.profile_image_url) {
+          const fileName = profile.profile_image_url.split('/').pop();
+          if (fileName) filesToDelete.push({ bucket: 'uploads', file: fileName });
+        }
+        
+        // Banner
+        if (profile.banner_image_url) {
+          const fileName = profile.banner_image_url.split('/').pop();
+          if (fileName) filesToDelete.push({ bucket: 'uploads', file: fileName });
+        }
+        
+        // Video memorial
+        if (profile.memorial_video_url) {
+          const fileName = profile.memorial_video_url.split('/').pop();
+          if (fileName) filesToDelete.push({ bucket: 'uploads', file: fileName });
+        }
+        
+        // Galería de imágenes
+        if (profile.gallery_images && Array.isArray(profile.gallery_images)) {
+          profile.gallery_images.forEach(imageUrl => {
+            const fileName = imageUrl.split('/').pop();
+            if (fileName) filesToDelete.push({ bucket: 'uploads', file: fileName });
+          });
+        }
+      });
+    }
+    
+    // Fotos de recuerdos
+    if (memories) {
+      memories.forEach(memory => {
+        if (memory.photo_url) {
+          const fileName = memory.photo_url.split('/').pop();
+          if (fileName) filesToDelete.push({ bucket: 'memories', file: fileName });
+        }
+      });
+    }
+
+    // Eliminar archivos del storage
+    for (const fileInfo of filesToDelete) {
+      try {
+        await supabaseAdmin.storage
+          .from(fileInfo.bucket)
+          .remove([fileInfo.file]);
+      } catch (storageError) {
+        console.warn(`Error eliminando archivo ${fileInfo.file}:`, storageError);
+      }
+    }
+
     // Eliminar de Supabase Auth
     const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(id);
     if (authError) throw authError;
 
-    // Eliminar de la tabla users
+    // Eliminar de la tabla users (las cascadas eliminarán el resto)
     const { error } = await supabaseAdmin
       .from('users')
       .delete()
@@ -356,7 +424,7 @@ router.delete('/users/:id', requireAdmin, async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Usuario eliminado exitosamente'
+      message: `Usuario eliminado exitosamente. Se eliminaron ${filesToDelete.length} archivos multimedia.`
     });
   } catch (error) {
     console.error('Error deleting user:', error);

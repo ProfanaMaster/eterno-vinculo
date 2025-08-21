@@ -10,6 +10,7 @@ import CreateProfile from '@/pages/CreateProfile'
 import PublicProfile from '@/pages/profile/PublicProfile'
 import PreviewProfile from '@/pages/profile/PreviewProfile'
 
+
 function App() {
   const { checkAuth } = useAuthStore()
 
@@ -34,6 +35,7 @@ function App() {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/memorial/:slug" element={<PublicProfile />} />
           <Route path="/preview/:slug" element={<PreviewProfile />} />
+
         </Routes>
       </Router>
     </SettingsProvider>
