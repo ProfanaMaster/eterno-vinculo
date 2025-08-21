@@ -109,10 +109,10 @@ export default function PreviewProfile() {
               {profile.is_published ? '🌐 Publicado' : '📝 Borrador'}
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             <button
               onClick={() => navigate('/dashboard')}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              className="px-3 py-2 text-gray-600 hover:text-gray-800 text-sm sm:text-base"
             >
               ← Dashboard
             </button>
@@ -124,18 +124,20 @@ export default function PreviewProfile() {
                     navigator.clipboard.writeText(url)
                     alert('Enlace copiado al portapapeles')
                   }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                  className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-1 sm:gap-2 text-sm sm:text-base"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
                   </svg>
-                  Compartir
+                  <span className="hidden sm:inline">Compartir</span>
+                  <span className="sm:hidden">📤</span>
                 </button>
                 <button
                   onClick={() => window.open(`/memorial/${profile.slug}`, '_blank')}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm sm:text-base whitespace-nowrap"
                 >
-                  Ver Público
+                  <span className="hidden sm:inline">Ver Público</span>
+                  <span className="sm:hidden">👁️</span>
                 </button>
               </>
             )}
