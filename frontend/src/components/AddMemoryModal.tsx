@@ -100,21 +100,27 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
       // Filtrar items vacíos de la lista
       const filteredThings = thingsList.filter(item => item.trim() !== '')
 
-      // Guardar en base de datos
-      const { error } = await supabase
-        .from('memories')
-        .insert({
+      // Guardar usando endpoint público
+      const response = await fetch('/api/memories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
           memorial_profile_id: profileId,
           photo_url: photoUrl,
           author_name: sanitizedName,
           message: sanitizedMessage,
           song: sanitizedSong || null,
-          things_list: filteredThings.map(item => sanitizeInput(item)),
-          is_authorized: formData.is_authorized,
-          likes: 0
+          things_list: filteredThings.map(item => sanitizeInput(item))
         })
+      })
 
-      if (error) throw error
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al enviar el recuerdo')
+      }
 
       // Resetear formulario
       setFormData({
