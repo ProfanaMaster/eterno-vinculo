@@ -101,7 +101,8 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
       const filteredThings = thingsList.filter(item => item.trim() !== '')
 
       // Guardar usando endpoint público
-      const response = await fetch('/api/memories', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api'
+      const response = await fetch(`${API_URL}/memories`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -116,11 +117,13 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
         })
       })
 
-      const data = await response.json()
-
       if (!response.ok) {
-        throw new Error(data.error || 'Error al enviar el recuerdo')
+        const errorText = await response.text()
+        console.error('Error response:', errorText)
+        throw new Error('Error al enviar el recuerdo')
       }
+      
+      const data = await response.json()
 
       // Resetear formulario
       setFormData({
