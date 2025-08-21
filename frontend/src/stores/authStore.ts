@@ -74,22 +74,30 @@ export const useAuthStore = create<AuthState>()(
 
             if (error) {
               console.error('Supabase auth error:', error)
-              // Manejar diferentes tipos de errores
-              let errorMessage = 'Error al iniciar sesión'
               
+              // Si es "Invalid login credentials", verificar si el usuario existe pero no está confirmado
               if (error.message.includes('Invalid login credentials')) {
-                errorMessage = 'Email o contraseña incorrectos'
+                // Verificar si el usuario existe en la tabla users
+                const { data: existingUser } = await supabase
+                  .from('users')
+                  .select('email, email_verified')
+                  .eq('email', email)
+                  .single()
+                
+                if (existingUser && !existingUser.email_verified) {
+                  throw new Error('Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada y haz clic en el enlace de confirmación.')
+                } else if (existingUser) {
+                  throw new Error('Contraseña incorrecta')
+                } else {
+                  throw new Error('No existe una cuenta con este email')
+                }
               } else if (error.message.includes('Email not confirmed')) {
-                errorMessage = 'Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.'
+                throw new Error('Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.')
               } else if (error.message.includes('Too many requests')) {
-                errorMessage = 'Demasiados intentos. Intenta nuevamente en unos minutos'
-              } else if (error.message.includes('User not found')) {
-                errorMessage = 'No existe una cuenta con este email'
+                throw new Error('Demasiados intentos. Intenta nuevamente en unos minutos')
               } else {
-                errorMessage = `Error: ${error.message}`
+                throw new Error(`Error: ${error.message}`)
               }
-              
-              throw new Error(errorMessage)
             }
 
             // Obtener datos adicionales del usuario
