@@ -20,9 +20,11 @@ const SessionManager = () => {
         
         // Si está en una ruta protegida, redirigir al home
         const protectedRoutes = ['/dashboard', '/create', '/create-memorial', '/edit', '/admin']
+        const publicRoutes = ['/memorial/']
         const isProtectedRoute = protectedRoutes.some(route => location.pathname.startsWith(route))
+        const isPublicRoute = publicRoutes.some(route => location.pathname.startsWith(route))
         
-        if (isProtectedRoute) {
+        if (isProtectedRoute && !isPublicRoute) {
           navigate('/', { replace: true })
         }
       } else if (event === 'TOKEN_REFRESHED') {
@@ -38,9 +40,11 @@ const SessionManager = () => {
         // Sesión expirada
         await logout()
         const protectedRoutes = ['/dashboard', '/create', '/create-memorial', '/edit', '/admin']
+        const publicRoutes = ['/memorial/']
         const isProtectedRoute = protectedRoutes.some(route => location.pathname.startsWith(route))
+        const isPublicRoute = publicRoutes.some(route => location.pathname.startsWith(route))
         
-        if (isProtectedRoute) {
+        if (isProtectedRoute && !isPublicRoute) {
           navigate('/', { replace: true })
         }
       }
