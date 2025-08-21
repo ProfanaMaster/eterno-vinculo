@@ -245,7 +245,6 @@ router.get('/my-profiles', profilesRateLimit, requireAuth, async (req, res) => {
 router.get('/public/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
-    console.log('Buscando perfil público con slug:', slug);
 
     const { data: profile, error } = await supabaseAdmin
       .from('memorial_profiles')
@@ -255,10 +254,7 @@ router.get('/public/:slug', async (req, res) => {
       .is('deleted_at', null)
       .single();
 
-    console.log('Resultado de búsqueda:', { profile: !!profile, error });
-
     if (error || !profile) {
-      console.log('Memorial no encontrado para slug:', slug);
       return res.status(404).json({ error: 'Memorial no encontrado o no publicado' });
     }
 

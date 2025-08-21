@@ -56,12 +56,17 @@ const SessionManager = () => {
     }
   }, [])
 
-  // Manejar URLs con /login
+  // Manejar URLs con /login y excluir rutas públicas
   useEffect(() => {
     if (location.pathname === '/login') {
       navigate('/', { replace: true })
     }
   }, [location.pathname])
+
+  // No hacer nada si estamos en una ruta pública
+  if (location.pathname.startsWith('/memorial/')) {
+    return null
+  }
 
   return null
 }
