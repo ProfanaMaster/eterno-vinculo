@@ -40,19 +40,19 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
           .from('orders')
           .select('*', { count: 'exact', head: true })
 
-        // Obtener órdenes pendientes (sin pagar)
+        // Obtener órdenes pendientes (sin verificar)
         const { count: pendingCount } = await supabase
           .from('orders')
           .select('*', { count: 'exact', head: true })
-          .is('paid_at', null)
+          .eq('status', 'pending_verification')
 
         // Obtener ingresos totales
         const { data: paidOrders } = await supabase
           .from('orders')
-          .select('total_amount')
-          .not('paid_at', 'is', null)
+          .select('amount')
+          .in('status', ['verified', 'completed'])
 
-        const totalRevenue = paidOrders?.reduce((sum, order) => sum + (parseFloat(order.total_amount) || 0), 0) || 0
+        const totalRevenue = paidOrders?.reduce((sum, order) => sum + (order.amount || 0), 0) || 0
 
         setData({
           users: usersCount || 0,
@@ -64,12 +64,12 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
         // Obtener actividad reciente
         const activities: RecentActivity[] = []
         
-        // Últimas órdenes pagadas
+        // Últimas órdenes verificadas
         const { data: recentPaidOrders } = await supabase
           .from('orders')
           .select('*, users(email)')
-          .not('paid_at', 'is', null)
-          .order('paid_at', { ascending: false })
+          .in('status', ['verified', 'completed'])
+          .order('verified_at', { ascending: false })
           .limit(3)
         
         recentPaidOrders?.forEach(order => {
@@ -77,8 +77,8 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
             id: order.id,
             type: 'payment',
             message: 'Pago verificado',
-            details: `Usuario: ${order.users?.email} - $${parseFloat(order.total_amount || 0).toLocaleString()}`,
-            created_at: order.paid_at
+            details: `Usuario: ${order.users?.email} - $${(order.amount / 100).toLocaleString()}`,
+            created_at: order.verified_at || order.updated_at
           })
         })
         
@@ -103,7 +103,7 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
         const { data: recentPendingOrders } = await supabase
           .from('orders')
           .select('*, users(email)')
-          .is('paid_at', null)
+          .eq('status', 'pending_verification')
           .order('created_at', { ascending: false })
           .limit(2)
         
@@ -165,7 +165,7 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
     },
     {
       name: 'Ingresos Totales',
-      value: `$${(data?.total_revenue || 0).toLocaleString()}`,
+      value: `$${((data?.total_revenue || 0) / 100).toLocaleString()}`,
       icon: '💰',
       color: 'bg-purple-500',
       change: '+15%'

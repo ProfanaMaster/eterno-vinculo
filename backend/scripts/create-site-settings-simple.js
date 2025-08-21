@@ -122,7 +122,7 @@ async function createSiteSettingsTable() {
           currency: 'COP',
           features: [
             'Perfil memorial personalizado',
-            'Galería de fotos ilimitada',
+            'Galería de fotos',
             'Videos conmemorativos',
             'Código QR personalizado',
             'Libro de condolencias digital',

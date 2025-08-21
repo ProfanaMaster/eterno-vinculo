@@ -40,6 +40,22 @@ export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
       (set, get) => ({
+        // Listener para cambios de autenticación
+        _setupAuthListener: () => {
+          supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+              // Recargar datos del usuario cuando se confirma el email
+              const { checkAuth } = get()
+              await checkAuth()
+            } else if (event === 'SIGNED_OUT') {
+              set({ 
+                user: null, 
+                isAuthenticated: false,
+                error: null 
+              })
+            }
+          })
+        },
         // Estado inicial
         user: null,
         isAuthenticated: false,
@@ -262,6 +278,33 @@ export const useAuthStore = create<AuthState>()(
                   loading: false,
                   error: null
                 })
+              } else if (userError?.code === 'PGRST116') {
+                // Usuario no existe en tabla users, crearlo
+                const { error: insertError } = await supabase
+                  .from('users')
+                  .insert({
+                    id: session.user.id,
+                    email: session.user.email,
+                    first_name: session.user.user_metadata?.name?.split(' ')[0] || '',
+                    last_name: session.user.user_metadata?.name?.split(' ').slice(1).join(' ') || ''
+                  })
+                
+                if (!insertError) {
+                  const user: User = {
+                    id: session.user.id,
+                    email: session.user.email!,
+                    name: session.user.user_metadata?.name || session.user.email!.split('@')[0]
+                  }
+                  
+                  set({ 
+                    user, 
+                    isAuthenticated: true, 
+                    loading: false,
+                    error: null
+                  })
+                } else {
+                  set({ loading: false })
+                }
               } else {
                 set({ loading: false })
               }

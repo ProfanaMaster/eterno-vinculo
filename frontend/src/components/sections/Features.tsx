@@ -3,7 +3,7 @@ function Features() {
     {
       icon: "🎨",
       title: "Diseño Personalizado",
-      description: "Elige entre múltiples plantillas elegantes o personaliza completamente el diseño de tu memorial."
+      description: "Elige entre múltiples plantillas elegantes y selecciona la que más te guste."
     },
     {
       icon: "📱",

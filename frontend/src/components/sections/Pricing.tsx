@@ -90,9 +90,7 @@ function Pricing() {
           </p>
           
           {/* Money back guarantee */}
-          <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
-            ✅ Garantía de devolución de 30 días
-          </div>
+          
         </div>
 
         <div className="max-w-lg mx-auto">
