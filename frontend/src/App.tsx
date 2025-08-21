@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { SettingsProvider } from '@/contexts/SettingsContext'
+import SessionManager from '@/components/SessionManager'
 import Home from '@/pages/Home'
 import VerifyEmail from '@/pages/VerifyEmail'
 import AdminDashboard from '@/pages/AdminDashboard'
@@ -25,6 +26,7 @@ function App() {
   return (
     <SettingsProvider>
       <Router>
+        <SessionManager />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
