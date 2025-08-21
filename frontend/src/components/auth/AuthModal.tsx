@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Modal, Button, Input } from '@/components/ui'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -24,6 +24,9 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
   const [showSuccess, setShowSuccess] = useState(false)
 
   const { login, register, loading, error, clearError } = useAuthStore()
+
+  // Debug: mostrar estado actual
+  console.log('AuthModal state:', { loading, error, isOpen })
 
   /**
    * Validar formulario
@@ -138,6 +141,13 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
     onClose()
     resetForm()
   }
+
+  // Resetear loading cuando se abre el modal
+  React.useEffect(() => {
+    if (isOpen) {
+      useAuthStore.setState({ loading: false, error: null })
+    }
+  }, [isOpen])
 
   // Si el registro fue exitoso, mostrar mensaje de éxito
   if (showSuccess) {
