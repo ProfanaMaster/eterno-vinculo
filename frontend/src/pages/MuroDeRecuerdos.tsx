@@ -96,7 +96,7 @@ const MuroDeRecuerdos = ({ profileId, profileName, onOpenModal }: MuroDeRecuerdo
   }
 
   return (
-    <div className="min-h-screen relative py-8 bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-100">
+    <div className="min-h-screen relative py-8 bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-100 overflow-x-hidden">
       {/* Textura sutil fija */}
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform rotate-45"></div>
@@ -110,7 +110,7 @@ const MuroDeRecuerdos = ({ profileId, profileName, onOpenModal }: MuroDeRecuerdo
         <div className="absolute bottom-32 left-20 text-purple-200/30 text-lg">🌸</div>
         <div className="absolute bottom-20 right-12 text-purple-200/30 text-xl">🌺</div>
       </div>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-6 relative z-10 w-full">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight">
@@ -142,7 +142,7 @@ const MuroDeRecuerdos = ({ profileId, profileName, onOpenModal }: MuroDeRecuerdo
           </div>
         ) : (
           <motion.div 
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 w-full"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
