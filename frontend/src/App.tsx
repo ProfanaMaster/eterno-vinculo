@@ -14,14 +14,11 @@ function App() {
   const { checkAuth } = useAuthStore()
 
   useEffect(() => {
-    // Verificar autenticación al cargar la app
-    checkAuth()
-    
-    // Configurar listener de cambios de autenticación
-    const authStore = useAuthStore.getState()
-    if (authStore._setupAuthListener) {
-      authStore._setupAuthListener()
-    }
+    // Verificar autenticación inicial
+    checkAuth().catch(() => {
+      // Si falla, asegurar que loading sea false
+      useAuthStore.setState({ loading: false })
+    })
   }, [checkAuth])
 
   return (
