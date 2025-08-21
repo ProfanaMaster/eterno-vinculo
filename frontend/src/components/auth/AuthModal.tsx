@@ -246,6 +246,13 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
             className="w-full btn-primary"
             loading={loading}
             disabled={loading}
+            onClick={(e) => {
+              console.log('Botón clickeado', { loading, disabled: loading })
+              if (loading) {
+                e.preventDefault()
+                console.log('Click bloqueado por loading')
+              }
+            }}
           >
             {mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
           </Button>
