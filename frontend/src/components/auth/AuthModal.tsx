@@ -62,18 +62,25 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('Form submitted:', { mode, email: formData.email, hasPassword: !!formData.password })
     
     // Validar que los campos no estén vacíos antes de enviar
     if (!formData.email.trim() || !formData.password.trim()) {
+      console.log('Campos vacíos detectados')
       return
     }
     
     if (mode === 'register' && !formData.name.trim()) {
+      console.log('Nombre vacío en registro')
       return
     }
     
-    if (!validateForm()) return
+    if (!validateForm()) {
+      console.log('Validación fallida')
+      return
+    }
 
+    console.log('Iniciando proceso de autenticación...')
     try {
       if (mode === 'login') {
         await login(formData.email, formData.password)
