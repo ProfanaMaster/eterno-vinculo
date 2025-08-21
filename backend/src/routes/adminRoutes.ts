@@ -11,7 +11,7 @@ import {
 
 const router = Router()
 
-router.get('/dashboard', getDashboardStats)
+router.get('/stats', getDashboardStats)
 router.get('/orders', getOrders)
 router.patch('/orders/:id', updateOrderStatus)
 router.get('/qr-orders', getQROrders)

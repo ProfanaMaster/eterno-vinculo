@@ -7,11 +7,20 @@ const qrService = new QRService()
 
 export const getDashboardStats = catchAsync(async (req: Request, res: Response) => {
   try {
-    const [usersResult, ordersResult, profilesResult] = await Promise.allSettled([
+    const [usersResult, ordersResult, profilesResult, revenueResult] = await Promise.allSettled([
       supabaseAdmin.from('users').select('id', { count: 'exact', head: true }),
       supabaseAdmin.from('orders').select('id', { count: 'exact', head: true }),
-      supabaseAdmin.from('memorial_profiles').select('id', { count: 'exact', head: true })
+      supabaseAdmin.from('memorial_profiles').select('id', { count: 'exact', head: true }),
+      supabaseAdmin.from('orders').select('total_amount').eq('status', 'completed')
     ])
+
+    // Calcular ingresos totales
+    let totalRevenue = 0
+    if (revenueResult.status === 'fulfilled' && revenueResult.value.data) {
+      totalRevenue = revenueResult.value.data.reduce((sum: number, order: any) => {
+        return sum + (parseFloat(order.total_amount) || 0)
+      }, 0)
+    }
 
     res.json({
       success: true,
@@ -19,7 +28,7 @@ export const getDashboardStats = catchAsync(async (req: Request, res: Response) 
         users: usersResult.status === 'fulfilled' ? usersResult.value.count || 0 : 0,
         orders: ordersResult.status === 'fulfilled' ? ordersResult.value.count || 0 : 0,
         profiles: profilesResult.status === 'fulfilled' ? profilesResult.value.count || 0 : 0,
-        qr_orders: 0
+        revenue: totalRevenue
       }
     })
   } catch (error) {
@@ -29,7 +38,7 @@ export const getDashboardStats = catchAsync(async (req: Request, res: Response) 
         users: 0,
         orders: 0,
         profiles: 0,
-        qr_orders: 0
+        revenue: 0
       }
     })
   }

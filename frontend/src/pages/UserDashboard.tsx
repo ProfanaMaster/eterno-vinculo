@@ -48,8 +48,9 @@ function UserDashboard() {
     const subscription = supabase
       .channel('user_dashboard')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'orders' },
+        { event: '*', schema: 'public', table: 'orders', filter: `user_id=eq.${user.id}` },
         () => {
+          console.log('Orders updated, refetching...')
           setDataFetched(false)
           fetchOrders()
         }

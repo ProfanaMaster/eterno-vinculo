@@ -674,33 +674,7 @@ router.put('/orders/:id/verify', requireAdmin, async (req, res) => {
   }
 });
 
-/**
- * GET /api/admin/dashboard
- * Estadísticas del dashboard
- */
-router.get('/dashboard', requireAdmin, async (req, res) => {
-  try {
-    const [usersCount, ordersCount, pendingOrders, packagesCount] = await Promise.all([
-      supabaseAdmin.from('users').select('id', { count: 'exact' }),
-      supabaseAdmin.from('orders').select('id', { count: 'exact' }),
-      supabaseAdmin.from('orders').select('id', { count: 'exact' }).eq('status', 'pending'),
-      supabaseAdmin.from('packages').select('id', { count: 'exact' })
-    ]);
 
-    res.json({
-      success: true,
-      data: {
-        users: usersCount.count || 0,
-        orders: ordersCount.count || 0,
-        pending_orders: pendingOrders.count || 0,
-        packages: packagesCount.count || 0
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching dashboard stats:', error);
-    res.status(500).json({ error: 'Error al obtener estadísticas' });
-  }
-});
 
 /**
  * GET /api/admin/packages

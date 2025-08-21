@@ -165,7 +165,7 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
     },
     {
       name: 'Ingresos Totales',
-      value: `$${((data?.total_revenue || 0) / 100).toLocaleString()}`,
+      value: `$${(data?.total_revenue || 0).toLocaleString('es-CO')}`,
       icon: '💰',
       color: 'bg-purple-500',
       change: '+15%'
