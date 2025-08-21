@@ -24,14 +24,14 @@ function Pricing() {
     period: "pago único",
     description: pricingPlan.subtitle || "Todo lo que necesitas para honrar la memoria",
     features: pricingPlan.features || [
-      "Perfil memorial personalizado",
-      "Galería de fotos ilimitada",
+      "Perfil Memorial Personalizado",
+      "Galería de Fotos Ilimitada",
       "Videos conmemorativos",
-      "Código QR personalizado",
-      "Libro de condolencias digital",
-      "Acceso permanente",
-      "Soporte técnico incluido",
-      "Diseño profesional"
+      "Código QR Personalizado",
+      "Muro de los Recuerdos Digital",
+      "Acceso Permanente",
+      "Soporte Técnico Incluido",
+      "Diseño Profesional"
     ],
     cta: "Adquirir Memorial"
   }

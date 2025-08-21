@@ -22,7 +22,7 @@ function Features() {
     },
     {
       icon: "💬",
-      title: "Libro de Condolencias",
+      title: "Muro de los Recuerdos",
       description: "Permite que familiares y amigos dejen mensajes de condolencias y compartan recuerdos."
     },
     {
