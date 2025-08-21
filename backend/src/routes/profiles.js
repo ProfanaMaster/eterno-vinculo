@@ -5,15 +5,18 @@ import { supabaseAdmin } from '../config/supabase.js';
 // Función para obtener usuario desde token
 const getUserFromToken = async (token) => {
   try {
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    const { data: { user }, error } = await supabaseAdmin.auth.admin.getUserById(token);
     if (error) {
-      console.error('Error getting user from token:', error);
-      return null;
+      // Intentar con getUser si getUserById falla
+      const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
+      if (userError) {
+        throw new Error('Invalid token or user not found');
+      }
+      return userData.user;
     }
     return user;
   } catch (error) {
-    console.error('Exception getting user from token:', error);
-    return null;
+    throw new Error('Invalid token or user not found');
   }
 };
 
