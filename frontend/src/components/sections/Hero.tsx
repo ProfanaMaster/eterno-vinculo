@@ -54,6 +54,9 @@ function Hero() {
               {heroSettings.subtitle || 'Crea perfiles memoriales digitales únicos con fotos, videos y recuerdos. Comparte momentos especiales que perdurarán para siempre.'}
             </p>
 
+            {/* Botón Dashboard solo en móvil cuando hay sesión */}
+            <DashboardButton />
+            
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <button 
                 onClick={() => {
@@ -78,9 +81,6 @@ function Hero() {
                 {heroSettings.cta_secondary || '📖 Ver Ejemplos'}
               </button>
             </div>
-            
-            {/* Botón Dashboard solo en móvil cuando hay sesión */}
-            <DashboardButton />
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-6 pt-8 border-t">
