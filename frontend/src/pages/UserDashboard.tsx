@@ -176,6 +176,36 @@ function UserDashboard() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Aviso para usuarios sin órdenes */}
+        {(orders?.length || 0) === 0 && (
+          <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-blue-900">¡Bienvenido a Eterno Vínculo!</h3>
+                <p className="text-blue-700">
+                  Para poder empezar a crear tu memorial debes comprar el paquete
+                </p>
+              </div>
+            </div>
+            <div className="bg-blue-100 rounded-lg p-4">
+              <p className="text-sm text-blue-800 mb-3">
+                💝 Una vez realices el pago, podrás crear un hermoso memorial para honrar la memoria de tu ser querido.
+              </p>
+              <button
+                onClick={() => navigate('/#pricing')}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Ver Paquete Disponible
+              </button>
+            </div>
+          </div>
+        )}
+        
         {/* Mensaje de éxito de pago */}
         {showPaymentSuccess && (
           <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
@@ -221,7 +251,7 @@ function UserDashboard() {
               <div className="text-center py-8">
                 <p className="text-gray-500 mb-4">No tienes órdenes aún</p>
                 <button
-                  onClick={() => navigate('/create')}
+                  onClick={() => navigate('/#pricing')}
                   className="btn btn-primary"
                 >
                   Ver Paquetes
