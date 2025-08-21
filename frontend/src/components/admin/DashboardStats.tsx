@@ -40,19 +40,19 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
           .from('orders')
           .select('*', { count: 'exact', head: true })
 
-        // Obtener órdenes pendientes (sin verificar)
+        // Obtener órdenes pendientes
         const { count: pendingCount } = await supabase
           .from('orders')
           .select('*', { count: 'exact', head: true })
-          .eq('status', 'pending_verification')
+          .eq('status', 'pending')
 
         // Obtener ingresos totales
         const { data: paidOrders } = await supabase
           .from('orders')
-          .select('amount')
-          .in('status', ['verified', 'completed'])
+          .select('total_amount')
+          .eq('status', 'completed')
 
-        const totalRevenue = paidOrders?.reduce((sum, order) => sum + (order.amount || 0), 0) || 0
+        const totalRevenue = paidOrders?.reduce((sum, order) => sum + (parseFloat(order.total_amount) || 0), 0) || 0
 
         setData({
           users: usersCount || 0,
