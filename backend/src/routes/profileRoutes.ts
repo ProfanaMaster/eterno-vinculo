@@ -5,6 +5,7 @@ import {
   publishProfile, 
   getPublicProfile,
   getUserProfiles,
+  getProfile,
   getTemplates,
   deleteProfile,
   canCreateMemorial 
@@ -15,6 +16,7 @@ const router = Router()
 router.get('/can-create', canCreateMemorial)
 router.post('/', createProfile)
 router.get('/my-profiles', getUserProfiles)
+router.get('/:id', getProfile)
 router.put('/:id', updateProfile)
 router.delete('/:id', deleteProfile)
 router.post('/:id/publish', publishProfile)

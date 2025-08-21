@@ -138,6 +138,19 @@ export const getUserProfiles = catchAsync(async (req: Request, res: Response) =>
   })
 })
 
+// Obtener perfil por ID (para edición)
+export const getProfile = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params
+  const user_id = req.user?.id
+  
+  const profile = await profileService.getProfileById(id, user_id)
+  
+  res.json({
+    success: true,
+    data: profile
+  })
+})
+
 // Eliminar perfil
 export const deleteProfile = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params

@@ -257,6 +257,19 @@ export class ProfileService {
     return data
   }
 
+  async getProfileById(profileId: string, userId: string) {
+    const { data, error } = await supabase
+      .from('memorial_profiles')
+      .select('*')
+      .eq('id', profileId)
+      .eq('user_id', userId)
+      .is('deleted_at', null)
+      .single()
+
+    if (error || !data) throw new NotFoundError('Memorial Profile')
+    return data
+  }
+
   async getTemplates() {
     const { data, error } = await supabase
       .from('templates')

@@ -330,7 +330,7 @@ function CreateProfile() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nombre completo *
+                      Nombre de la persona que honras *
                     </label>
                     <input
                       type="text"
