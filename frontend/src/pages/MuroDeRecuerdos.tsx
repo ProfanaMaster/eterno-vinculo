@@ -20,9 +20,10 @@ interface Memory {
 interface MuroDeRecuerdosProps {
   profileId: string
   profileName: string
+  onOpenModal?: () => void
 }
 
-const MuroDeRecuerdos = ({ profileId, profileName }: MuroDeRecuerdosProps) => {
+const MuroDeRecuerdos = ({ profileId, profileName, onOpenModal }: MuroDeRecuerdosProps) => {
   const [memories, setMemories] = useState<Memory[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -143,21 +144,24 @@ const MuroDeRecuerdos = ({ profileId, profileName }: MuroDeRecuerdosProps) => {
           />
         ))}
       </div>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-8 overflow-hidden">
         {/* Header */}
-        <div className="text-center mb-6 sm:mb-8 px-2">
+        <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight">
             Muro de los Recuerdos
           </h1>
           <p className="text-xl sm:text-2xl font-semibold text-purple-700 mb-2">
             {profileName}
           </p>
-          <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base px-4">
+          <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base px-2">
             Comparte tus recuerdos y mantén viva la memoria
           </p>
           
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              console.log('Botón clickeado')
+              setIsModalOpen(true)
+            }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-colors text-sm sm:text-base"
           >
             + Dejar un Recuerdo

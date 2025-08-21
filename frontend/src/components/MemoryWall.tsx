@@ -63,7 +63,8 @@ const MemoryWall = ({ profileId, profileName }: MemoryWallProps) => {
             >
               <MuroDeRecuerdos 
                 profileId={profileId} 
-                profileName={profileName} 
+                profileName={profileName}
+                onOpenModal={() => {}} 
               />
             </motion.div>
             
