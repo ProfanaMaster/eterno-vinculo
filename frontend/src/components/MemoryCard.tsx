@@ -117,17 +117,16 @@ const MemoryCard = ({ memory, onLike }: MemoryCardProps) => {
               </div>
 
               {/* Imagen */}
-              <div className="relative group">
+              <div className="relative">
                 <img
                   src={memory.photo_url}
                   alt="Recuerdo"
-                  className="w-full h-64 object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105"
+                  className="w-full h-64 object-cover cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation()
                     setShowImageModal(true)
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
               </div>
 
               {/* Contenido completo */}

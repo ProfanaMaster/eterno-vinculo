@@ -132,25 +132,27 @@ function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       {/* Sidebar */}
-      <AdminSidebar 
-        currentView={currentView} 
-        onViewChange={setCurrentView} 
-      />
+      <div className="lg:w-64 lg:flex-shrink-0">
+        <AdminSidebar 
+          currentView={currentView} 
+          onViewChange={setCurrentView} 
+        />
+      </div>
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="bg-white shadow-sm border-b">
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-gray-900">
+          <div className="px-4 sm:px-6 py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-0">
                 Panel de Administración
               </h1>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 sm:space-x-4">
                 <NotificationBell />
-                <span className="text-sm text-gray-600">
+                <span className="text-xs sm:text-sm text-gray-600 hidden sm:block">
                   Bienvenido, {user?.name}
                 </span>
                 <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
@@ -164,7 +166,7 @@ function AdminDashboard() {
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           {renderCurrentView()}
         </main>
       </div>
