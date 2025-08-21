@@ -10,6 +10,9 @@ dotenv.config()
 const app = express()
 const PORT = process.env.PORT || 3002
 
+// Configurar trust proxy para Railway/producción
+app.set('trust proxy', 1)
+
 // Middleware de seguridad y parsing
 app.use(helmet())
 app.use(cors({

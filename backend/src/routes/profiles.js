@@ -29,7 +29,8 @@ const profilesRateLimit = rateLimit({
   max: 10, // máximo 10 requests por minuto
   message: { error: 'Demasiadas solicitudes, intenta de nuevo en un minuto' },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  trustProxy: true
 });
 
 // Middleware para verificar autenticación
