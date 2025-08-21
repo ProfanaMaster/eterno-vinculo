@@ -692,15 +692,9 @@ supabaseAdmin.from('orders').select('total_amount').eq('status', 'completed')
     // Calcular ingresos totales
     let totalRevenue = 0
     if (revenueResult.status === 'fulfilled' && revenueResult.value.data) {
-      console.log('Orders data:', revenueResult.value.data)
       totalRevenue = revenueResult.value.data.reduce((sum, order) => {
-        const amount = parseFloat(order.total_amount) || 0
-        console.log('Adding amount:', amount)
-        return sum + amount
+        return sum + (parseFloat(order.total_amount) || 0)
       }, 0)
-      console.log('Total revenue calculated:', totalRevenue)
-    } else {
-      console.log('Revenue result failed:', revenueResult)
     }
 
     res.json({
