@@ -73,15 +73,20 @@ export const useAuthStore = create<AuthState>()(
             })
 
             if (error) {
+              console.error('Supabase auth error:', error)
               // Manejar diferentes tipos de errores
               let errorMessage = 'Error al iniciar sesión'
               
               if (error.message.includes('Invalid login credentials')) {
                 errorMessage = 'Email o contraseña incorrectos'
               } else if (error.message.includes('Email not confirmed')) {
-                errorMessage = 'Debes verificar tu email antes de iniciar sesión'
+                errorMessage = 'Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.'
               } else if (error.message.includes('Too many requests')) {
                 errorMessage = 'Demasiados intentos. Intenta nuevamente en unos minutos'
+              } else if (error.message.includes('User not found')) {
+                errorMessage = 'No existe una cuenta con este email'
+              } else {
+                errorMessage = `Error: ${error.message}`
               }
               
               throw new Error(errorMessage)
