@@ -677,6 +677,49 @@ router.put('/orders/:id/verify', requireAdmin, async (req, res) => {
 
 
 /**
+ * GET /api/admin/stats
+ * Estadísticas del dashboard con ingresos
+ */
+router.get('/stats', requireAdmin, async (req, res) => {
+  try {
+    const [usersResult, ordersResult, profilesResult, revenueResult] = await Promise.allSettled([
+      supabaseAdmin.from('users').select('id', { count: 'exact', head: true }),
+      supabaseAdmin.from('orders').select('id', { count: 'exact', head: true }),
+      supabaseAdmin.from('memorial_profiles').select('id', { count: 'exact', head: true }),
+      supabaseAdmin.from('orders').select('total_amount').eq('status', 'completed')
+    ])
+
+    // Calcular ingresos totales
+    let totalRevenue = 0
+    if (revenueResult.status === 'fulfilled' && revenueResult.value.data) {
+      totalRevenue = revenueResult.value.data.reduce((sum, order) => {
+        return sum + (parseFloat(order.total_amount) || 0)
+      }, 0)
+    }
+
+    res.json({
+      success: true,
+      data: {
+        users: usersResult.status === 'fulfilled' ? usersResult.value.count || 0 : 0,
+        orders: ordersResult.status === 'fulfilled' ? ordersResult.value.count || 0 : 0,
+        profiles: profilesResult.status === 'fulfilled' ? profilesResult.value.count || 0 : 0,
+        revenue: totalRevenue
+      }
+    })
+  } catch (error) {
+    res.json({
+      success: true,
+      data: {
+        users: 0,
+        orders: 0,
+        profiles: 0,
+        revenue: 0
+      }
+    })
+  }
+})
+
+/**
  * GET /api/admin/packages
  * Obtener todos los paquetes
  */

@@ -63,10 +63,6 @@ router.use('/upload', uploadRouter)
 // Registrar rutas de admin
 router.use('/admin', adminRouter)
 
-// Registrar rutas adicionales de admin
-import adminRoutesTS from './adminRoutes.js'
-router.use('/admin', adminRoutesTS)
-
 // Registrar rutas de memories (públicas)
 import memoriesRouter from './memories.js'
 router.use('/memories', memoriesRouter)
