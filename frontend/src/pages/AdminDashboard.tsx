@@ -132,9 +132,9 @@ function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <div className="lg:w-64 lg:flex-shrink-0">
+      <div className="hidden lg:block lg:w-64 lg:flex-shrink-0">
         <AdminSidebar 
           currentView={currentView} 
           onViewChange={setCurrentView} 
