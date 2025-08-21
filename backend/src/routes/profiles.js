@@ -302,6 +302,104 @@ router.get('/preview/:slug', requireAuth, async (req, res) => {
 });
 
 /**
+ * GET /api/profiles/:id
+ * Obtener perfil por ID para edición
+ */
+router.get('/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user_id = req.user.id;
+
+    const { data: profile, error } = await supabaseAdmin
+      .from('memorial_profiles')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user_id)
+      .is('deleted_at', null)
+      .single();
+
+    if (error || !profile) {
+      return res.status(404).json({ error: 'Memorial no encontrado' });
+    }
+
+    res.json({
+      success: true,
+      data: profile
+    });
+
+  } catch (error) {
+    console.error('Error in GET /profiles/:id:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
+ * PUT /api/profiles/:id
+ * Actualizar memorial del usuario autenticado
+ */
+router.put('/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user_id = req.user.id;
+    const updateData = req.body;
+
+    // Verificar que el memorial pertenece al usuario
+    const { data: profile, error: fetchError } = await supabaseAdmin
+      .from('memorial_profiles')
+      .select('edit_count, max_edits')
+      .eq('id', id)
+      .eq('user_id', user_id)
+      .is('deleted_at', null)
+      .single();
+
+    if (fetchError || !profile) {
+      return res.status(404).json({ error: 'Memorial no encontrado' });
+    }
+
+    // Verificar límite de ediciones
+    const editCount = profile.edit_count || 0;
+    const maxEdits = profile.max_edits || 3;
+    
+    if (editCount >= maxEdits) {
+      return res.status(400).json({ 
+        error: 'Has alcanzado el límite de ediciones para este memorial' 
+      });
+    }
+
+    // Actualizar el memorial
+    const { data: updatedProfile, error: updateError } = await supabaseAdmin
+      .from('memorial_profiles')
+      .update({
+        ...updateData,
+        edit_count: editCount + 1,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('Error updating profile:', updateError);
+      return res.status(500).json({ error: 'Error al actualizar el memorial' });
+    }
+
+    // Limpiar cache al actualizar perfil
+    const cacheKey = `profiles_${user_id}`;
+    profilesCache.delete(cacheKey);
+
+    res.json({
+      success: true,
+      data: updatedProfile,
+      message: 'Memorial actualizado exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error in PUT /profiles/:id:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
  * DELETE /api/profiles/:id
  * Eliminar memorial del usuario autenticado
  */
