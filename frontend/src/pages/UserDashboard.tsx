@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { useProfiles } from '@/hooks/useProfiles'
 import { api } from '@/services/api'
+import { supabase } from '@/config/supabase'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import MemoriesManager from '@/components/MemoriesManager'
@@ -39,6 +40,33 @@ function UserDashboard() {
       navigate('/dashboard', { replace: true })
     }
   }, [user, navigate, dataFetched, searchParams])
+
+  // Suscripción en tiempo real
+  useEffect(() => {
+    if (!user) return
+
+    const subscription = supabase
+      .channel('user_dashboard')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'orders' },
+        () => {
+          setDataFetched(false)
+          fetchOrders()
+        }
+      )
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'memorial_profiles' },
+        () => {
+          // Recargar perfiles desde el hook
+          window.location.reload()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [user])
 
   const fetchOrders = async () => {
     if (dataFetched) return

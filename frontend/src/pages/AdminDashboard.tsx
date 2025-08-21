@@ -16,6 +16,31 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const { user, isAuthenticated } = useAuthStore()
 
+  // Suscripción en tiempo real para admin
+  useEffect(() => {
+    if (!isAuthorized) return
+
+    const subscription = supabase
+      .channel('admin_dashboard')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'users' },
+        () => window.location.reload()
+      )
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'orders' },
+        () => window.location.reload()
+      )
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'memorial_profiles' },
+        () => window.location.reload()
+      )
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [isAuthorized])
+
   useEffect(() => {
     const checkAdminAccess = async () => {
       if (!isAuthenticated || !user) {

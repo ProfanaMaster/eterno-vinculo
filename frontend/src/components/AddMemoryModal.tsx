@@ -23,6 +23,7 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
   const [showPhotoModal, setShowPhotoModal] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -126,7 +127,7 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
       const data = await response.json()
 
       // Mostrar mensaje de éxito
-      alert('Recuerdo enviado exitosamente. Se publicará una vez el creador del Perfil lo permita.')
+      setSuccess('Recuerdo enviado exitosamente. Se publicará una vez el creador del Perfil lo permita.')
       
       // Resetear formulario
       setFormData({
@@ -139,7 +140,11 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
       setPhoto(null)
       setPhotoPreview('')
 
-      onSuccess()
+      // Cerrar modal después de 3 segundos
+      setTimeout(() => {
+        onSuccess()
+        setSuccess('')
+      }, 3000)
     } catch (error: any) {
       setError(error.message)
     } finally {
@@ -179,6 +184,15 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md mb-4">
                 {error}
+              </div>
+            )}
+            
+            {success && (
+              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md mb-4">
+                <div className="flex items-center">
+                  <span className="mr-2">✓</span>
+                  {success}
+                </div>
               </div>
             )}
 
