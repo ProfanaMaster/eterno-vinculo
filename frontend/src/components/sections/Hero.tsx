@@ -1,4 +1,22 @@
 import { useSettings } from '@/contexts/SettingsContext'
+import { useAuthStore } from '@/stores/authStore'
+
+function DashboardButton() {
+  const { isAuthenticated } = useAuthStore()
+  
+  if (!isAuthenticated) return null
+  
+  return (
+    <div className="sm:hidden mb-6">
+      <button 
+        onClick={() => window.location.href = '/dashboard'}
+        className="btn btn-accent btn-lg w-full"
+      >
+        Entrar a Dashboard
+      </button>
+    </div>
+  )
+}
 
 function Hero() {
   const { settings, loading } = useSettings()
@@ -60,6 +78,9 @@ function Hero() {
                 {heroSettings.cta_secondary || '📖 Ver Ejemplos'}
               </button>
             </div>
+            
+            {/* Botón Dashboard solo en móvil cuando hay sesión */}
+            <DashboardButton />
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-6 pt-8 border-t">

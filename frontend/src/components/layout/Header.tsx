@@ -215,19 +215,9 @@ function Header() {
                       onClick={() => { handleCreateMemorial(); setIsMenuOpen(false) }}
                       className="btn btn-primary w-full"
                     >
-                      Crear Memorial Ahora
+                      Crear Memorial
                     </button>
                   </>
-                )}
-                
-                {/* Botón Dashboard adicional cuando hay sesión */}
-                {isAuthenticated && (
-                  <button 
-                    onClick={() => { window.location.href = '/dashboard'; setIsMenuOpen(false) }}
-                    className="btn btn-accent w-full mt-2"
-                  >
-                    Entrar a Dashboard
-                  </button>
                 )}
               </div>
             </nav>
