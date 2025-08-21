@@ -96,7 +96,7 @@ router.post('/', memoriesRateLimit, async (req, res) => {
       things_list: Array.isArray(things_list) 
         ? things_list.map(item => sanitizeText(item)).filter(item => item.length > 0).slice(0, 5)
         : [],
-      is_authorized: false, // Por defecto oculto hasta que el propietario lo autorice
+      is_authorized: false, // Siempre false - solo el propietario puede autorizar
       likes: 0
     };
 

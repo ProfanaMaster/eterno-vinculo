@@ -125,6 +125,9 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
       
       const data = await response.json()
 
+      // Mostrar mensaje de éxito
+      alert('Recuerdo enviado exitosamente. Se publicará una vez el creador del Perfil lo permita.')
+      
       // Resetear formulario
       setFormData({
         author_name: '',
