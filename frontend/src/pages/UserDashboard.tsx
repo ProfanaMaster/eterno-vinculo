@@ -221,7 +221,7 @@ function UserDashboard() {
               <div className="text-center py-8">
                 <p className="text-gray-500 mb-4">No tienes órdenes aún</p>
                 <button
-                  onClick={() => navigate('/')}
+                  onClick={() => navigate('/adquirir-memorial')}
                   className="btn btn-primary"
                 >
                   Ver Paquetes
