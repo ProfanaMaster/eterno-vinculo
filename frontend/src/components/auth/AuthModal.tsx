@@ -25,9 +25,6 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
 
   const { login, register, loading, error, clearError } = useAuthStore()
 
-  // Debug: mostrar estado actual
-  console.log('AuthModal state:', { loading, error, isOpen })
-
   /**
    * Validar formulario
    */
@@ -65,25 +62,17 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Form submitted:', { mode, email: formData.email, hasPassword: !!formData.password })
     
     // Validar que los campos no estén vacíos antes de enviar
     if (!formData.email.trim() || !formData.password.trim()) {
-      console.log('Campos vacíos detectados')
       return
     }
     
     if (mode === 'register' && !formData.name.trim()) {
-      console.log('Nombre vacío en registro')
       return
     }
     
-    if (!validateForm()) {
-      console.log('Validación fallida')
-      return
-    }
-
-    console.log('Iniciando proceso de autenticación...')
+    if (!validateForm()) return
     try {
       if (mode === 'login') {
         await login(formData.email, formData.password)
@@ -107,7 +96,6 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
     } catch (err) {
       // Error manejado por el store - el modal permanece abierto
       // para mostrar el mensaje de error
-      console.error('Error en autenticación:', err)
     }
   }
 
@@ -256,13 +244,7 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
             className="w-full btn-primary"
             loading={loading}
             disabled={loading}
-            onClick={(e) => {
-              console.log('Botón clickeado', { loading, disabled: loading })
-              if (loading) {
-                e.preventDefault()
-                console.log('Click bloqueado por loading')
-              }
-            }}
+
           >
             {mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
           </Button>

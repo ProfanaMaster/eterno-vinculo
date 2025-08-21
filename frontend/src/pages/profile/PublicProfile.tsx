@@ -73,7 +73,9 @@ export default function PublicProfile() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
+    // Agregar 'T00:00:00' para evitar problemas de zona horaria
+    const date = new Date(dateString + 'T00:00:00')
+    return date.toLocaleDateString('es-ES', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'

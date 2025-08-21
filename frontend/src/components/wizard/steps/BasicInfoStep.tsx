@@ -110,7 +110,7 @@ const BasicInfoStep = ({ onNext, canGoNext }: BasicInfoStepProps) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="md:col-span-2">
           <Input
-            label="Nombre completo"
+            label="Nombre de la persona que honras"
             placeholder="Ej: María Elena González"
             value={profileData.profile_name}
             onChange={(e) => handleFieldChange('profile_name', e.target.value)}

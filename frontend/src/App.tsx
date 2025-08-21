@@ -30,6 +30,7 @@ function App() {
           <Route path="/dashboard" element={<UserDashboard />} />
           <Route path="/create" element={<CreateProfile />} />
           <Route path="/create-memorial" element={<CreateProfile />} />
+          <Route path="/edit/:id" element={<CreateProfile />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/memorial/:slug" element={<PublicProfile />} />
           <Route path="/preview/:slug" element={<PreviewProfile />} />

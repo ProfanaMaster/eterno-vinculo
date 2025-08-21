@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 
 import { api } from '@/services/api'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import UploadService from '@/services/uploadService'
 import Toast from '@/components/Toast'
 import { sanitizeFilename } from '@/utils/sanitize'
@@ -10,8 +10,10 @@ import '@/styles/datepicker.css'
 function CreateProfile() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
 
   const navigate = useNavigate()
+  const { id } = useParams()
 
   useEffect(() => {
     // Plantillas hardcodeadas
@@ -41,7 +43,38 @@ function CreateProfile() {
         icons: ['🌻']
       }
     ])
-  }, [])
+    
+    // Si hay ID en la URL, es modo edición
+    if (id) {
+      setIsEditing(true)
+      loadMemorialData(id)
+    }
+  }, [id])
+  
+  const loadMemorialData = async (memorialId: string) => {
+    try {
+      setLoading(true)
+      const response = await api.get(`/profiles/${memorialId}`)
+      const memorial = response.data.data
+      
+      setFormData({
+        name: memorial.profile_name || '',
+        birthDate: memorial.birth_date || '',
+        deathDate: memorial.death_date || '',
+        description: memorial.description || '',
+        profileImage: null,
+        galleryImages: [],
+        video: null,
+        template_id: memorial.template_id || 'template-1',
+        favoriteMusic: memorial.favorite_music || ''
+      })
+    } catch (error) {
+      console.error('Error loading memorial:', error)
+      setToast({ message: 'Error al cargar el memorial', type: 'error', isVisible: true })
+    } finally {
+      setLoading(false)
+    }
+  }
   
   const [formData, setFormData] = useState({
     name: '',
@@ -193,10 +226,16 @@ function CreateProfile() {
         favorite_music: formData.favoriteMusic
       }
 
-      const response = await api.post('/profiles', profileData)
+      let response
+      if (isEditing && id) {
+        response = await api.put(`/profiles/${id}`, profileData)
+      } else {
+        response = await api.post('/profiles', profileData)
+      }
       
       if (response.data.success) {
-        setToast({ message: '¡Memorial creado exitosamente!', type: 'success', isVisible: true })
+        const message = isEditing ? '¡Memorial actualizado exitosamente!' : '¡Memorial creado exitosamente!'
+        setToast({ message, type: 'success', isVisible: true })
         setTimeout(() => navigate('/dashboard'), 2000)
       }
     } catch (error) {
@@ -260,7 +299,7 @@ function CreateProfile() {
       <div className="container">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Crear Perfil Memorial
+            {isEditing ? 'Editar Memorial' : 'Crear Perfil Memorial'}
           </h1>
           <p className="text-lg text-gray-600">
             Paso {step} de 3
@@ -318,7 +357,7 @@ function CreateProfile() {
                         type="date"
                         value={formData.birthDate}
                         onChange={(e) => handleInputChange('birthDate', e.target.value)}
-                        max={new Date().toISOString().split('T')[0]}
+                        max={new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}
                         className={`w-full px-4 py-3 border rounded-lg text-base focus:outline-none focus:ring-2 ${
                           showErrors && errors.birthDate 
                             ? 'border-red-500 focus:ring-red-500' 
@@ -343,7 +382,7 @@ function CreateProfile() {
                         value={formData.deathDate}
                         onChange={(e) => handleInputChange('deathDate', e.target.value)}
                         min={formData.birthDate}
-                        max={new Date().toISOString().split('T')[0]}
+                        max={new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}
                         className={`w-full px-4 py-3 border rounded-lg text-base focus:outline-none focus:ring-2 ${
                           showErrors && errors.deathDate 
                             ? 'border-red-500 focus:ring-red-500' 
@@ -362,7 +401,7 @@ function CreateProfile() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Plantilla de diseño *
+                      Selecciona una plantilla de diseño *
                     </label>
                     <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 ${
                       showErrors && errors.template_id ? 'border-2 border-red-200 rounded-lg p-2' : ''
@@ -406,13 +445,13 @@ function CreateProfile() {
                       placeholder="Ej: Imagine - John Lennon, o URL de YouTube"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      🎵 Puedes escribir el nombre de la canción o pegar un enlace de YouTube
+                      🎵 Debes pegar el vínculo o URL de la canción.
                     </p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Descripción inicial (opcional)
+                      Escribre un mensaje conmemorativo (opcional)
                     </label>
                     <textarea
                       value={formData.description}
@@ -632,7 +671,7 @@ function CreateProfile() {
                     disabled={loading || !formData.name || !formData.birthDate || !formData.deathDate}
                     className="btn btn-primary"
                   >
-                    {loading ? 'Creando...' : '🚀 Crear Memorial'}
+                    {loading ? (isEditing ? 'Actualizando...' : 'Creando...') : (isEditing ? '💾 Actualizar Memorial' : '🚀 Crear Memorial')}
                   </button>
                 )}
               </div>

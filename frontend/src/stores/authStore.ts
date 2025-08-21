@@ -73,8 +73,6 @@ export const useAuthStore = create<AuthState>()(
             })
 
             if (error) {
-              console.error('Supabase auth error:', error)
-              
               // Si es "Invalid login credentials", verificar si el usuario existe pero no está confirmado
               if (error.message.includes('Invalid login credentials')) {
                 // Verificar si el usuario existe en la tabla users

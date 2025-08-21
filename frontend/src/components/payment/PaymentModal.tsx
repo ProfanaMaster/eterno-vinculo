@@ -224,9 +224,10 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
             <Input
               label="Monto transferido"
+              type="number"
               value={paymentData.amount}
               onChange={(e) => setPaymentData(prev => ({ ...prev, amount: e.target.value }))}
-              placeholder={`$${total.toLocaleString()}`}
+              placeholder={`${total}`}
               required
             />
 
@@ -249,8 +250,8 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-yellow-800 text-sm">
-              ⏱️ <strong>Tiempo de validación:</strong> 2-24 horas hábiles. 
-              Te notificaremos por email cuando tu pago sea confirmado.
+              ⏱️ <strong>Tiempo de validación:</strong> Un máximo de 15 minutos. 
+              Refresca la página si no ves cambios.
             </p>
           </div>
 

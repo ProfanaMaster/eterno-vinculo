@@ -77,25 +77,19 @@ export default function PreviewProfile() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
+    // Agregar 'T00:00:00' para evitar problemas de zona horaria
+    const date = new Date(dateString + 'T00:00:00')
+    return date.toLocaleDateString('es-ES', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     })
   }
 
-  const getTemplateStyles = (templateId: string) => {
-    const templates = {
-      'general-1': {
-        card: 'bg-white/90 backdrop-blur rounded-lg shadow-md border border-gray-200',
-        accent: 'text-gray-700',
-        icons: ['🕊️', '🌿', '✨', '🤍']
-      }
-    }
-    return templates[templateId as keyof typeof templates] || templates['general-1']
+  const templateStyles = {
+    card: 'bg-white/90 backdrop-blur rounded-lg shadow-md border border-gray-200',
+    accent: 'text-gray-700'
   }
-
-  const templateStyles = getTemplateStyles(profile?.template_id || 'general-1')
 
   return (
     <ResponsiveBackground 
@@ -158,10 +152,8 @@ export default function PreviewProfile() {
               className="w-40 h-40 rounded-full object-cover border-4 border-white shadow-2xl mx-auto"
             />
             <div className="absolute -top-3 -right-3 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center border-2 border-gray-100">
-              <span className="text-xl">{templateStyles.icons[0]}</span>
+              <span className="text-xl">🕊️</span>
             </div>
-            <div className={`absolute inset-0 rounded-full border-3 ${templateStyles.accent.replace('text-', 'border-')} opacity-30`}></div>
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white to-transparent opacity-20 animate-pulse"></div>
           </div>
           
           <div className="relative">
@@ -178,12 +170,12 @@ export default function PreviewProfile() {
           <div className="mt-6 space-y-2">
             <div className="flex items-center justify-center gap-4 text-gray-700">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">🌅</span>
+                <span className="text-2xl">📖</span>
                 <span className="text-lg font-medium">{formatDate(profile.birth_date)}</span>
               </div>
               <div className="w-8 h-px bg-gradient-to-r from-gray-400 to-gray-600"></div>
               <div className="flex items-center gap-2">
-                <span className="text-2xl">🌆</span>
+                <span className="text-2xl">✝️</span>
                 <span className="text-lg font-medium">{formatDate(profile.death_date)}</span>
               </div>
             </div>
@@ -197,7 +189,7 @@ export default function PreviewProfile() {
         <div className="relative mb-8">
           <div className="h-1 bg-gradient-to-r from-gray-300 to-gray-400 rounded-full mx-8"></div>
           <div className="flex justify-center gap-6 -mt-4">
-            {templateStyles.icons.map((icon, index) => (
+            {['🕊️', '🌿', '✨', '🤍'].map((icon, index) => (
               <div key={index} className="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center">
                 <span className="text-lg">{icon}</span>
               </div>
@@ -209,7 +201,7 @@ export default function PreviewProfile() {
         {profile.description && (
           <div className={`${templateStyles.card} p-6 mb-8 relative overflow-hidden`}>
             <div className="absolute top-0 right-0 w-20 h-20 opacity-5">
-              <div className="text-6xl transform rotate-12">{templateStyles.icons[0]}</div>
+              <div className="text-6xl transform rotate-12">🕊️</div>
             </div>
             <h2 className={`text-xl font-semibold ${templateStyles.accent} mb-4 flex items-center gap-2`}>
               <span>🌹</span> En memoria
