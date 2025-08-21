@@ -30,36 +30,25 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Obtener total de usuarios
-        const { count: usersCount } = await supabase
-          .from('users')
-          .select('*', { count: 'exact', head: true })
-
-        // Obtener total de órdenes
-        const { count: ordersCount } = await supabase
-          .from('orders')
-          .select('*', { count: 'exact', head: true })
-
-        // Obtener órdenes pendientes
-        const { count: pendingCount } = await supabase
-          .from('orders')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'pending')
-
-        // Obtener ingresos totales
-        const { data: paidOrders } = await supabase
-          .from('orders')
-          .select('total_amount')
-          .eq('status', 'completed')
-
-        const totalRevenue = paidOrders?.reduce((sum, order) => sum + (parseFloat(order.total_amount) || 0), 0) || 0
-
-        setData({
-          users: usersCount || 0,
-          orders: ordersCount || 0,
-          pending_orders: pendingCount || 0,
-          total_revenue: totalRevenue
+        // Usar endpoint del backend
+        const token = (await supabase.auth.getSession()).data.session?.access_token
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api'
+        const response = await fetch(`${API_URL}/admin/stats`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         })
+        
+        const result = await response.json()
+        
+        if (result.success) {
+          setData({
+            users: result.data.users || 0,
+            orders: result.data.orders || 0,
+            pending_orders: 0, // No incluido en el endpoint
+            total_revenue: result.data.revenue || 0
+          })
+        }
 
         // Obtener actividad reciente
         const activities: RecentActivity[] = []
