@@ -30,6 +30,7 @@ export default function PreviewProfile() {
   const [error, setError] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [modalImageIndex, setModalImageIndex] = useState(0)
+  const [refreshKey] = useState(Date.now()) // Forzar actualización
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -86,14 +87,17 @@ export default function PreviewProfile() {
     })
   }
 
+  // Usar la misma configuración que PublicProfile
   const templateStyles = {
     card: 'bg-white/90 backdrop-blur rounded-lg shadow-md border border-gray-200',
-    accent: 'text-gray-700'
+    accent: 'text-gray-700',
+    icons: ['🕊️', '🌿', '✨', '🤍']
   }
 
   return (
     <ResponsiveBackground 
-      templateId={profile?.template_id || 'general-1'}
+      key={refreshKey}
+      templateId={profile?.template_id || 'template-1'}
       className="min-h-screen"
     >
       {/* Header privado */}
@@ -189,7 +193,7 @@ export default function PreviewProfile() {
         <div className="relative mb-8">
           <div className="h-1 bg-gradient-to-r from-gray-300 to-gray-400 rounded-full mx-8"></div>
           <div className="flex justify-center gap-6 -mt-4">
-            {['🕊️', '🌿', '✨', '🤍'].map((icon, index) => (
+            {templateStyles.icons.map((icon, index) => (
               <div key={index} className="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center">
                 <span className="text-lg">{icon}</span>
               </div>
@@ -201,7 +205,7 @@ export default function PreviewProfile() {
         {profile.description && (
           <div className={`${templateStyles.card} p-6 mb-8 relative overflow-hidden`}>
             <div className="absolute top-0 right-0 w-20 h-20 opacity-5">
-              <div className="text-6xl transform rotate-12">🕊️</div>
+              <div className="text-6xl transform rotate-12">{templateStyles.icons[0]}</div>
             </div>
             <h2 className={`text-xl font-semibold ${templateStyles.accent} mb-4 flex items-center gap-2`}>
               <span>🌹</span> En memoria

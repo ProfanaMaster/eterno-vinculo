@@ -538,23 +538,36 @@ function CreateProfile() {
                   </div>
                   
                   {/* Galería */}
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                  <div className={`border-2 border-dashed rounded-lg p-6 ${isEditing ? 'border-gray-200 bg-gray-50' : 'border-gray-300'}`}>
                     <div className="text-center mb-4">
-                      <div className="text-gray-400 mb-4">
+                      <div className={`mb-4 ${isEditing ? 'text-gray-400' : 'text-gray-400'}`}>
                         🖼️ Galería (hasta 6 fotos)
                       </div>
-                      <input
-                        type="file"
-                        accept=".jpg,.jpeg,.png"
-                        multiple
-                        onChange={(e) => handleFileChange('galleryImages', e.target.files)}
-                        className="hidden"
-                        id="galleryImages"
-                      />
-                      <label htmlFor="galleryImages" className="btn btn-secondary cursor-pointer">
-                        Agregar fotos ({formData.galleryImages.length}/6)
-                      </label>
-                      <p className="text-xs text-gray-500 mt-2">JPG/PNG • Máx. 5MB c/u</p>
+                      {isEditing ? (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <p className="text-yellow-800 text-sm mb-2">
+                            🚫 <strong>Función deshabilitada en edición</strong>
+                          </p>
+                          <p className="text-yellow-700 text-xs">
+                            Si deseas cargar más archivos, comunícate con soporte
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          <input
+                            type="file"
+                            accept=".jpg,.jpeg,.png"
+                            multiple
+                            onChange={(e) => handleFileChange('galleryImages', e.target.files)}
+                            className="hidden"
+                            id="galleryImages"
+                          />
+                          <label htmlFor="galleryImages" className="btn btn-secondary cursor-pointer">
+                            Agregar fotos ({formData.galleryImages.length}/6)
+                          </label>
+                          <p className="text-xs text-gray-500 mt-2">JPG/PNG • Máx. 5MB c/u</p>
+                        </>
+                      )}
                     </div>
                     
                     {formData.galleryImages.length > 0 && (
@@ -579,11 +592,20 @@ function CreateProfile() {
                   </div>
                   
                   {/* Video */}
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <div className="text-gray-400 mb-4">
+                  <div className={`border-2 border-dashed rounded-lg p-6 text-center ${isEditing ? 'border-gray-200 bg-gray-50' : 'border-gray-300'}`}>
+                    <div className={`mb-4 ${isEditing ? 'text-gray-400' : 'text-gray-400'}`}>
                       🎥 Video memorial (opcional)
                     </div>
-                    {formData.video ? (
+                    {isEditing ? (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <p className="text-yellow-800 text-sm mb-2">
+                          🚫 <strong>Función deshabilitada en edición</strong>
+                        </p>
+                        <p className="text-yellow-700 text-xs">
+                          Si deseas cargar más archivos, comunícate con soporte
+                        </p>
+                      </div>
+                    ) : formData.video ? (
                       <div className="space-y-3">
                         <p className="text-sm text-gray-600">{formData.video.name}</p>
                         <button 
