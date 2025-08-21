@@ -200,7 +200,7 @@ function UserDashboard() {
                 onClick={() => navigate('/#pricing')}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Ver Paquete Disponible
+                Ve a precios y adquiere tu paquete!
               </button>
             </div>
           </div>
