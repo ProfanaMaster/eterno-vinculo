@@ -143,19 +143,22 @@ const MuroDeRecuerdos = ({ profileId, profileName }: MuroDeRecuerdosProps) => {
           />
         ))}
       </div>
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Muro de los Recuerdos - {profileName}
+        <div className="text-center mb-6 sm:mb-8 px-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight">
+            Muro de los Recuerdos
           </h1>
-          <p className="text-gray-600 mb-6">
-            Comparte tus recuerdos y mantén viva la memoria de {profileName}
+          <p className="text-xl sm:text-2xl font-semibold text-purple-700 mb-2">
+            {profileName}
+          </p>
+          <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base px-4">
+            Comparte tus recuerdos y mantén viva la memoria
           </p>
           
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-colors text-sm sm:text-base"
           >
             + Dejar un Recuerdo
           </button>
@@ -163,16 +166,16 @@ const MuroDeRecuerdos = ({ profileId, profileName }: MuroDeRecuerdosProps) => {
 
         {/* Grid de recuerdos */}
         {loading ? (
-          <div className="flex justify-center py-12">
+          <div className="flex justify-center py-8 sm:py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : memories.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Aún no hay recuerdos compartidos</p>
+          <div className="text-center py-8 sm:py-12 px-4">
+            <p className="text-gray-500 text-sm sm:text-base">Aún no hay recuerdos compartidos</p>
           </div>
         ) : (
           <motion.div 
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
