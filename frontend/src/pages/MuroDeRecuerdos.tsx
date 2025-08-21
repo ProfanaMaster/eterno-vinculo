@@ -158,13 +158,8 @@ const MuroDeRecuerdos = ({ profileId, profileName, onOpenModal }: MuroDeRecuerdo
           </p>
           
           <button
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              console.log('Botón clickeado', { isModalOpen })
-              setIsModalOpen(true)
-            }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-colors text-sm sm:text-base relative z-10"
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-colors text-sm sm:text-base"
           >
             + Dejar un Recuerdo
           </button>
@@ -198,14 +193,10 @@ const MuroDeRecuerdos = ({ profileId, profileName, onOpenModal }: MuroDeRecuerdo
       {/* Modal para agregar recuerdo */}
       <AddMemoryModal
         isOpen={isModalOpen}
-        onClose={() => {
-          console.log('Cerrando modal')
-          setIsModalOpen(false)
-        }}
+        onClose={() => setIsModalOpen(false)}
         profileId={profileId}
         profileName={profileName}
         onSuccess={() => {
-          console.log('Recuerdo guardado exitosamente')
           setIsModalOpen(false)
           loadMemories()
         }}

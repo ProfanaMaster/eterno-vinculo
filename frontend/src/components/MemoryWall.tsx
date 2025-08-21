@@ -44,7 +44,7 @@ const MemoryWall = ({ profileId, profileName }: MemoryWallProps) => {
                 </div>
               ))}
             </div>
-            <div className="sticky top-0 bg-gradient-to-r from-white/98 via-purple-50/95 to-white/98 backdrop-blur-sm border-b border-purple-200/50 p-4 z-[10000] shadow-sm">
+            <div className="sticky top-0 bg-gradient-to-r from-white/98 via-purple-50/95 to-white/98 backdrop-blur-sm border-b border-purple-200/50 p-4 z-[100] shadow-sm">
               <button
                 onClick={() => setIsOpen(false)}
                 className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
