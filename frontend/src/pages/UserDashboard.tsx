@@ -208,30 +208,28 @@ function UserDashboard() {
           </div>
         )}
         
-        {/* Mensaje de enlace copiado */}
-        {showShareSuccess && (
-          <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
-            <div className="flex items-center mb-4">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-green-900">¡Enlace Copiado!</h3>
-                <p className="text-green-700">
-                  El enlace del memorial se ha copiado al portapapeles.
-                </p>
-              </div>
-              <button
-                onClick={() => setShowShareSuccess(false)}
-                className="ml-auto text-green-600 hover:text-green-800"
-              >
-                ×
-              </button>
+      {/* Toast flotante para enlace copiado */}
+      {showShareSuccess && (
+        <div className="fixed top-4 right-4 z-50 bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg max-w-sm">
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
             </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-green-900">¡Enlace Copiado!</h4>
+              <p className="text-xs text-green-700">Listo para compartir</p>
+            </div>
+            <button
+              onClick={() => setShowShareSuccess(false)}
+              className="ml-2 text-green-600 hover:text-green-800"
+            >
+              ×
+            </button>
           </div>
-        )}
+        </div>
+      )}
         
         {/* Mensaje de éxito de pago */}
         {showPaymentSuccess && (
@@ -330,15 +328,17 @@ function UserDashboard() {
               <div className="space-y-4">
                 {memorials?.map((memorial) => (
                   <div key={memorial.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex justify-between items-center">
-                      <div className="flex-1">
-                        <p className="font-medium text-lg">{memorial.profile_name}</p>
-                        <p className="text-sm text-gray-600 mb-2">
-                          {memorial.is_published ? '🌐 Publicado' : '📝 Borrador'}
-                        </p>
-                        <p className="text-xs text-gray-500">{formatDate(memorial.created_at)}</p>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-lg truncate">{memorial.profile_name}</p>
+                          <p className="text-sm text-gray-600">
+                            {memorial.is_published ? '🌐 Publicado' : '📝 Borrador'}
+                          </p>
+                          <p className="text-xs text-gray-500">{formatDate(memorial.created_at)}</p>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => navigate(`/edit/${memorial.id}`)}
                           className="flex items-center gap-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
