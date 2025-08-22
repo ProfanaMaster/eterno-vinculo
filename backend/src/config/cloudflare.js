@@ -3,7 +3,9 @@ import { S3Client } from '@aws-sdk/client-s3'
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post'
 import dotenv from 'dotenv'
 
+// Cargar variables de entorno ANTES de cualquier validación
 dotenv.config()
+console.log('🔧 dotenv.config() ejecutado en cloudflare.js')
 
 // Configuración de Cloudflare R2
 const R2_ENDPOINT = process.env.R2_ENDPOINT
