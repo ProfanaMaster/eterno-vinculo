@@ -125,7 +125,7 @@ function Footer() {
             <div className="flex items-center gap-4">
               <span className="text-gray-400 text-sm">Hecho con</span>
               <span className="text-red-500">❤️</span>
-              <span className="text-gray-400 text-sm">en México</span>
+              <span className="text-gray-400 text-sm">en Colombia</span>
             </div>
           </div>
         </div>

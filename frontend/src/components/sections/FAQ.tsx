@@ -88,9 +88,6 @@ function FAQ() {
               <button className="btn btn-primary">
                 📧 Contactar Soporte
               </button>
-              <button className="btn btn-secondary">
-                💬 Chat en Vivo
-              </button>
             </div>
           </div>
         </div>
