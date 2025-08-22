@@ -25,6 +25,7 @@ function UserDashboard() {
   const [dataFetched, setDataFetched] = useState(false)
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; memorialId: string | null }>({ isOpen: false, memorialId: null })
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
+  const [showShareSuccess, setShowShareSuccess] = useState(false)
 
   useEffect(() => {
     if (user && user.id && !dataFetched) {
@@ -207,6 +208,31 @@ function UserDashboard() {
           </div>
         )}
         
+        {/* Mensaje de enlace copiado */}
+        {showShareSuccess && (
+          <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-green-900">¡Enlace Copiado!</h3>
+                <p className="text-green-700">
+                  El enlace del memorial se ha copiado al portapapeles.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowShareSuccess(false)}
+                className="ml-auto text-green-600 hover:text-green-800"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
+        
         {/* Mensaje de éxito de pago */}
         {showPaymentSuccess && (
           <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
@@ -324,6 +350,17 @@ function UserDashboard() {
                           className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                         >
                           👁️ Ver
+                        </button>
+                        <button
+                          onClick={() => {
+                            const url = `${window.location.origin}/memorial/${memorial.slug}`
+                            navigator.clipboard.writeText(url)
+                            setShowShareSuccess(true)
+                            setTimeout(() => setShowShareSuccess(false), 3000)
+                          }}
+                          className="flex items-center gap-1 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                        >
+                          📤 Compartir
                         </button>
                         <button 
                           onClick={() => handleDeleteClick(memorial.id)}
