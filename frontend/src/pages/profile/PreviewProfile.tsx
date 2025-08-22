@@ -87,12 +87,23 @@ export default function PreviewProfile() {
     })
   }
 
-  // Usar la misma configuración que PublicProfile
-  const templateStyles = {
-    card: 'bg-white/90 backdrop-blur rounded-lg shadow-md border border-gray-200',
-    accent: 'text-gray-700',
-    icons: ['🕊️', '🌿', '✨', '🤍']
+  const getTemplateStyles = (templateId: string) => {
+    const templates = {
+      'general-1': {
+        card: 'bg-white/90 backdrop-blur rounded-lg shadow-md border border-gray-200',
+        accent: 'text-gray-700',
+        icons: ['🕊️', '🌿', '✨', '🤍'],
+        decorativeElements: {
+          profileBadge: '🕊️',
+          cornerPattern: 'peace-dove',
+          headerIcon: '🌿'
+        }
+      }
+    }
+    return templates[templateId as keyof typeof templates] || templates['general-1']
   }
+
+  const templateStyles = getTemplateStyles(profile?.template_id || 'general-1')
 
   return (
     <ResponsiveBackground 
@@ -158,7 +169,7 @@ export default function PreviewProfile() {
               className="w-40 h-40 rounded-full object-cover border-4 border-white shadow-2xl mx-auto"
             />
             <div className="absolute -top-3 -right-3 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center border-2 border-gray-100">
-              <span className="text-xl">🕊️</span>
+              <span className="text-xl">{templateStyles.decorativeElements?.profileBadge || '🕊️'}</span>
             </div>
           </div>
           
@@ -166,10 +177,16 @@ export default function PreviewProfile() {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
             </div>
-            <div className="relative bg-white px-8 py-2 inline-block">
-              <h1 className={`text-4xl font-serif ${templateStyles.accent} tracking-wide`}>
-                {profile.profile_name}
-              </h1>
+            <div className="relative inline-block">
+              <div className="absolute -inset-8 bg-gradient-to-r from-yellow-300/60 via-amber-400/70 to-yellow-300/60 blur-2xl rounded-full animate-pulse"></div>
+              <div className="absolute -inset-4 bg-gradient-to-r from-amber-300/50 via-yellow-200/60 to-amber-300/50 blur-xl rounded-full"></div>
+              <div className="absolute -inset-2 bg-gradient-to-r from-yellow-200/40 via-amber-100/50 to-yellow-200/40 blur-lg rounded-full"></div>
+              
+              <div className="relative z-10 bg-gradient-to-br from-white/98 via-amber-50/95 to-white/98 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border border-amber-300/60">
+                <h1 className="text-4xl font-serif text-gray-800 tracking-wide font-bold drop-shadow-lg">
+                  {profile.profile_name}
+                </h1>
+              </div>
             </div>
           </div>
           

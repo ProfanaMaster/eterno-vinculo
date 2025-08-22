@@ -112,18 +112,7 @@ const MuroDeRecuerdos = ({ profileId, profileName, onOpenModal }: MuroDeRecuerdo
       </div>
       <div className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-6 relative z-10 w-full">
         {/* Header */}
-        <div className="text-center mb-6 sm:mb-8 relative">
-          {/* Botón regresar */}
-          <button
-            onClick={() => window.history.back()}
-            className="absolute left-0 top-0 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            <span className="text-sm font-medium">Regresar al perfil</span>
-          </button>
-          
+        <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight">
             Muro de los Recuerdos
           </h1>
