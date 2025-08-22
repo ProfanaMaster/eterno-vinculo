@@ -12,10 +12,20 @@ const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY
 const BUCKET_NAME = process.env.R2_BUCKET_NAME || 'eternovinculo-media'
 const CDN_URL = process.env.R2_PUBLIC_URL || 'https://pub-6a50d2dd90e14a1ab5d78f934e4d65c9.r2.dev'
 
+// Debug: Mostrar variables para diagnosticar
+console.log('🔍 Debug R2 Variables:')
+console.log('R2_ENDPOINT:', process.env.R2_ENDPOINT ? 'SET' : 'NOT SET')
+console.log('R2_ACCESS_KEY_ID:', process.env.R2_ACCESS_KEY_ID ? 'SET' : 'NOT SET')
+console.log('R2_SECRET_ACCESS_KEY:', process.env.R2_SECRET_ACCESS_KEY ? 'SET' : 'NOT SET')
+
 // Validar variables de entorno requeridas
 if (!R2_ENDPOINT || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
   console.error('❌ Variables de entorno R2 requeridas no configuradas')
   console.error('Configurar: R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY')
+  console.error('Valores actuales:')
+  console.error('R2_ENDPOINT:', R2_ENDPOINT || 'undefined')
+  console.error('R2_ACCESS_KEY_ID:', R2_ACCESS_KEY_ID || 'undefined')
+  console.error('R2_SECRET_ACCESS_KEY:', R2_SECRET_ACCESS_KEY ? '[HIDDEN]' : 'undefined')
   process.exit(1)
 }
 
