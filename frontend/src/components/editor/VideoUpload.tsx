@@ -17,7 +17,7 @@ interface VideoUploadProps {
 const VideoUpload = ({ 
   currentVideo, 
   onVideoUploaded, 
-  maxSize = 50, 
+  maxSize = 65, 
   maxDuration = 180 
 }: VideoUploadProps) => {
   const [video, setVideo] = useState<string | null>(currentVideo || null)

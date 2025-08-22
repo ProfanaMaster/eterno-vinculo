@@ -24,6 +24,7 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -55,22 +56,14 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
     setThingsList(thingsList.filter((_, i) => i !== index))
   }
 
+  const [uploadProgress, setUploadProgress] = useState(0)
+
   const uploadPhoto = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${Date.now()}.${fileExt}`
-    const filePath = `${fileName}`
-
-    const { error: uploadError } = await supabase.storage
-      .from('memories')
-      .upload(filePath, file)
-
-    if (uploadError) throw uploadError
-
-    const { data } = supabase.storage
-      .from('memories')
-      .getPublicUrl(filePath)
-
-    return data.publicUrl
+    const { default: UploadService } = await import('@/services/uploadService')
+    return await UploadService.uploadMemoryImage(
+      file, 
+      (progress) => setUploadProgress(progress.percentage)
+    )
   }
 
   const sanitizeInput = (input: string): string => {
@@ -126,8 +119,8 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
       
       const data = await response.json()
 
-      // Mostrar mensaje de éxito
-      setSuccess('Recuerdo enviado exitosamente. Se publicará una vez el creador del Perfil lo permita.')
+      // Mostrar modal de éxito
+      setShowSuccessModal(true)
       
       // Resetear formulario
       setFormData({
@@ -139,12 +132,6 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
       setThingsList([''])
       setPhoto(null)
       setPhotoPreview('')
-
-      // Cerrar modal después de 3 segundos
-      setTimeout(() => {
-        onSuccess()
-        setSuccess('')
-      }, 3000)
     } catch (error: any) {
       setError(error.message)
     } finally {
@@ -187,14 +174,7 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
               </div>
             )}
             
-            {success && (
-              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md mb-4">
-                <div className="flex items-center">
-                  <span className="mr-2">✓</span>
-                  {success}
-                </div>
-              </div>
-            )}
+
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Foto */}
@@ -206,7 +186,7 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
                   <div className="relative">
                     <input
                       type="file"
-                      accept="image/*"
+                      accept=".jpg,.jpeg,.png"
                       onChange={handlePhotoChange}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                       required
@@ -215,7 +195,7 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
                       <div className="text-4xl mb-3">📷</div>
                       <p className="text-gray-600 font-medium mb-1">Haz clic para subir una foto</p>
                       <p className="text-sm text-gray-500">Una imagen que represente tu recuerdo especial</p>
-                      <p className="text-xs text-gray-400 mt-2">JPG, PNG o GIF (máx. 10MB)</p>
+                      <p className="text-xs text-gray-400 mt-2">JPG o PNG (máx. 2MB)</p>
                     </div>
                   </div>
                 ) : (
@@ -405,6 +385,38 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
                 className="max-w-full max-h-full object-contain"
               />
             </div>
+          </div>
+        )}
+
+        {/* Modal de éxito */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">¡Recuerdo Enviado!</h3>
+                <p className="text-gray-600 mb-6">
+                  Tu recuerdo se ha enviado exitosamente. Será visible una vez que el propietario lo autorice.
+                </p>
+                <button
+                  onClick={() => {
+                    setShowSuccessModal(false)
+                    onSuccess()
+                  }}
+                  className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                >
+                  Entendido
+                </button>
+              </div>
+            </motion.div>
           </div>
         )}
       </div>

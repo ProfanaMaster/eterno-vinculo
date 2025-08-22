@@ -5,15 +5,45 @@ import { useNavigate, useParams } from 'react-router-dom'
 import UploadService from '@/services/uploadService'
 import Toast from '@/components/Toast'
 import { sanitizeFilename } from '@/utils/sanitize'
+import { ProfileRestrictionsService } from '@/services/profileRestrictions'
 import '@/styles/datepicker.css'
 
 function CreateProfile() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [canCreateProfile, setCanCreateProfile] = useState(true)
+  const [restrictionMessage, setRestrictionMessage] = useState('')
+  const [checkingRestrictions, setCheckingRestrictions] = useState(true)
 
   const navigate = useNavigate()
   const { id } = useParams()
+
+  useEffect(() => {
+    // Verificar restricciones solo si no está en modo edición
+    if (!id) {
+      checkProfileRestrictions()
+    } else {
+      setCheckingRestrictions(false)
+    }
+  }, [id])
+
+  const checkProfileRestrictions = async () => {
+    try {
+      const restriction = await ProfileRestrictionsService.canUserCreateProfile()
+      setCanCreateProfile(restriction.canCreate)
+      
+      if (!restriction.canCreate) {
+        setRestrictionMessage(ProfileRestrictionsService.getRestrictionMessage(restriction))
+      }
+    } catch (error) {
+      console.error('Error verificando restricciones:', error)
+      setCanCreateProfile(false)
+      setRestrictionMessage('Error verificando permisos. Inténtalo más tarde.')
+    } finally {
+      setCheckingRestrictions(false)
+    }
+  }
 
   useEffect(() => {
     // Plantillas hardcodeadas
@@ -170,34 +200,82 @@ function CreateProfile() {
     }))
   }
 
+  const [uploadProgress, setUploadProgress] = useState({
+    profile: 0,
+    gallery: 0,
+    video: 0,
+    currentFile: '',
+    isUploading: false
+  })
+
   const handleSubmit = async () => {
     setLoading(true)
+    setUploadProgress(prev => ({ ...prev, isUploading: true }))
+    
     try {
       let profileImageUrl = 'https://via.placeholder.com/400x400?text=Foto+de+Perfil'
-
       let galleryImageUrls: string[] = []
       let videoUrl: string | null = null
 
       // Subir imagen de perfil
       if (formData.profileImage) {
         try {
-          UploadService.validateImageFile(formData.profileImage)
-          profileImageUrl = await UploadService.uploadImage(formData.profileImage, 'profile')
+          setUploadProgress(prev => ({ ...prev, currentFile: 'Imagen de perfil', profile: 0 }))
+          
+          profileImageUrl = await UploadService.uploadImage(
+            formData.profileImage, 
+            'profile',
+            (progress) => {
+              setUploadProgress(prev => ({ 
+                ...prev, 
+                profile: progress.percentage,
+                currentFile: `Imagen de perfil (${progress.percentage}%)`
+              }))
+            }
+          )
+          
+          setUploadProgress(prev => ({ ...prev, profile: 100 }))
+          console.log('✅ Imagen de perfil subida:', profileImageUrl)
         } catch (error: any) {
-          setToast({ message: `Error subiendo imagen de perfil: ${error.message}`, type: 'error', isVisible: true })
+          console.error('❌ Error subiendo imagen de perfil:', error)
+          setToast({ 
+            message: `Error subiendo imagen de perfil: ${error.message}`, 
+            type: 'error', 
+            isVisible: true 
+          })
           return
         }
       }
 
-
-
       // Subir imágenes de galería
       if (formData.galleryImages.length > 0) {
         try {
-          formData.galleryImages.forEach(img => UploadService.validateImageFile(img))
-          galleryImageUrls = await UploadService.uploadGalleryImages(formData.galleryImages)
+          setUploadProgress(prev => ({ ...prev, currentFile: 'Galería de imágenes', gallery: 0 }))
+          
+          galleryImageUrls = await UploadService.uploadGalleryImages(
+            formData.galleryImages,
+            (fileIndex, progress) => {
+              const totalProgress = Math.round(((fileIndex * 100) + progress.percentage) / formData.galleryImages.length)
+              setUploadProgress(prev => ({ 
+                ...prev, 
+                gallery: totalProgress,
+                currentFile: `Galería ${fileIndex + 1}/${formData.galleryImages.length} (${progress.percentage}%)`
+              }))
+            },
+            (fileIndex, url) => {
+              console.log(`✅ Imagen ${fileIndex + 1} subida:`, url)
+            }
+          )
+          
+          setUploadProgress(prev => ({ ...prev, gallery: 100 }))
+          console.log('✅ Galería completa subida:', galleryImageUrls)
         } catch (error: any) {
-          setToast({ message: `Error subiendo galería: ${error.message}`, type: 'error', isVisible: true })
+          console.error('❌ Error subiendo galería:', error)
+          setToast({ 
+            message: `Error subiendo galería: ${error.message}`, 
+            type: 'error', 
+            isVisible: true 
+          })
           return
         }
       }
@@ -205,21 +283,41 @@ function CreateProfile() {
       // Subir video
       if (formData.video) {
         try {
-          UploadService.validateVideoFile(formData.video)
-          videoUrl = await UploadService.uploadVideo(formData.video)
+          setUploadProgress(prev => ({ ...prev, currentFile: 'Video memorial', video: 0 }))
+          
+          videoUrl = await UploadService.uploadVideo(
+            formData.video,
+            (progress) => {
+              setUploadProgress(prev => ({ 
+                ...prev, 
+                video: progress.percentage,
+                currentFile: `Video memorial (${progress.percentage}%)`
+              }))
+            }
+          )
+          
+          setUploadProgress(prev => ({ ...prev, video: 100 }))
+          console.log('✅ Video subido:', videoUrl)
         } catch (error: any) {
-          setToast({ message: `Error subiendo video: ${error.message}`, type: 'error', isVisible: true })
+          console.error('❌ Error subiendo video:', error)
+          setToast({ 
+            message: `Error subiendo video: ${error.message}`, 
+            type: 'error', 
+            isVisible: true 
+          })
           return
         }
       }
 
+      // Crear perfil en base de datos
+      setUploadProgress(prev => ({ ...prev, currentFile: 'Guardando memorial...' }))
+      
       const profileData = {
         profile_name: formData.name,
         description: formData.description,
         birth_date: formData.birthDate,
         death_date: formData.deathDate,
         profile_image_url: profileImageUrl,
-
         gallery_images: galleryImageUrls,
         memorial_video_url: videoUrl,
         template_id: formData.template_id,
@@ -236,13 +334,28 @@ function CreateProfile() {
       if (response.data.success) {
         const message = isEditing ? '¡Memorial actualizado exitosamente!' : '¡Memorial creado exitosamente!'
         setToast({ message, type: 'success', isVisible: true })
+        
+        // Resetear progreso
+        setUploadProgress({
+          profile: 0,
+          gallery: 0,
+          video: 0,
+          currentFile: '',
+          isUploading: false
+        })
+        
         setTimeout(() => navigate('/dashboard'), 2000)
       }
     } catch (error) {
-      console.error('Error creating profile:', error)
-      setToast({ message: `Error al crear el memorial: ${(error as any).response?.data?.error || (error as any).message}`, type: 'error', isVisible: true })
+      console.error('❌ Error creating profile:', error)
+      setToast({ 
+        message: `Error al crear el memorial: ${(error as any).response?.data?.error || (error as any).message}`, 
+        type: 'error', 
+        isVisible: true 
+      })
     } finally {
       setLoading(false)
+      setUploadProgress(prev => ({ ...prev, isUploading: false }))
     }
   }
 
@@ -292,6 +405,43 @@ function CreateProfile() {
 
   const prevStep = () => {
     if (step > 1) setStep(step - 1)
+  }
+
+  // Mostrar mensaje de carga mientras verifica restricciones
+  if (checkingRestrictions) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando permisos...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Mostrar mensaje de restricción si no puede crear
+  if (!canCreateProfile && !isEditing) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md mx-auto text-center">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">No puedes crear un memorial</h2>
+            <p className="text-gray-600 mb-6">{restrictionMessage}</p>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200"
+            >
+              Volver al Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -565,7 +715,7 @@ function CreateProfile() {
                           <label htmlFor="galleryImages" className="btn btn-secondary cursor-pointer">
                             Agregar fotos ({formData.galleryImages.length}/6)
                           </label>
-                          <p className="text-xs text-gray-500 mt-2">JPG/PNG • Máx. 5MB c/u</p>
+                          <p className="text-xs text-gray-500 mt-2">JPG/PNG • Máx. 2MB c/u</p>
                         </>
                       )}
                     </div>
@@ -648,17 +798,80 @@ function CreateProfile() {
                       {formData.description && (
                         <p><strong>Descripción:</strong> {formData.description}</p>
                       )}
+                      {formData.favoriteMusic && (
+                        <p><strong>Música favorita:</strong> {formData.favoriteMusic}</p>
+                      )}
                     </div>
                   </div>
                   
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h3 className="font-medium mb-3">Archivos seleccionados:</h3>
                     <div className="space-y-2">
-                      <p><strong>Foto de perfil:</strong> {formData.profileImage ? '✓ Seleccionada' : '✗ No seleccionada'}</p>
-                      <p><strong>Galería:</strong> {formData.galleryImages.length} fotos</p>
-                      <p><strong>Video:</strong> {formData.video ? '✓ Seleccionado' : 'No seleccionado'}</p>
+                      <p><strong>Foto de perfil:</strong> {formData.profileImage ? `✓ ${formData.profileImage.name}` : '✗ No seleccionada'}</p>
+                      <p><strong>Galería:</strong> {formData.galleryImages.length} fotos{formData.galleryImages.length > 0 ? ` (${UploadService.formatFileSize(formData.galleryImages.reduce((acc, img) => acc + img.size, 0))})` : ''}</p>
+                      <p><strong>Video:</strong> {formData.video ? `✓ ${formData.video.name} (${UploadService.formatFileSize(formData.video.size)})` : 'No seleccionado'}</p>
                     </div>
                   </div>
+                  
+                  {/* Progreso de subida */}
+                  {uploadProgress.isUploading && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h3 className="font-medium text-blue-900 mb-3">📤 Subiendo archivos...</h3>
+                      <div className="space-y-3">
+                        <div className="text-sm text-blue-800 mb-2">
+                          {uploadProgress.currentFile}
+                        </div>
+                        
+                        {/* Progreso imagen de perfil */}
+                        {formData.profileImage && (
+                          <div>
+                            <div className="flex justify-between text-xs text-gray-600 mb-1">
+                              <span>Imagen de perfil</span>
+                              <span>{uploadProgress.profile}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${uploadProgress.profile}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Progreso galería */}
+                        {formData.galleryImages.length > 0 && (
+                          <div>
+                            <div className="flex justify-between text-xs text-gray-600 mb-1">
+                              <span>Galería ({formData.galleryImages.length} fotos)</span>
+                              <span>{uploadProgress.gallery}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${uploadProgress.gallery}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Progreso video */}
+                        {formData.video && (
+                          <div>
+                            <div className="flex justify-between text-xs text-gray-600 mb-1">
+                              <span>Video memorial</span>
+                              <span>{uploadProgress.video}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${uploadProgress.video}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <p className="text-blue-800 text-sm">
@@ -690,10 +903,28 @@ function CreateProfile() {
                 ) : (
                   <button 
                     onClick={handleSubmit}
-                    disabled={loading || !formData.name || !formData.birthDate || !formData.deathDate}
+                    disabled={loading || uploadProgress.isUploading || !formData.name || !formData.birthDate || !formData.deathDate}
                     className="btn btn-primary"
                   >
-                    {loading ? (isEditing ? 'Actualizando...' : 'Creando...') : (isEditing ? '💾 Actualizar Memorial' : '🚀 Crear Memorial')}
+                    {uploadProgress.isUploading ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Subiendo archivos...
+                      </span>
+                    ) : loading ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {isEditing ? 'Actualizando...' : 'Creando...'}
+                      </span>
+                    ) : (
+                      isEditing ? '💾 Actualizar Memorial' : '🚀 Crear Memorial'
+                    )}
                   </button>
                 )}
               </div>

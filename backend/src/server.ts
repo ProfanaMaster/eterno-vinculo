@@ -27,4 +27,9 @@ app.use(notFoundHandler)
 app.use(errorHandler)
 
 app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`)
+  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL}`)
+  console.log(`🔗 Cloudflare R2 Bucket: ${process.env.R2_BUCKET_NAME}`)
+  console.log(`📡 API Health: http://localhost:${PORT}/api/health`)
+  console.log(`📤 Upload Health: http://localhost:${PORT}/api/upload/health`)
 })

@@ -21,7 +21,7 @@ const ImageUpload = ({
   type, 
   currentImage, 
   onImageUploaded,
-  maxSize = 10,
+  maxSize = 2,
   aspectRatio = 'auto'
 }: ImageUploadProps) => {
   const [preview, setPreview] = useState<string | null>(currentImage || null)
@@ -79,29 +79,31 @@ const ImageUpload = ({
   }
 
   /**
-   * Sube el archivo al servidor
+   * Sube el archivo al servidor usando Cloudflare R2
    */
   const uploadFile = async (file: File) => {
     setUploading(true)
+    setError('')
     
     try {
-      const { default: api } = await import('@/services/api')
+      const { default: UploadService } = await import('@/services/uploadService')
       
-      const formData = new FormData()
-      formData.append('image', file)
-
-      const response = await api.post(`/upload/image/${type}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      })
-
-      onImageUploaded(response.data.data.url)
+      // Validar archivo antes de subir
+      UploadService.validateImageFile(file)
+      
+      // Subir a Cloudflare R2
+      const imageUrl = await UploadService.uploadImage(
+        file, 
+        type as 'profile' | 'gallery'
+      )
+      
+      onImageUploaded(imageUrl)
       
     } catch (err: any) {
-      const message = err.response?.data?.error || err.message || 'Error al subir la imagen'
+      const message = err.message || 'Error al subir la imagen'
       setError(message)
       setPreview(currentImage || null)
+      console.error('Error uploading image:', err)
     } finally {
       setUploading(false)
     }

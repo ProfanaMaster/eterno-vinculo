@@ -69,7 +69,7 @@ const MediaStep = ({ onNext, onPrev, canGoNext, canGoPrev }: MediaStepProps) => 
           type="profile"
           currentImage={profileData.profile_image_url}
           onImageUploaded={handleProfileImageChange}
-          maxSize={10}
+          maxSize={2}
         />
 
 
@@ -107,7 +107,7 @@ const MediaStep = ({ onNext, onPrev, canGoNext, canGoPrev }: MediaStepProps) => 
         <VideoUpload
           currentVideo={profileData.memorial_video_url}
           onVideoUploaded={handleVideoChange}
-          maxSize={50}
+          maxSize={65}
           maxDuration={180}
         />
       </div>

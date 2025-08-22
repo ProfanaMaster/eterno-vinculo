@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Button, Modal } from '@/components/ui'
 import { useProfileStore } from '@/stores/profileStore'
+import { getProxiedImageUrl } from '@/utils/imageUtils'
 
 interface ReviewStepProps {
   onNext?: () => void
@@ -151,7 +152,7 @@ const ReviewStep = ({ onPrev }: ReviewStepProps) => {
               <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200">
                 {profileData.profile_image_url ? (
                   <img
-                    src={profileData.profile_image_url}
+                    src={getProxiedImageUrl(profileData.profile_image_url)}
                     alt={profileData.profile_name}
                     className="w-full h-full object-cover"
                   />
@@ -202,7 +203,7 @@ const ReviewStep = ({ onPrev }: ReviewStepProps) => {
                 {profileData.gallery_images.slice(0, 6).map((image, index) => (
                   <div key={index} className="aspect-square">
                     <img
-                      src={image}
+                      src={getProxiedImageUrl(image)}
                       alt={`Galería ${index + 1}`}
                       className="w-full h-full object-cover rounded"
                     />
@@ -217,7 +218,7 @@ const ReviewStep = ({ onPrev }: ReviewStepProps) => {
             <div>
               <h3 className="font-semibold text-gray-900 mb-3">Video Memorial</h3>
               <video
-                src={profileData.memorial_video_url}
+                src={getProxiedImageUrl(profileData.memorial_video_url)}
                 controls
                 preload="metadata"
                 className="w-full max-w-md rounded"

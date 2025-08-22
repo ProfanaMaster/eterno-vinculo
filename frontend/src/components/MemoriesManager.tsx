@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/config/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getProxiedImageUrl } from '@/utils/imageUtils'
 
 interface Memory {
   id: string
@@ -77,23 +78,19 @@ const MemoriesManager = ({ profileId }: MemoriesManagerProps) => {
     if (!confirm('¿Estás seguro de eliminar este recuerdo?')) return
 
     try {
-      // Eliminar imagen del storage
-      if (photoUrl) {
-        const fileName = photoUrl.split('/').pop()
-        if (fileName) {
-          await supabase.storage
-            .from('memories')
-            .remove([fileName])
+      // Usar endpoint del backend que incluye limpieza de R2
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3002/api'}/memories/${memoryId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          'Content-Type': 'application/json'
         }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Error al eliminar el recuerdo')
       }
-
-      // Eliminar registro de la BD
-      const { error } = await supabase
-        .from('memories')
-        .delete()
-        .eq('id', memoryId)
-
-      if (error) throw error
 
       setMemories(prev => prev.filter(memory => memory.id !== memoryId))
     } catch (error) {
@@ -155,7 +152,7 @@ const MemoriesManager = ({ profileId }: MemoriesManagerProps) => {
                     {/* Imagen */}
                     <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                       <img
-                        src={memory.photo_url}
+                        src={getProxiedImageUrl(memory.photo_url)}
                         alt="Recuerdo"
                         className="w-full h-full object-cover"
                         onError={(e) => {

@@ -1,6 +1,42 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { supabaseAdmin } from '../config/supabase.js';
+import { deleteR2File } from '../services/r2CleanupService.js';
+
+// Función para obtener usuario desde token
+const getUserFromToken = async (token) => {
+  try {
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    if (error || !user) {
+      return null;
+    }
+    return user;
+  } catch (error) {
+    return null;
+  }
+};
+
+// Middleware de autenticación
+const requireAuth = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({ error: 'Token requerido' });
+    }
+
+    const user = await getUserFromToken(token);
+    if (!user) {
+      return res.status(401).json({ error: 'Token inválido' });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error('Auth error:', error);
+    res.status(401).json({ error: 'Token inválido o expirado' });
+  }
+};
 
 const router = express.Router();
 
@@ -31,9 +67,18 @@ const isValidImageUrl = (url) => {
   
   try {
     const urlObj = new URL(url);
-    // Solo permitir URLs de Supabase storage
-    return urlObj.hostname.includes('supabase.co') && 
-           urlObj.pathname.includes('/storage/v1/object/public/memories/');
+    
+    // Permitir URLs de Supabase storage (legacy)
+    const isSupabaseUrl = urlObj.hostname.includes('supabase.co') && 
+                         urlObj.pathname.includes('/storage/v1/object/public/');
+    
+    // Permitir URLs de Cloudflare R2
+    const isCloudflareR2Url = urlObj.hostname.includes('r2.cloudflarestorage.com') ||
+                             urlObj.hostname.includes('cloudflare.com') ||
+                             urlObj.hostname.includes('r2.dev') ||
+                             urlObj.hostname === process.env.CLOUDFLARE_R2_DOMAIN;
+    
+    return isSupabaseUrl || isCloudflareR2Url;
   } catch {
     return false;
   }
@@ -59,9 +104,14 @@ router.post('/', memoriesRateLimit, async (req, res) => {
       return res.status(400).json({ error: 'ID de memorial requerido' });
     }
 
+    console.log('📸 Validando URL de imagen:', photo_url);
+    
     if (!photo_url || !isValidImageUrl(photo_url)) {
+      console.log('❌ URL de imagen inválida:', photo_url);
       return res.status(400).json({ error: 'URL de imagen inválida' });
     }
+    
+    console.log('✅ URL de imagen válida:', photo_url);
 
     const cleanAuthorName = sanitizeText(author_name);
     if (!cleanAuthorName || cleanAuthorName.length < 2) {
@@ -120,6 +170,75 @@ router.post('/', memoriesRateLimit, async (req, res) => {
 
   } catch (error) {
     console.error('Error in POST /memories:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
+ * DELETE /api/memories/:id
+ * Eliminar un recuerdo (memoria) individual
+ */
+router.delete('/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Obtener la memoria con datos del memorial para verificar propiedad
+    const { data: memory, error: fetchError } = await supabaseAdmin
+      .from('memories')
+      .select(`
+        id, 
+        photo_url,
+        memorial_profile_id,
+        memorial_profiles!inner(user_id)
+      `)
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !memory) {
+      return res.status(404).json({ error: 'Recuerdo no encontrado' });
+    }
+
+    // Verificar que el usuario es propietario del memorial
+    if (memory.memorial_profiles.user_id !== userId) {
+      return res.status(403).json({ error: 'No tienes permisos para eliminar este recuerdo' });
+    }
+
+    // Eliminar el registro de la BD
+    const { error: deleteError } = await supabaseAdmin
+      .from('memories')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      console.error('Error deleting memory:', deleteError);
+      return res.status(500).json({ error: 'Error al eliminar el recuerdo' });
+    }
+
+    // Limpiar archivo multimedia de R2 (no bloquear la respuesta)
+    if (memory.photo_url) {
+      setImmediate(async () => {
+        try {
+          console.log(`🧹 Eliminando archivo de recuerdo: ${memory.photo_url}`);
+          const result = await deleteR2File(memory.photo_url);
+          if (result) {
+            console.log(`✅ Archivo de recuerdo eliminado exitosamente`);
+          } else {
+            console.log(`⚠️ No se pudo eliminar el archivo de recuerdo`);
+          }
+        } catch (cleanupError) {
+          console.error(`❌ Error eliminando archivo de recuerdo:`, cleanupError);
+        }
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Recuerdo eliminado exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error in DELETE /memories/:id:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

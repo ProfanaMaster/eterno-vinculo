@@ -1,4 +1,5 @@
 import { ResponsiveBackground } from '@/components/ui'
+import { getProxiedImageUrl } from '@/utils/imageUtils'
 import { sanitizeText } from '@/utils/sanitize'
 
 interface MemorialTemplateProps {
@@ -26,7 +27,7 @@ const MemorialTemplate = ({ templateId, profileData }: MemorialTemplateProps) =>
             <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden bg-white/90 backdrop-blur">
               {profileData.profile_image_url ? (
                 <img 
-                  src={profileData.profile_image_url} 
+                  src={getProxiedImageUrl(profileData.profile_image_url)} 
                   alt={profileData.profile_name}
                   className="w-full h-full object-cover"
                 />
@@ -59,7 +60,7 @@ const MemorialTemplate = ({ templateId, profileData }: MemorialTemplateProps) =>
                 {profileData.gallery_images.map((image, index) => (
                   <div key={index} className="aspect-square rounded-lg overflow-hidden">
                     <img 
-                      src={image} 
+                      src={getProxiedImageUrl(image)} 
                       alt={`Recuerdo ${index + 1}`}
                       className="w-full h-full object-cover hover:scale-105 transition-transform"
                     />

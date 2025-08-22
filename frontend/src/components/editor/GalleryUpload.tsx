@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button, Modal } from '@/components/ui'
 import { sanitizeFilename } from '@/utils/sanitize'
+import { getProxiedImageUrl } from '@/utils/imageUtils'
 
 interface GalleryUploadProps {
   images: string[]
@@ -43,37 +44,26 @@ const GalleryUpload = ({ images, onImagesChange, maxImages = 6 }: GalleryUploadP
   }
 
   /**
-   * Subir nueva imagen
+   * Subir nueva imagen usando Cloudflare R2
    */
   const uploadImage = async (file: File) => {
-    // Validar archivo
-    const validationError = validateImage(file)
-    if (validationError) {
-      alert(validationError)
-      return
-    }
-
     setUploading(true)
     
     try {
-      const formData = new FormData()
-      formData.append('image', file)
-
-      const response = await fetch('/api/upload/image/gallery', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: formData
-      })
-
-      if (!response.ok) throw new Error('Error al subir imagen')
-
-      const data = await response.json()
-      onImagesChange([...images, data.data.url])
+      const { default: UploadService } = await import('@/services/uploadService')
       
-    } catch (error) {
+      // Validar archivo
+      UploadService.validateImageFile(file)
+      
+      // Subir a Cloudflare R2
+      const imageUrl = await UploadService.uploadImage(file, 'gallery')
+      
+      // Agregar a la lista de imágenes
+      onImagesChange([...images, imageUrl])
+      
+    } catch (error: any) {
       console.error('Error uploading image:', error)
+      alert(error.message || 'Error al subir imagen')
     } finally {
       setUploading(false)
     }
@@ -179,7 +169,7 @@ const GalleryUpload = ({ images, onImagesChange, maxImages = 6 }: GalleryUploadP
               onDrop={(e) => handleDrop(e, index)}
             >
               <img
-                src={image}
+                src={getProxiedImageUrl(image)}
                 alt={`Galería ${index + 1}`}
                 className="w-full h-full object-cover rounded-lg"
                 onClick={() => setSelectedImage(image)}

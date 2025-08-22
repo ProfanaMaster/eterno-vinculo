@@ -5,6 +5,7 @@ import FavoriteMusic from '@/components/FavoriteMusic'
 import ImageModal from '@/components/ImageModal'
 import { ResponsiveBackground } from '@/components/ui'
 import TemplateBackground from '@/components/profile/TemplateBackground'
+import { getProxiedImageUrl } from '@/utils/imageUtils'
 
 interface Profile {
   id: string
@@ -164,7 +165,7 @@ export default function PreviewProfile() {
         <div className="text-center mb-12">
           <div className="relative inline-block mb-8">
             <img
-              src={profile.profile_image_url}
+              src={getProxiedImageUrl(profile.profile_image_url)}
               alt={profile.profile_name}
               className="w-40 h-40 rounded-full object-cover border-4 border-white shadow-2xl mx-auto"
             />
@@ -256,7 +257,7 @@ export default function PreviewProfile() {
                   }}
                 >
                   <img
-                    src={image}
+                    src={getProxiedImageUrl(image)}
                     alt={`Recuerdo ${index + 1}`}
                     className="w-full h-40 object-cover rounded-lg transition-transform group-hover:scale-105"
                   />
@@ -280,7 +281,7 @@ export default function PreviewProfile() {
             </h2>
             <div className="aspect-video relative z-10">
               <video
-                src={profile.memorial_video_url}
+                src={getProxiedImageUrl(profile.memorial_video_url)}
                 controls
                 preload="metadata"
                 className="w-full h-full rounded-lg shadow-lg"

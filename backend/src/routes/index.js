@@ -60,6 +60,14 @@ router.use('/profiles', profilesRouter)
 // Registrar rutas de upload
 router.use('/upload', uploadRouter)
 
+// Registrar ruta proxy temporal para CORS
+import uploadProxyRouter from './uploadProxy.js'
+router.use('/upload-proxy', uploadProxyRouter)
+
+// Registrar proxy de imágenes para servir desde R2
+import imageProxyRouter from './imageProxy.js'
+router.use('/image-proxy', imageProxyRouter)
+
 // Registrar rutas de admin
 router.use('/admin', adminRouter)
 

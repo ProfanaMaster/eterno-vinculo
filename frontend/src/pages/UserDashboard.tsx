@@ -6,6 +6,8 @@ import { supabase } from '@/config/supabase'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import MemoriesManager from '@/components/MemoriesManager'
+import Modal from '@/components/ui/Modal'
+import { logger } from '@/utils/logger'
 
 interface Order {
   id: string
@@ -26,6 +28,7 @@ function UserDashboard() {
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; memorialId: string | null }>({ isOpen: false, memorialId: null })
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
   const [showShareSuccess, setShowShareSuccess] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
     if (user && user.id && !dataFetched) {
@@ -50,20 +53,29 @@ function UserDashboard() {
       .channel('user_dashboard')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'orders', filter: `user_id=eq.${user.id}` },
-        () => {
-          console.log('Orders updated, refetching...')
+        (payload) => {
+          logger.log('📦 Orders updated, refetching...', payload.eventType)
           setDataFetched(false)
           fetchOrders()
         }
       )
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'memorial_profiles' },
-        () => {
-          // Recargar perfiles desde el hook
-          window.location.reload()
+        { event: '*', schema: 'public', table: 'memorial_profiles', filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          logger.log('🏛️ Memorial profiles updated, refreshing data...', payload.eventType)
+          // En lugar de recargar toda la página, refrescar solo los datos
+          setDataFetched(false)
+          fetchOrders()
+          // El hook useProfiles debería actualizarse automáticamente
+          setTimeout(() => {
+            // Pequeño delay para asegurar que la DB se haya actualizado
+            window.location.reload()
+          }, 1000)
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        logger.log('🔄 Dashboard subscription status:', status)
+      })
 
     return () => {
       subscription.unsubscribe()
@@ -135,6 +147,22 @@ function UserDashboard() {
     }
   }
 
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    try {
+      // Refrescar órdenes
+      setDataFetched(false)
+      await fetchOrders()
+      
+      // Refrescar página para cargar todos los datos
+      window.location.reload()
+    } catch (error) {
+      console.error('Error refreshing dashboard:', error)
+    } finally {
+      setRefreshing(false)
+    }
+  }
+
   const hasCompletedOrder = orders?.some(order => order.status === 'completed') || false
   const hasMemorial = memorials?.length > 0
   const canCreateMemorial = hasCompletedOrder && !hasMemorial
@@ -154,21 +182,100 @@ function UserDashboard() {
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
+          {/* Desktop Header */}
+          <div className="hidden md:flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Mi Dashboard</h1>
               <p className="text-gray-600">Bienvenido, {user?.name || user?.email}</p>
             </div>
             <div className="flex gap-3">
+              {/* Botón de actualización */}
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                title="Actualizar dashboard"
+              >
+                {refreshing ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Actualizando...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Actualizar página
+                  </>
+                )}
+              </button>
               <button
                 onClick={() => navigate('/')}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800"
               >
                 Inicio
               </button>
+            </div>
+          </div>
+
+          {/* Mobile Header */}
+          <div className="md:hidden">
+            {/* Primera fila - Título */}
+            <div className="flex justify-between items-center mb-3">
+              <h1 className="text-xl font-bold text-gray-900">Mi Dashboard</h1>
+              <button
+                onClick={() => navigate('/')}
+                className="p-2 text-gray-600 hover:text-gray-800"
+                title="Inicio"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </button>
+            </div>
+            
+            {/* Segunda fila - Bienvenida y botón actualizar */}
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-gray-600 truncate mr-3">
+                Bienvenido, {user?.name || user?.email}
+              </p>
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm whitespace-nowrap"
+                title="Actualizar dashboard"
+              >
+                {refreshing ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-1 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="hidden sm:inline">Actualizando...</span>
+                  </>
+                ) : (
+                  <>
+                    {/* Solo ícono SVG en móviles, ícono + texto en pantallas más grandes */}
+                    <svg className="w-4 h-4 sm:mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span className="hidden sm:inline">Actualizar</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Botón de logout para ambos layouts */}
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="flex justify-end">
               <button
                 onClick={logout}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
               >
                 Cerrar Sesión
               </button>
@@ -231,35 +338,46 @@ function UserDashboard() {
         </div>
       )}
         
-        {/* Mensaje de éxito de pago */}
-        {showPaymentSuccess && (
-          <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
-            <div className="flex items-center mb-4">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-green-900">¡Comprobante Enviado Exitosamente!</h3>
-                <p className="text-green-700">
-                  Espera un máximo de 15 minutos, mientras se activa la creación del Memorial.
-                </p>
-              </div>
-              <button
-                onClick={() => setShowPaymentSuccess(false)}
-                className="ml-auto text-green-600 hover:text-green-800"
-              >
-                ×
-              </button>
+        {/* Modal de éxito de pago */}
+        <Modal
+          isOpen={showPaymentSuccess}
+          onClose={() => setShowPaymentSuccess(false)}
+          size="md"
+        >
+          <div className="text-center">
+            {/* Icono de éxito */}
+            <div className="mx-auto flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-6">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
             </div>
-            <div className="bg-green-100 rounded-lg p-4">
+            
+            {/* Título principal */}
+            <h3 className="text-xl font-semibold text-green-900 mb-4">
+              ¡Comprobante Enviado Exitosamente!
+            </h3>
+            
+            {/* Mensaje principal */}
+            <p className="text-green-700 mb-6 text-base">
+              Espera un máximo de 15 minutos, mientras se activa la creación del Memorial.
+            </p>
+            
+            {/* Información adicional */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
               <p className="text-sm text-green-800">
                 📬 Te notificaremos por email cuando tu pago sea confirmado y puedas crear tu memorial.
               </p>
             </div>
+            
+            {/* Botón de confirmación */}
+            <button
+              onClick={() => setShowPaymentSuccess(false)}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            >
+              Entendido
+            </button>
           </div>
-        )}
+        </Modal>
         
         <div className="grid grid-cols-1 gap-8">
           {/* Gestión de Recuerdos - Solo si tiene memorial */}

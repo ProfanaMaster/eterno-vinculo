@@ -1,6 +1,7 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { supabaseAdmin } from '../config/supabase.js';
+import { cleanupMemorialMedia, cleanupMemoriesMedia } from '../services/r2CleanupService.js';
 
 // Función para obtener usuario desde token
 const getUserFromToken = async (token) => {
@@ -182,6 +183,84 @@ router.post('/', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error in POST /profiles:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
+ * GET /api/profiles/can-create
+ * Verificar si el usuario puede crear un nuevo perfil memorial
+ */
+router.get('/can-create', requireAuth, async (req, res) => {
+  try {
+    const user_id = req.user.id;
+
+    // Verificar que el usuario tenga una orden completada
+    const { data: completedOrder, error: orderError } = await supabaseAdmin
+      .from('orders')
+      .select('id')
+      .eq('user_id', user_id)
+      .eq('status', 'completed')
+      .limit(1)
+      .single();
+
+    const hasCompletedOrder = !orderError && completedOrder;
+
+    // Verificar si tiene un memorial activo
+    const { data: activeProfile, error: activeError } = await supabaseAdmin
+      .from('memorial_profiles')
+      .select('id')
+      .eq('user_id', user_id)
+      .is('deleted_at', null)
+      .limit(1)
+      .single();
+
+    const hasActiveProfile = !activeError && activeProfile;
+
+    // Verificar si ya eliminó un memorial anteriormente
+    const { data: deletedHistory, error: historyError } = await supabaseAdmin
+      .from('user_memorial_history')
+      .select('id')
+      .eq('user_id', user_id)
+      .eq('action', 'deleted')
+      .limit(1);
+
+    const hasDeletedProfile = !historyError && deletedHistory && deletedHistory.length > 0;
+
+    // Determinar si puede crear (requiere orden completada Y no tener memorial activo Y no haber eliminado uno)
+    const canCreate = hasCompletedOrder && !hasActiveProfile && !hasDeletedProfile;
+
+    let reason = null;
+    if (!hasCompletedOrder) {
+      reason = 'Necesitas una orden completada para crear un memorial.';
+    } else if (hasActiveProfile) {
+      reason = 'Solo puedes crear un memorial. Elimina el existente para crear uno nuevo.';
+    } else if (hasDeletedProfile) {
+      reason = 'Ya eliminaste un memorial anteriormente. No puedes crear más memoriales.';
+    }
+
+    console.log(`🔒 Verificación de restricciones para usuario ${user_id}:`, {
+      canCreate,
+      hasCompletedOrder,
+      hasActiveProfile: !!hasActiveProfile,
+      hasDeletedProfile,
+      reason
+    });
+
+    res.json({
+      success: true,
+      canCreate,
+      reason,
+      hasCompletedOrder,
+      hasActiveProfile: !!hasActiveProfile,
+      hasDeletedProfile
+    });
+
+  } catch (error) {
+    console.error('❌ Error verificando restricciones:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Error verificando permisos de creación' 
+    });
   }
 });
 
@@ -407,10 +486,10 @@ router.delete('/:id', requireAuth, async (req, res) => {
     const { id } = req.params;
     const user_id = req.user.id;
 
-    // Verificar que el memorial pertenece al usuario
+    // Obtener datos completos del memorial para limpieza
     const { data: profile, error: fetchError } = await supabaseAdmin
       .from('memorial_profiles')
-      .select('id')
+      .select('id, profile_image_url, memorial_video_url, gallery_images')
       .eq('id', id)
       .eq('user_id', user_id)
       .is('deleted_at', null)
@@ -420,12 +499,23 @@ router.delete('/:id', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Memorial no encontrado' });
     }
 
+    // Obtener memorias asociadas para limpieza
+    const { data: memories } = await supabaseAdmin
+      .from('memories')
+      .select('id, photo_url')
+      .eq('memorial_profile_id', id);
+
     // Soft delete del memorial
     const { error: deleteError } = await supabaseAdmin
       .from('memorial_profiles')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id);
     
+    if (deleteError) {
+      console.error('Error deleting profile:', deleteError);
+      return res.status(500).json({ error: 'Error al eliminar el memorial' });
+    }
+
     // Registrar en historial
     try {
       await supabaseAdmin
@@ -439,10 +529,29 @@ router.delete('/:id', requireAuth, async (req, res) => {
       console.error('Error registrando en historial:', historyError);
     }
 
-    if (deleteError) {
-      console.error('Error deleting profile:', deleteError);
-      return res.status(500).json({ error: 'Error al eliminar el memorial' });
-    }
+    // Limpiar archivos multimedia de R2 (no bloquear la respuesta)
+    setImmediate(async () => {
+      try {
+        console.log(`🧹 Iniciando limpieza de archivos para memorial ${id}`);
+        
+        // Limpiar archivos del memorial
+        const memorialCleanup = await cleanupMemorialMedia(profile);
+        
+        // Limpiar archivos de memorias
+        let memoriesCleanup = { success: [], failed: [] };
+        if (memories && memories.length > 0) {
+          memoriesCleanup = await cleanupMemoriesMedia(memories);
+        }
+        
+        const totalSuccess = memorialCleanup.success.length + memoriesCleanup.success.length;
+        const totalFailed = memorialCleanup.failed.length + memoriesCleanup.failed.length;
+        
+        console.log(`✅ Limpieza completada para memorial ${id}: ${totalSuccess} exitosos, ${totalFailed} fallidos`);
+        
+      } catch (cleanupError) {
+        console.error(`❌ Error en limpieza de archivos para memorial ${id}:`, cleanupError);
+      }
+    });
 
     // Limpiar cache al eliminar perfil
     const cacheKey = `profiles_${user_id}`;

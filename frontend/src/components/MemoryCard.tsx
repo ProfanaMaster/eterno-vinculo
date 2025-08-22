@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getProxiedImageUrl } from '@/utils/imageUtils'
 
 interface Memory {
   id: string
@@ -48,7 +49,7 @@ const MemoryCard = ({ memory, onLike }: MemoryCardProps) => {
         {/* Imagen con overlay */}
         <div className="relative h-48 bg-gray-200 overflow-hidden">
           <img
-            src={memory.photo_url}
+            src={getProxiedImageUrl(memory.photo_url)}
             alt="Recuerdo"
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
             onError={(e) => {
@@ -119,7 +120,7 @@ const MemoryCard = ({ memory, onLike }: MemoryCardProps) => {
               {/* Imagen */}
               <div className="relative">
                 <img
-                  src={memory.photo_url}
+                  src={getProxiedImageUrl(memory.photo_url)}
                   alt="Recuerdo"
                   className="w-full h-64 object-cover cursor-pointer"
                   onClick={(e) => {
@@ -227,7 +228,7 @@ const MemoryCard = ({ memory, onLike }: MemoryCardProps) => {
               className="max-w-4xl max-h-full"
             >
               <img
-                src={memory.photo_url}
+                src={getProxiedImageUrl(memory.photo_url)}
                 alt="Recuerdo ampliado"
                 className="max-w-full max-h-full object-contain rounded-lg"
               />

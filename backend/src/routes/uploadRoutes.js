@@ -1,7 +1,12 @@
 import { Router } from 'express'
-import multer from 'multer'
-import { supabaseAdmin, getUserFromToken } from '../config/supabase.js'
-import sharp from 'sharp'
+import { getUserFromToken } from '../config/supabase.js'
+import { 
+  generatePresignedUrl, 
+  getPublicUrl, 
+  generateFileKey, 
+  validateFileType,
+  ALLOWED_TYPES 
+} from '../config/cloudflare.js'
 
 const router = Router()
 
@@ -10,155 +15,248 @@ const requireAuth = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '')
     if (!token) {
-      return res.status(401).json({ error: 'Token requerido' })
+      return res.status(401).json({ 
+        success: false,
+        error: 'Token de autenticación requerido' 
+      })
     }
 
     const user = await getUserFromToken(token)
     req.user = user
     next()
   } catch (error) {
-    console.error('Error in auth middleware:', error)
-    res.status(401).json({ error: 'Token inválido' })
+    console.error('❌ Error en middleware de auth:', error)
+    res.status(401).json({ 
+      success: false,
+      error: 'Token inválido o expirado' 
+    })
   }
 }
 
-// Configuración de multer
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB
-    files: 1
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = {
-      image: ['image/jpeg', 'image/png', 'image/webp'],
-      video: ['video/mp4', 'video/webm', 'video/quicktime']
+// Generar URL prefirmada para subida directa a Cloudflare R2
+const getPresignedUrlHandler = async (req, res) => {
+  try {
+    const { type, fileName, contentType, fileSize } = req.body
+    const userId = req.user?.id
+    
+    console.log('📤 Solicitud de URL prefirmada:', { 
+      type, 
+      fileName, 
+      contentType, 
+      fileSize: fileSize ? `${Math.round(fileSize / 1024)}KB` : 'N/A',
+      userId 
+    })
+    
+    // Validar tipo de upload
+    const validTypes = ['profile', 'gallery', 'video', 'memory']
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({ 
+        success: false,
+        error: `Tipo de archivo no válido. Permitidos: ${validTypes.join(', ')}` 
+      })
+    }
+
+    // Verificar restricciones de usuario para uploads de perfil
+    if (['profile', 'gallery', 'video'].includes(type)) {
+      const { supabaseAdmin } = await import('../config/supabase.js')
+      
+      // Verificar si tiene un memorial activo
+      const { data: activeProfile, error: activeError } = await supabaseAdmin
+        .from('memorial_profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .is('deleted_at', null)
+        .limit(1)
+        .single()
+
+      // Verificar si ya eliminó un memorial anteriormente
+      const { data: deletedHistory, error: historyError } = await supabaseAdmin
+        .from('user_memorial_history')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('action', 'deleted')
+        .limit(1)
+
+      const hasDeletedProfile = !historyError && deletedHistory && deletedHistory.length > 0
+
+      if (hasDeletedProfile) {
+        console.log(`🚫 Usuario ${userId} intentó subir ${type} pero ya eliminó un memorial`)
+        return res.status(403).json({ 
+          success: false,
+          error: 'No puedes subir archivos porque ya eliminaste un memorial anteriormente.' 
+        })
+      }
+
+      // Verificar si tiene orden completada (necesaria para subir archivos)
+      const { data: completedOrder, error: orderError } = await supabaseAdmin
+        .from('orders')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+        .limit(1)
+        .single()
+
+      const hasCompletedOrder = !orderError && completedOrder
+
+      if (!hasCompletedOrder) {
+        console.log(`🚫 Usuario ${userId} intentó subir ${type} sin orden completada`)
+        return res.status(403).json({ 
+          success: false,
+          error: 'Necesitas una orden completada para subir archivos.' 
+        })
+      }
+
+      // Los videos ahora se permiten durante la creación del perfil
+      // Solo se bloquean si el usuario ya eliminó un memorial (validado arriba)
+      console.log(`✅ Usuario ${userId} puede subir ${type} - tiene orden completada y no ha eliminado memoriales`)
     }
     
-    const isImage = allowedTypes.image.includes(file.mimetype)
-    const isVideo = allowedTypes.video.includes(file.mimetype)
-    
-    if (req.route.path.includes('image') && !isImage) {
-      return cb(new Error('Formato de imagen no válido'))
+    // Validar nombre de archivo
+    if (!fileName || fileName.trim() === '') {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Nombre de archivo requerido' 
+      })
     }
     
-    if (req.route.path.includes('video') && !isVideo) {
-      return cb(new Error('Formato de video no válido'))
+    // Validar tipo MIME según categoría
+    let allowedMimeTypes = []
+    if (['profile', 'gallery', 'memory'].includes(type)) {
+      allowedMimeTypes = ALLOWED_TYPES.image
+    } else if (type === 'video') {
+      allowedMimeTypes = ALLOWED_TYPES.video
     }
     
-    cb(null, true)
+    try {
+      validateFileType(contentType, allowedMimeTypes)
+    } catch (error) {
+      return res.status(400).json({ 
+        success: false,
+        error: error.message 
+      })
+    }
+    
+    // Generar key único y organizado
+    const key = generateFileKey(userId, type, fileName)
+    console.log('🔑 Key generada:', key)
+    
+    // Generar URL prefirmada con validaciones
+    const { url, fields } = await generatePresignedUrl(key, contentType, fileSize)
+    const publicUrl = getPublicUrl(key)
+    
+    console.log('✅ URLs generadas exitosamente')
+    
+    res.json({
+      success: true,
+      data: {
+        uploadUrl: url,
+        fields,
+        publicUrl,
+        key,
+        expiresIn: 1800, // 30 minutos
+        maxFileSize: contentType.startsWith('image/') ? '10MB' : '100MB'
+      },
+      message: 'URL prefirmada generada exitosamente'
+    })
+  } catch (error) {
+    console.error('❌ Error generando URL prefirmada:', error)
+    res.status(500).json({ 
+      success: false,
+      error: 'Error interno del servidor al generar URL de subida',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    })
   }
+}
+
+// Verificar estado de subida (opcional)
+const verifyUploadHandler = async (req, res) => {
+  try {
+    const { key } = req.body
+    const userId = req.user?.id
+    
+    // Verificar que la key pertenezca al usuario
+    if (!key.startsWith(`${userId}/`)) {
+      return res.status(403).json({ 
+        success: false,
+        error: 'No autorizado para verificar este archivo' 
+      })
+    }
+    
+    const publicUrl = getPublicUrl(key)
+    
+    // Aquí podrías agregar lógica adicional para verificar si el archivo existe
+    // Por ejemplo, hacer una HEAD request a la URL
+    
+    res.json({
+      success: true,
+      data: {
+        key,
+        publicUrl,
+        verified: true
+      },
+      message: 'Archivo verificado exitosamente'
+    })
+  } catch (error) {
+    console.error('❌ Error verificando upload:', error)
+    res.status(500).json({ 
+      success: false,
+      error: 'Error verificando estado del archivo' 
+    })
+  }
+}
+
+// Obtener información de archivo subido
+const getFileInfoHandler = async (req, res) => {
+  try {
+    const { key } = req.params
+    const userId = req.user?.id
+    
+    // Verificar que la key pertenezca al usuario
+    if (!key.startsWith(`${userId}/`)) {
+      return res.status(403).json({ 
+        success: false,
+        error: 'No autorizado para acceder a este archivo' 
+      })
+    }
+    
+    const publicUrl = getPublicUrl(key)
+    
+    // Extraer información de la key
+    const [userIdPart, type, filenamePart] = key.split('/')
+    const [timestamp, randomSuffix, ...filenameParts] = filenamePart.split('-')
+    const originalFilename = filenameParts.join('-')
+    
+    res.json({
+      success: true,
+      data: {
+        key,
+        publicUrl,
+        type,
+        originalFilename,
+        uploadedAt: new Date(parseInt(timestamp)).toISOString()
+      }
+    })
+  } catch (error) {
+    console.error('❌ Error obteniendo info de archivo:', error)
+    res.status(500).json({ 
+      success: false,
+      error: 'Error obteniendo información del archivo' 
+    })
+  }
+}
+
+// Rutas
+router.post('/presigned-url', requireAuth, getPresignedUrlHandler)
+router.post('/verify', requireAuth, verifyUploadHandler)
+router.get('/file/:key', requireAuth, getFileInfoHandler)
+
+// Ruta de health check
+router.get('/health', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Upload service is running',
+    timestamp: new Date().toISOString()
+  })
 })
-
-// Función para optimizar imagen
-const optimizeImage = async (buffer, type) => {
-  const maxSizes = {
-    profile: { width: 400, height: 400 },
-    gallery: { width: 1200 } // Solo ancho máximo para galería
-  }
-  
-  const config = maxSizes[type] || maxSizes.gallery
-  
-  if (type === 'profile') {
-    // Para perfil mantener cuadrado con fit inside
-    return await sharp(buffer)
-      .resize(config.width, config.height, { fit: 'inside', background: { r: 255, g: 255, b: 255, alpha: 1 } })
-      .webp({ quality: 85 })
-      .toBuffer()
-  } else {
-    // Para galería solo redimensionar por ancho manteniendo proporción
-    return await sharp(buffer)
-      .resize(config.width, null, { fit: 'inside' })
-      .webp({ quality: 85 })
-      .toBuffer()
-  }
-}
-
-// Upload de imagen
-const uploadImage = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No se recibió ningún archivo' })
-    }
-    
-    const { type } = req.params
-    const userId = req.user?.id
-    
-    if (!['profile', 'gallery'].includes(type)) {
-      return res.status(400).json({ error: 'Tipo de imagen no válido' })
-    }
-    
-    // Optimizar imagen
-    const optimizedBuffer = await optimizeImage(req.file.buffer, type)
-    const fileName = `${userId}/${type}/${Date.now()}.webp`
-    
-    const { data, error } = await supabaseAdmin.storage
-      .from('memorial-media')
-      .upload(fileName, optimizedBuffer, {
-        contentType: 'image/webp',
-        upsert: true
-      })
-
-    if (error) {
-      throw new Error(`Upload failed: ${error.message}`)
-    }
-
-    const { data: { publicUrl } } = supabaseAdmin.storage
-      .from('memorial-media')
-      .getPublicUrl(fileName)
-
-    const result = { publicUrl }
-    
-    res.json({
-      success: true,
-      data: { url: result.publicUrl },
-      message: 'Imagen subida exitosamente'
-    })
-  } catch (error) {
-    console.error('Error uploading image:', error)
-    res.status(500).json({ error: 'Error al subir la imagen' })
-  }
-}
-
-// Upload de video
-const uploadVideo = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No se recibió ningún archivo' })
-    }
-    
-    const userId = req.user?.id
-    const fileName = `${userId}/videos/${Date.now()}-${req.file.originalname}`
-    
-    const { data, error } = await supabaseAdmin.storage
-      .from('memorial-media')
-      .upload(fileName, req.file.buffer, {
-        contentType: req.file.mimetype,
-        upsert: true
-      })
-
-    if (error) {
-      throw new Error(`Upload failed: ${error.message}`)
-    }
-
-    const { data: { publicUrl } } = supabaseAdmin.storage
-      .from('memorial-media')
-      .getPublicUrl(fileName)
-
-    const result = { publicUrl }
-    
-    res.json({
-      success: true,
-      data: { url: result.publicUrl },
-      message: 'Video subido exitosamente'
-    })
-  } catch (error) {
-    console.error('Error uploading video:', error)
-    res.status(500).json({ error: 'Error al subir el video' })
-  }
-}
-
-router.post('/image/:type', requireAuth, upload.single('image'), uploadImage)
-router.post('/video', requireAuth, upload.single('video'), uploadVideo)
 
 export default router

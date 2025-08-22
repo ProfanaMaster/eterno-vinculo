@@ -14,24 +14,8 @@ const FileUploader = ({
   const [progress, setProgress] = useState(0)
 
   const validateFile = (file) => {
-    if (type === 'image') {
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png']
-      if (!allowedTypes.includes(file.type.toLowerCase())) {
-        return 'Solo se permiten archivos JPG y PNG'
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        return 'La imagen debe ser menor a 10MB'
-      }
-    } else if (type === 'video') {
-      const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo']
-      if (!allowedTypes.includes(file.type.toLowerCase())) {
-        return 'Solo se permiten videos MP4, WebM, MOV y AVI'
-      }
-      if (file.size > 50 * 1024 * 1024) {
-        return `El video debe ser menor a 50MB.\n\n📱 Puedes usar apps como:\n• Video Compressor (Android/iOS)\n• Compress Videos & Resize Video\n\n💻 O sitios web como:\n• cloudconvert.com\n• freeconvert.com\n• compressvideo.io`
-      }
-    }
-    
+    // Validaciones básicas de archivo - las validaciones de tipo y tamaño
+    // se manejan en uploadService.ts
     const sanitizedName = sanitizeFilename(file.name)
     if (!sanitizedName) {
       return 'Nombre de archivo no válido'

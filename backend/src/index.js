@@ -34,6 +34,9 @@ const server = app.listen(PORT, () => {
   console.log(`🌐 NODE_ENV: ${process.env.NODE_ENV}`)
   console.log(`🔑 FRONTEND_URL: ${process.env.FRONTEND_URL}`)
   console.log(`🔑 CORS_ORIGIN: ${process.env.CORS_ORIGIN}`)
+  console.log(`🔗 Cloudflare R2 Bucket: ${process.env.R2_BUCKET_NAME}`)
+  console.log(`📡 API Health: http://localhost:${PORT}/api/health`)
+  console.log(`📤 Upload Health: http://localhost:${PORT}/api/upload/health`)
 })
 
 // Manejar errores de puerto ocupado
