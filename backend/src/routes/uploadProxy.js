@@ -156,8 +156,9 @@ const uploadFileProxy = async (req, res) => {
 
     await r2Client.send(command)
 
-    // Generar URL pública
-    const publicUrl = `https://1fec8d3f23bbbb209c93b886e2423b22.r2.cloudflarestorage.com/${BUCKET_NAME}/${key}`
+    // Generar URL pública usando la función del config
+    const { getPublicUrl } = await import('../config/cloudflare.js')
+    const publicUrl = getPublicUrl(key)
 
     console.log(`✅ Archivo subido exitosamente: ${publicUrl}`)
 
