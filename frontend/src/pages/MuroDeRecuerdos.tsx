@@ -112,10 +112,24 @@ const MuroDeRecuerdos = ({ profileId, profileName, onOpenModal }: MuroDeRecuerdo
       </div>
       <div className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-6 relative z-10 w-full">
         {/* Header */}
-        <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight">
-            Muro de los Recuerdos
-          </h1>
+        <div className="mb-6 sm:mb-8">
+          <div className="mb-6">
+            <button
+              onClick={() => window.history.back()}
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="text-sm font-medium">Volver</span>
+            </button>
+          </div>
+          
+          <div className="text-center">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight">
+              Muro de los Recuerdos de
+            </h1>
+          </div>
           <p className="text-xl sm:text-2xl font-semibold text-purple-700 mb-2">
             {profileName}
           </p>

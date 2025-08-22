@@ -260,6 +260,7 @@ export default function PublicProfile() {
         <MemoryWall 
           profileId={profile.id}
           profileName={profile.profile_name}
+          profileSlug={profile.slug}
         />
 
         {/* Footer decorativo */}
