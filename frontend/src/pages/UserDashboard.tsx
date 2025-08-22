@@ -320,7 +320,7 @@ function UserDashboard() {
                           ✏️ Editar
                         </button>
                         <button
-                          onClick={() => navigate(`/preview/${memorial.slug}`)}
+                          onClick={() => window.open(`/memorial/${memorial.slug}`, '_blank')}
                           className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                         >
                           👁️ Ver
