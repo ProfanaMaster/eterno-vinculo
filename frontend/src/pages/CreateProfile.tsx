@@ -149,8 +149,8 @@ function CreateProfile() {
     if (!allowedTypes.includes(file.type.toLowerCase())) {
       return 'Solo se permiten videos MP4, WebM, MOV y AVI'
     }
-    if (file.size > 50 * 1024 * 1024) {
-      return `El video debe ser menor a 50MB.\n\n📱 Puedes usar apps como:\n• Video Compressor (Android/iOS)\n• Compress Videos & Resize Video\n\n💻 O sitios web como:\n• cloudconvert.com\n• freeconvert.com\n• compressvideo.io`
+    if (file.size > 65 * 1024 * 1024) {
+      return `El video debe ser menor a 65MB.\n\n📱 Puedes usar apps como:\n• Video Compressor (Android/iOS)\n• Compress Videos & Resize Video\n\n💻 O sitios web como:\n• cloudconvert.com\n• freeconvert.com\n• compressvideo.io`
     }
     const sanitizedName = sanitizeFilename(file.name)
     if (!sanitizedName) {
@@ -627,14 +627,14 @@ function CreateProfile() {
                       <p className="font-medium">📷 Imágenes:</p>
                       <ul className="ml-4 space-y-1">
                         <li>• Solo JPG y PNG</li>
-                        <li>• Máximo 10MB</li>
+                        <li>• Máximo 2MB por imagen</li>
                       </ul>
                     </div>
                     <div>
                       <p className="font-medium">🎥 Videos:</p>
                       <ul className="ml-4 space-y-1">
                         <li>• MP4, WebM, MOV, AVI</li>
-                        <li>• Máximo 50MB</li>
+                        <li>• Máximo 65MB</li>
                       </ul>
                     </div>
                   </div>
@@ -681,7 +681,7 @@ function CreateProfile() {
                           <label htmlFor="profileImage" className="btn btn-secondary cursor-pointer">
                             Seleccionar imagen
                           </label>
-                          <p className="text-xs text-gray-500 mt-2">JPG/PNG • Máx. 10MB</p>
+                          <p className="text-xs text-gray-500 mt-2">JPG/PNG • Máx. 2MB por imagen</p>
                         </div>
                       )}
                     </div>
@@ -777,7 +777,7 @@ function CreateProfile() {
                         <label htmlFor="video" className="btn btn-secondary cursor-pointer">
                           Subir video
                         </label>
-                        <p className="text-xs text-gray-500 mt-2">MP4/WebM/MOV/AVI • Máx. 50MB</p>
+                        <p className="text-xs text-gray-500 mt-2">MP4/WebM/MOV/AVI • Máx. 65MB</p>
                       </div>
                     )}
                   </div>

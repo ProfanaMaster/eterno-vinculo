@@ -10,7 +10,23 @@ const supabaseAdmin = createClient(
 
 async function seedSettings() {
   try {
-    console.log('🌱 Insertando configuraciones por defecto...');
+    console.log('🌱 Insertando configuraciones por defecto del sitio...');
+    
+    // Verificar si ya existen configuraciones
+    const { data: existing } = await supabaseAdmin
+      .from('site_settings')
+      .select('key')
+      .limit(1);
+    
+    if (existing && existing.length > 0) {
+      console.log('⚠️  Configuraciones ya existen. Use --force para sobrescribir.');
+      const force = process.argv.includes('--force');
+      if (!force) {
+        console.log('💡 Para sobrescribir: node seed-settings.js --force');
+        return;
+      }
+      console.log('🔄 Sobrescribiendo configuraciones existentes...');
+    }
 
     const settings = [
       {
@@ -18,7 +34,7 @@ async function seedSettings() {
         value: {
           title: "Honra la memoria de tus seres queridos",
           subtitle: "Crea perfiles memoriales digitales únicos con fotos, videos y recuerdos. Comparte momentos especiales que perdurarán para siempre.",
-          cta_primary: "🚀 Crear Memorial Ahora",
+          cta_primary: "Crear Memorial Ahora",
           cta_secondary: "📖 Ver Ejemplos"
         },
         description: 'Configuración de la sección hero'

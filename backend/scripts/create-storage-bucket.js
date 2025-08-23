@@ -13,7 +13,7 @@ async function createStorageBucket() {
         'video/webm',
         'video/quicktime'
       ],
-      fileSizeLimit: 52428800 // 50MB
+      fileSizeLimit: 71000000 // ~68MB
     })
 
     if (error) {

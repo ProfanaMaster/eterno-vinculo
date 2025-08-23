@@ -49,16 +49,7 @@ function AdminDashboard() {
         return
       }
 
-      // Verificar si el email del usuario es admin
-      const adminEmails = ['carolupe23@gmail.com'] // Agregar más emails admin aquí
-      
-      if (adminEmails.includes(user.email)) {
-        setIsAuthorized(true)
-        setLoading(false)
-        return
-      }
-
-      // Si no es admin por email, intentar verificar con API
+      // Verificar permisos de admin con API (usando roles de BD)
       try {
         const { data: { session } } = await supabase.auth.getSession()
         const token = session?.access_token

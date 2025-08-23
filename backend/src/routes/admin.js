@@ -34,6 +34,27 @@ const requireAdmin = async (req, res, next) => {
 };
 
 /**
+ * GET /api/admin/dashboard
+ * Verificar acceso de administrador
+ */
+router.get('/dashboard', requireAdmin, async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        role: req.userRole
+      },
+      message: 'Acceso de administrador verificado'
+    });
+  } catch (error) {
+    console.error('Error in dashboard route:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
  * GET /api/admin/settings
  * Obtener todas las configuraciones del sitio
  */

@@ -1,4 +1,3 @@
-import { uploadToCloudflare } from './cloudflareUpload'
 import { uploadViaProxy } from './uploadProxy'
 import { logger } from '@/utils/logger'
 
@@ -16,13 +15,8 @@ export class UploadService {
   ): Promise<string> {
     this.validateImageFile(file)
     
-    // Usar proxy temporal hasta que CORS esté configurado
-    try {
-      return await uploadViaProxy(file, type, onProgress)
-    } catch (error) {
-      logger.log('🔄 Proxy failed, trying direct upload:', error)
-      return await uploadToCloudflare(file, type, onProgress)
-    }
+    // Usar SOLO proxy - signed URLs con CORS no funcionan confiablemente
+    return await uploadViaProxy(file, type, onProgress)
   }
 
   static async uploadVideo(
@@ -31,13 +25,8 @@ export class UploadService {
   ): Promise<string> {
     this.validateVideoFile(file)
     
-    // Usar proxy temporal hasta que CORS esté configurado
-    try {
-      return await uploadViaProxy(file, 'video', onProgress)
-    } catch (error) {
-      logger.log('🔄 Proxy failed, trying direct upload:', error)
-      return await uploadToCloudflare(file, 'video', onProgress)
-    }
+    // Usar SOLO proxy - signed URLs con CORS no funcionan confiablemente
+    return await uploadViaProxy(file, 'video', onProgress)
   }
 
   static async uploadGalleryImages(
@@ -48,14 +37,13 @@ export class UploadService {
     // Validar todos los archivos primero
     files.forEach(file => this.validateImageFile(file))
     
-    // Usar proxy para cada archivo individualmente
+    // Usar SOLO proxy para todas las subidas
     const urls: string[] = []
     
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
       
       try {
-        // Intentar usar proxy primero
         const url = await uploadViaProxy(file, 'gallery', (progress) => {
           if (onProgress) onProgress(i, progress)
         })
@@ -63,22 +51,9 @@ export class UploadService {
         urls.push(url)
         if (onComplete) onComplete(i, url)
         
-      } catch (proxyError) {
-        console.log(`🔄 Proxy failed for file ${i}, trying direct upload:`, proxyError)
-        
-        try {
-          // Fallback a upload directo
-          const url = await uploadToCloudflare(file, 'gallery', (progress) => {
-            if (onProgress) onProgress(i, progress)
-          })
-          
-          urls.push(url)
-          if (onComplete) onComplete(i, url)
-          
-        } catch (directError) {
-          console.error(`❌ Both proxy and direct upload failed for file ${i}:`, directError)
-          throw new Error(`Error subiendo ${file.name}: ${directError.message}`)
-        }
+      } catch (error: any) {
+        console.error(`❌ Error subiendo archivo ${i + 1}:`, error)
+        throw new Error(`Error subiendo ${file.name}: ${error.message}`)
       }
     }
     
@@ -91,13 +66,8 @@ export class UploadService {
   ): Promise<string> {
     this.validateImageFile(file)
     
-    // Usar proxy temporal hasta que CORS esté configurado
-    try {
-      return await uploadViaProxy(file, 'memory', onProgress)
-    } catch (error) {
-      logger.log('🔄 Proxy failed, trying direct upload:', error)
-      return await uploadToCloudflare(file, 'memory', onProgress)
-    }
+    // Usar SOLO proxy - signed URLs con CORS no funcionan confiablemente
+    return await uploadViaProxy(file, 'memory', onProgress)
   }
 
   static validateImageFile(file: File): boolean {

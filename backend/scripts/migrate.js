@@ -13,7 +13,7 @@ const runMigrations = async () => {
     for (const bucket of buckets) {
       const { error } = await supabaseAdmin.storage.createBucket(bucket.name, {
         public: bucket.public,
-        fileSizeLimit: 52428800 // 50MB
+        fileSizeLimit: 71000000 // ~68MB
       });
       
       if (error && !error.message.includes('already exists')) {

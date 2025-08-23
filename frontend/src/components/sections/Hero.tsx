@@ -12,7 +12,7 @@ function DashboardButton() {
         onClick={() => window.location.href = '/dashboard'}
         className="btn btn-accent btn-lg w-full"
       >
-        Entrar a Dashboard
+        Entrar a mi Cuenta de Usuario
       </button>
     </div>
   )
@@ -67,7 +67,7 @@ function Hero() {
                 }}
                 className="btn btn-primary btn-lg"
               >
-                {heroSettings.cta_primary || '🚀 Crear Memorial Ahora'}
+                {heroSettings.cta_primary || 'Crear Memorial Ahora'}
               </button>
               <button 
                 onClick={() => {

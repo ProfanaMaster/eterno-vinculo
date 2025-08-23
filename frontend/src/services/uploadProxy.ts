@@ -13,7 +13,7 @@ export const uploadViaProxy = async (
   onProgress?: (progress: UploadProgress) => void
 ): Promise<string> => {
   try {
-    logger.log(`🚀 Subiendo via proxy: ${file.name}`)
+    logger.log(`📤 Subiendo via proxy optimizado: ${file.name}`)
     
     const formData = new FormData()
     formData.append('file', file)
@@ -38,8 +38,7 @@ export const uploadViaProxy = async (
     })
 
     if (response.data.success) {
-      logger.log('✅ Archivo subido via proxy:', response.data.publicUrl || response.data.data?.publicUrl)
-      logger.log('📋 Respuesta completa del proxy:', response.data)
+      logger.log('✅ Archivo subido exitosamente:', response.data.publicUrl || response.data.data?.publicUrl)
       return response.data.publicUrl || response.data.data?.publicUrl
     } else {
       throw new Error(response.data.error || 'Error al subir archivo')

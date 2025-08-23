@@ -1,7 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui'
 import { sanitizeFilename } from '@/utils/sanitize'
+import LazyVideo from '@/components/ui/LazyVideo'
+import { useVideoThumbnail } from '@/hooks/useVideoThumbnail'
 
 interface VideoUploadProps {
   currentVideo?: string
@@ -24,8 +26,10 @@ const VideoUpload = ({
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [thumbnail, setThumbnail] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const { generateThumbnail, isGenerating } = useVideoThumbnail()
 
   /**
    * Validar archivo de video
@@ -93,6 +97,16 @@ const VideoUpload = ({
     // Crear preview
     const videoUrl = URL.createObjectURL(file)
     setVideo(videoUrl)
+
+    // Generar thumbnail automáticamente (optimización de ancho de banda)
+    try {
+      console.log('🖼️ Generando thumbnail...')
+      const thumbnailUrl = await generateThumbnail(file, 2)
+      setThumbnail(thumbnailUrl)
+      console.log('✅ Thumbnail generado')
+    } catch (thumbError) {
+      console.warn('⚠️ No se pudo generar thumbnail:', thumbError)
+    }
 
     // Subir archivo
     uploadVideo(file)
@@ -181,21 +195,18 @@ const VideoUpload = ({
       </label>
 
       {video ? (
-        // Preview del video
+        // Preview del video optimizado
         <div className="relative">
-          <video
-            ref={videoRef}
+          <LazyVideo
             src={video}
-            controls
-            preload="metadata"
+            poster={thumbnail || undefined}
             className="w-full max-w-2xl mx-auto rounded-lg shadow-sm"
-            onLoadedMetadata={() => {
-              if (videoRef.current) {
-              }
-            }}
-          >
-            Tu navegador no soporta la reproducción de video.
-          </video>
+            controls={true}
+            muted={true}
+            onLoadStart={() => console.log('🎬 Cargando video...')}
+            onLoadComplete={() => console.log('✅ Video cargado')}
+            onError={(error) => setError(error)}
+          />
 
           {/* Overlay de carga */}
           {uploading && (
@@ -288,6 +299,7 @@ const VideoUpload = ({
               <li>• Usa videos con buena calidad de imagen y sonido</li>
               <li>• Evita contenido con derechos de autor en el audio</li>
               <li>• El video incluirá audio cuando se reproduzca</li>
+              <li>• Se genera un thumbnail automático para optimizar la carga</li>
             </ul>
           </div>
         </div>

@@ -98,14 +98,7 @@ export const errorHandler = (error, req, res, next) => {
     err = handleMercadoPagoError(error);
   }
 
-  // Error de multer (subida de archivos)
-  if (error.code === 'LIMIT_FILE_SIZE') {
-    err = new ValidationError('File too large');
-  }
-
-  if (error.code === 'LIMIT_UNEXPECTED_FILE') {
-    err = new ValidationError('Unexpected file field');
-  }
+  // Errors de subida de archivos ahora manejados en el frontend con signed URLs
 
   // Errores de MongoDB/base de datos
   if (error.code === 11000) {

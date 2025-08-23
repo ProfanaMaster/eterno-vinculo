@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/config/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getProxiedImageUrl } from '@/utils/imageUtils'
+import ConfirmModal from '@/components/ui/ConfirmModal'
 
 interface Memory {
   id: string
@@ -25,6 +26,7 @@ const MemoriesManager = ({ profileId }: MemoriesManagerProps) => {
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, memoryId: null as string | null, photoUrl: '' })
   const itemsPerPage = 5
 
   const loadMemories = async (page = 1) => {
@@ -74,12 +76,16 @@ const MemoriesManager = ({ profileId }: MemoriesManagerProps) => {
     }
   }
 
-  const deleteMemory = async (memoryId: string, photoUrl: string) => {
-    if (!confirm('¿Estás seguro de eliminar este recuerdo?')) return
+  const handleDeleteClick = (memoryId: string, photoUrl: string) => {
+    setConfirmModal({ isOpen: true, memoryId, photoUrl })
+  }
+
+  const confirmDelete = async () => {
+    if (!confirmModal.memoryId) return
 
     try {
       // Usar endpoint del backend que incluye limpieza de R2
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3002/api'}/memories/${memoryId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3002/api'}/memories/${confirmModal.memoryId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
@@ -92,7 +98,7 @@ const MemoriesManager = ({ profileId }: MemoriesManagerProps) => {
         throw new Error(errorData.error || 'Error al eliminar el recuerdo')
       }
 
-      setMemories(prev => prev.filter(memory => memory.id !== memoryId))
+      setMemories(prev => prev.filter(memory => memory.id !== confirmModal.memoryId))
     } catch (error) {
       console.error('Error deleting memory:', error)
       alert('Error al eliminar el recuerdo')
@@ -199,7 +205,7 @@ const MemoriesManager = ({ profileId }: MemoriesManagerProps) => {
                           {memory.is_authorized ? '🙈 Ocultar' : '👁️ Mostrar'}
                         </button>
                         <button
-                          onClick={() => deleteMemory(memory.id, memory.photo_url)}
+                          onClick={() => handleDeleteClick(memory.id, memory.photo_url)}
                           className="px-3 py-1 text-xs bg-red-100 text-red-800 rounded-full hover:bg-red-200 transition-colors"
                         >
                           🗑️ Eliminar
@@ -238,6 +244,17 @@ const MemoriesManager = ({ profileId }: MemoriesManagerProps) => {
           )}
         </>
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, memoryId: null, photoUrl: '' })}
+        onConfirm={confirmDelete}
+        title="Eliminar Recuerdo"
+        message="¿Estás seguro de que quieres eliminar este recuerdo? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        type="danger"
+      />
     </div>
   )
 }

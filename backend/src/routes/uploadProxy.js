@@ -6,11 +6,11 @@ import multer from 'multer'
 
 const router = Router()
 
-// Configuración de multer para memoria
+// Configuración de multer para memoria (SOLO fallback temporal)
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 50 * 1024 * 1024 // 50MB
+    fileSize: 70 * 1024 * 1024 // 70MB
   }
 })
 
@@ -37,12 +37,14 @@ const requireAuth = async (req, res, next) => {
   }
 }
 
-// Subir archivo directamente a R2 (proxy temporal)
+// Proxy optimizado para subida de archivos
 const uploadFileProxy = async (req, res) => {
   try {
     const { type } = req.body
     const file = req.file
     const userId = req.user?.id || 'anonymous'
+
+    console.log(`📤 PROXY: Subiendo ${file?.originalname} para usuario ${userId}`)
 
     if (!file) {
       return res.status(400).json({ 
@@ -56,52 +58,6 @@ const uploadFileProxy = async (req, res) => {
         success: false,
         error: 'Tipo de archivo no válido' 
       })
-    }
-
-    // Verificar restricciones de usuario para uploads (excepto anonymous)
-    if (userId !== 'anonymous' && ['profile', 'gallery', 'video'].includes(type)) {
-      const { supabaseAdmin } = await import('../config/supabase.js')
-      
-      // Verificar si ya eliminó un memorial anteriormente
-      const { data: deletedHistory, error: historyError } = await supabaseAdmin
-        .from('user_memorial_history')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('action', 'deleted')
-        .limit(1)
-
-      const hasDeletedProfile = !historyError && deletedHistory && deletedHistory.length > 0
-
-      if (hasDeletedProfile) {
-        console.log(`🚫 Usuario ${userId} intentó subir ${type} pero ya eliminó un memorial`)
-        return res.status(403).json({ 
-          success: false,
-          error: 'No puedes subir archivos porque ya eliminaste un memorial anteriormente.' 
-        })
-      }
-
-      // Verificar si tiene orden completada (necesaria para subir archivos)
-      const { data: completedOrder, error: orderError } = await supabaseAdmin
-        .from('orders')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('status', 'completed')
-        .limit(1)
-        .single()
-
-      const hasCompletedOrder = !orderError && completedOrder
-
-      if (!hasCompletedOrder) {
-        console.log(`🚫 Usuario ${userId} intentó subir ${type} sin orden completada`)
-        return res.status(403).json({ 
-          success: false,
-          error: 'Necesitas una orden completada para subir archivos.' 
-        })
-      }
-
-      // Los videos ahora se permiten durante la creación del perfil
-      // Solo se bloquean si el usuario ya eliminó un memorial (validado arriba)
-      console.log(`✅ Usuario ${userId} puede subir ${type} - tiene orden completada y no ha eliminado memoriales`)
     }
 
     // Validar tipo MIME y tamaño según la categoría
@@ -134,7 +90,7 @@ const uploadFileProxy = async (req, res) => {
       })
     }
 
-    console.log(`📤 Subiendo archivo via proxy: ${file.originalname} (${Math.round(file.size / 1024)}KB)`)
+    console.log(`📤 Procesando archivo ${file.originalname} (${Math.round(file.size / 1024)}KB)`)
 
     // Generar key único
     const timestamp = Date.now()
@@ -168,21 +124,21 @@ const uploadFileProxy = async (req, res) => {
         publicUrl,
         key
       },
-      message: 'Archivo subido exitosamente'
+      message: 'Archivo subido via fallback temporal (configurar CORS en R2)'
     })
 
   } catch (error) {
-    console.error('❌ Error subiendo archivo:', error)
+    console.error('❌ Error en proxy fallback:', error)
     res.status(500).json({ 
       success: false,
-      error: 'Error al subir archivo',
+      error: 'Error al subir archivo via proxy',
       details: error.message
     })
   }
 }
 
-// Ruta proxy
+// Rutas proxy optimizadas
 router.post('/proxy', requireAuth, upload.single('file'), uploadFileProxy)
-router.post('/proxy-public', upload.single('file'), uploadFileProxy) // Sin autenticación para galería
+router.post('/proxy-public', upload.single('file'), uploadFileProxy)
 
 export default router
