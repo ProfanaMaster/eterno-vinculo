@@ -116,12 +116,13 @@ function UserDashboard() {
     )
   }
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | string) => {
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0
-    }).format(amount)
+    }).format(numAmount)
   }
 
   const formatDate = (dateString: string) => {

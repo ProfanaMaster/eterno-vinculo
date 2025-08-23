@@ -4,6 +4,7 @@ import profileRoutes from './profileRoutes.js'
 import adminRoutes from './adminRoutes.js'
 import uploadRoutes from './uploadRoutes.js'
 import ordersRoutes from './orders.js'
+import notificationsRoutes from './notificationsRoutes.js'
 import { requireAuth } from '../middleware/auth.js'
 import { getSettings } from '../controllers/adminController.js'
 
@@ -20,5 +21,6 @@ router.use('/orders', requireAuth, ordersRoutes)
 router.use('/profiles', requireAuth, profileRoutes)
 router.use('/admin', requireAuth, adminRoutes)
 router.use('/upload', requireAuth, uploadRoutes)
+router.use('/notifications', requireAuth, notificationsRoutes)
 
 export default router

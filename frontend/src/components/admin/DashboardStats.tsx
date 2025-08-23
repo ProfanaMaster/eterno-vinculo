@@ -53,12 +53,12 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
         // Obtener actividad reciente
         const activities: RecentActivity[] = []
         
-        // Últimas órdenes verificadas
+        // Últimas órdenes pagadas
         const { data: recentPaidOrders } = await supabase
           .from('orders')
           .select('*, users(email)')
-          .in('status', ['verified', 'completed'])
-          .order('verified_at', { ascending: false })
+          .not('paid_at', 'is', null)
+          .order('paid_at', { ascending: false })
           .limit(3)
         
         recentPaidOrders?.forEach(order => {
@@ -66,8 +66,8 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
             id: order.id,
             type: 'payment',
             message: 'Pago verificado',
-            details: `Usuario: ${order.users?.email} - $${(order.amount / 100).toLocaleString()}`,
-            created_at: order.verified_at || order.updated_at
+            details: `Usuario: ${order.users?.email} - $${order.total_amount ? parseFloat(order.total_amount).toLocaleString() : 'N/A'}`,
+            created_at: order.paid_at || order.created_at
           })
         })
         
