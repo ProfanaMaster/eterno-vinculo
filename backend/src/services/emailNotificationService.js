@@ -2,24 +2,16 @@ import nodemailer from 'nodemailer';
 import { supabaseAdmin } from '../config/supabase.js';
 import logger from '../utils/logger.js';
 
-interface EmailConfig {
-  to: string[];
-  subject: string;
-  html: string;
-  text: string;
-}
-
 class EmailNotificationService {
-  private transporter: nodemailer.Transporter;
-  private realtimeChannel: any;
-  private isListening: boolean = false;
-
   constructor() {
+    this.transporter = null;
+    this.realtimeChannel = null;
+    this.isListening = false;
     this.setupTransporter();
     this.setupRealtimeListener();
   }
 
-  private setupTransporter(): void {
+  setupTransporter() {
     try {
       const smtpPort = parseInt(process.env.SMTP_PORT || '587');
       const isSecure = process.env.SMTP_SECURE === 'true' || smtpPort === 465;
@@ -44,7 +36,7 @@ class EmailNotificationService {
     }
   }
 
-  private setupRealtimeListener(): void {
+  setupRealtimeListener() {
     try {
       this.realtimeChannel = supabaseAdmin
         .channel('orders-notifications')
@@ -66,7 +58,7 @@ class EmailNotificationService {
     }
   }
 
-  private async handleOrderStatusChange(payload: any): Promise<void> {
+  async handleOrderStatusChange(payload) {
     try {
       const { new: newRecord, old: oldRecord } = payload;
       
@@ -80,7 +72,7 @@ class EmailNotificationService {
     }
   }
 
-  public async sendPendingOrderNotification(order: any): Promise<void> {
+  async sendPendingOrderNotification(order) {
     try {
       const adminEmails = [
         process.env.ADMIN_EMAIL_1,
@@ -92,7 +84,7 @@ class EmailNotificationService {
         return;
       }
 
-      const emailConfig: EmailConfig = {
+      const emailConfig = {
         to: adminEmails,
         subject: 'Nueva orden pendiente',
         text: 'Tienes una nueva orden pendiente, revisa el Panel Administrativo Urgente!',
@@ -134,7 +126,7 @@ class EmailNotificationService {
     }
   }
 
-  private async sendEmail(config: EmailConfig): Promise<void> {
+  async sendEmail(config) {
     try {
       const mailOptions = {
         from: `"Eterno Vinculo" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
@@ -152,14 +144,14 @@ class EmailNotificationService {
     }
   }
 
-  public async startListening(): Promise<void> {
+  async startListening() {
     if (this.isListening) {
       logger.warn('⚠️ Email notification service is already listening');
       return;
     }
 
     try {
-      await this.realtimeChannel.subscribe((status: string) => {
+      await this.realtimeChannel.subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           this.isListening = true;
           logger.info('🎧 Email notification service started listening to orders changes');
@@ -174,7 +166,7 @@ class EmailNotificationService {
     }
   }
 
-  public async stopListening(): Promise<void> {
+  async stopListening() {
     if (!this.isListening) {
       logger.warn('⚠️ Email notification service is not listening');
       return;
@@ -189,7 +181,7 @@ class EmailNotificationService {
     }
   }
 
-  public async testConnection(): Promise<boolean> {
+  async testConnection() {
     try {
       await this.transporter.verify();
       logger.info('✅ Email service connection verified');
@@ -200,7 +192,7 @@ class EmailNotificationService {
     }
   }
 
-  public getStatus(): { listening: boolean } {
+  getStatus() {
     return {
       listening: this.isListening
     };

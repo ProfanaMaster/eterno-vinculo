@@ -132,8 +132,8 @@ router.post('/order-notification', async (req, res) => {
     };
 
     // Importar el servicio de notificaciones
-    const emailNotificationService = await import('../services/emailNotificationService.js');
-    await emailNotificationService.default.sendPendingOrderNotification(testOrder);
+    const emailNotificationService = (await import('../services/emailNotificationService.js')).default;
+    await emailNotificationService.sendPendingOrderNotification(testOrder);
 
     res.json({
       success: true,
