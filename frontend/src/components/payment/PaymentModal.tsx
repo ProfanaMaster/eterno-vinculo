@@ -13,27 +13,61 @@ interface PaymentModalProps {
 }
 
 /**
- * Modal de pago por transferencia bancaria
- * Maneja Transfiya, Nequi, Bancolombia
+ * Modal de pago por transferencia - Versión reconstruida
+ * UI/UX mejorada y sin bugs de estado
  */
 function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const navigate = useNavigate()
-  const [paymentData, setPaymentData] = useState({
-    method: '',
+  const [selectedMethod, setSelectedMethod] = useState('')
+  const [formData, setFormData] = useState({
     reference: '',
     amount: '',
     date: '',
     name: ''
   })
+
+  // Función para sanitizar y validar entrada numérica
+  const sanitizeNumericInput = (value: string) => {
+    // Remover todo excepto números
+    const numbers = value.replace(/[^\d]/g, '')
+    return numbers
+  }
+
+  // Función para formatear número con separadores de miles
+  const formatNumber = (value: string) => {
+    if (!value) return ''
+    const number = parseInt(value)
+    return number.toLocaleString()
+  }
+
+  // Handler para el campo de monto
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = sanitizeNumericInput(e.target.value)
+    setFormData(prev => ({ ...prev, amount: sanitized }))
+  }
+
+  // Handler para referencia (solo alfanumérico)
+  const handleReferenceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = e.target.value.replace(/[^a-zA-Z0-9]/g, '')
+    setFormData(prev => ({ ...prev, reference: sanitized }))
+  }
+
+  // Handler para nombre (solo letras y espacios)
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')
+    setFormData(prev => ({ ...prev, name: sanitized }))
+  }
   const [loading, setLoading] = useState(false)
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [step, setStep] = useState(1) // 1: Instrucciones, 2: Comprobante
+  const [currentStep, setCurrentStep] = useState(1) // 1: Método, 2: Transferencia, 3: Comprobante
 
   const { items, getTotal, clearCart } = useCartStore()
   const { user } = useAuthStore()
   const { settings } = useSettings()
 
-  const paymentMethods = settings.payment_methods || {
+  const total = getTotal()
+
+  // Métodos de pago desde el Panel Administrativo
+  const basePaymentMethods = settings.payment_methods || {
     bancolombia: {
       name: 'Bancolombia',
       account: '123-456-789-01',
@@ -54,8 +88,48 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     }
   }
 
-  const selectedMethod = paymentData.method ? paymentMethods[paymentData.method as keyof typeof paymentMethods] : null
-  const total = getTotal()
+  // Agregar iconos y colores a los métodos del admin
+  const getMethodIcon = (key: string) => {
+    const icons: { [key: string]: string } = {
+      nequi: '📱',
+      bancolombia: '🏦',
+      transfiya: '💸',
+      daviplata: '💳'
+    }
+    return icons[key] || '💰'
+  }
+
+  const getMethodColor = (key: string) => {
+    const colors: { [key: string]: string } = {
+      nequi: 'from-purple-500 to-pink-500',
+      bancolombia: 'from-yellow-500 to-orange-500',
+      transfiya: 'from-green-500 to-blue-500',
+      daviplata: 'from-blue-500 to-indigo-500'
+    }
+    return colors[key] || 'from-gray-500 to-gray-600'
+  }
+
+  const paymentMethods = Object.fromEntries(
+    Object.entries(basePaymentMethods).map(([key, method]) => [
+      key,
+      {
+        ...method,
+        icon: getMethodIcon(key),
+        color: getMethodColor(key)
+      }
+    ])
+  )
+
+  const selectedPaymentMethod = selectedMethod ? paymentMethods[selectedMethod as keyof typeof paymentMethods] : null
+
+  const handleMethodSelect = (method: string) => {
+    setSelectedMethod(method)
+    setCurrentStep(2)
+  }
+
+  const handleTransferDone = () => {
+    setCurrentStep(3)
+  }
 
   const handleSubmitPayment = async () => {
     setLoading(true)
@@ -79,10 +153,11 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
         body: JSON.stringify({
           package_id: items[0]?.package.id,
           amount: total,
-          payment_method: paymentData.method,
-          payment_reference: paymentData.reference,
-          payer_name: paymentData.name,
-          payment_date: paymentData.date
+          payment_method: selectedMethod,
+          payment_reference: formData.reference,
+          payer_name: formData.name,
+          payment_date: formData.date,
+          transferred_amount: parseInt(formData.amount)
         })
       })
 
@@ -93,8 +168,9 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
       const result = await response.json()
       
+      // Limpiar y cerrar
       clearCart()
-      onClose()
+      handleClose()
       
       // Redirigir al dashboard con mensaje de éxito
       navigate('/dashboard?payment=success')
@@ -108,9 +184,9 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   }
 
   const resetModal = () => {
-    setStep(1)
-    setPaymentData({
-      method: '',
+    setCurrentStep(1)
+    setSelectedMethod('')
+    setFormData({
       reference: '',
       amount: '',
       date: '',
@@ -119,259 +195,309 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   }
 
   const handleClose = () => {
-    onClose()
     resetModal()
+    onClose()
   }
+
+  // Validación mejorada del formulario
+  const isFormValid = formData.reference && 
+                     formData.name && 
+                     formData.date && 
+                     formData.amount && 
+                     parseInt(formData.amount) === total
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Pago por Transferencia"
+      title="💳 Pago por Transferencia"
       size="lg"
     >
-      {step === 1 ? (
-        // Paso 1: Instrucciones de pago
-        <div className="space-y-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-900 mb-2">
-              💳 Instrucciones de Pago
-            </h3>
-            <p className="text-blue-800 text-sm">
-              Realiza la transferencia y luego ingresa los datos del comprobante para validar tu pago.
-            </p>
-          </div>
+      <div className="space-y-6">
+        {/* Indicador de pasos */}
+        <div className="flex items-center justify-center space-x-4">
+          {[1, 2, 3].map((step) => (
+            <div key={step} className="flex items-center">
+              <div 
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
+                  currentStep >= step 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-500'
+                }`}
+              >
+                {step}
+              </div>
+              {step < 3 && (
+                <div 
+                  className={`w-8 h-1 mx-2 ${
+                    currentStep > step ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
+                />
+              )}
+            </div>
+          ))}
+        </div>
 
-          {/* Selección de método */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Selecciona tu método de pago:
-            </label>
-            <div className="grid grid-cols-1 gap-3">
+        {/* Paso 1: Selección de método */}
+        {currentStep === 1 && (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                Selecciona tu método de pago
+              </h3>
+              <p className="text-gray-600">
+                Elige cómo quieres realizar la transferencia
+              </p>
+            </div>
+
+            <div className="grid gap-4">
               {Object.entries(paymentMethods).map(([key, method]) => (
-                <label key={key} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value={key}
-                    checked={paymentData.method === key}
-                    onChange={(e) => setPaymentData(prev => ({ ...prev, method: e.target.value }))}
-                    className="mr-3"
-                  />
-                  <div>
-                    <div className="font-medium">{method.name}</div>
-                    <div className="text-sm text-gray-600">{method.type}</div>
+                <button
+                  key={key}
+                  onClick={() => handleMethodSelect(key)}
+                  className="group relative overflow-hidden rounded-xl border-2 border-gray-200 hover:border-blue-300 transition-all p-6 text-left hover:shadow-lg"
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-r ${method.color} opacity-0 group-hover:opacity-10 transition-opacity`} />
+                  
+                  <div className="relative flex items-center space-x-4">
+                    <div className="text-4xl">{method.icon}</div>
+                    <div className="flex-1">
+                      <h4 className="text-lg font-bold text-gray-800">{method.name}</h4>
+                      <p className="text-gray-600">{method.type}</p>
+                      <p className="text-sm text-gray-500">{method.account}</p>
+                    </div>
+                    <div className="text-gray-400 group-hover:text-blue-600 transition-colors">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </div>
-                </label>
+                </button>
               ))}
             </div>
           </div>
+        )}
 
-          {/* Datos de transferencia - Solo si hay método seleccionado */}
-          {selectedMethod && (
+        {/* Paso 2: Datos de transferencia */}
+        {currentStep === 2 && selectedPaymentMethod && (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                Realiza la transferencia
+              </h3>
+              <p className="text-gray-600">
+                Usa estos datos para transferir desde tu app bancaria
+              </p>
+            </div>
+
+            {/* Tarjeta de datos con borde animado */}
             <div className="relative bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-6 shadow-lg overflow-hidden">
               {/* Borde animado */}
               <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500 via-purple-500 via-pink-500 via-red-500 via-yellow-500 via-green-500 via-cyan-500 to-blue-500 bg-[length:400%_400%] animate-pulse-border p-[2px]">
                 <div className="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl"></div>
               </div>
+              
               {/* Contenido */}
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <h4 className="font-bold text-xl text-gray-800">💳 Datos para la transferencia</h4>
+              <div className="relative z-10 space-y-4">
+                <div className="text-center mb-6">
+                  <div className="text-4xl mb-2">{selectedPaymentMethod.icon}</div>
+                  <h4 className="text-xl font-bold text-gray-800">{selectedPaymentMethod.name}</h4>
                 </div>
-                
-                <div className="grid gap-4">
-                  {/* Método de pago */}
-                  <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                          <span className="text-green-600 font-bold text-sm">💰</span>
-                        </div>
-                        <span className="text-sm font-medium text-gray-600">Método de pago</span>
-                      </div>
-                      <span className="font-bold text-lg text-gray-800">{selectedMethod.name}</span>
-                    </div>
-                  </div>
 
-                  {/* Número de cuenta */}
-                  <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                          <span className="text-purple-600 font-bold text-sm">#</span>
-                        </div>
-                        <span className="text-sm font-medium text-gray-600">Número de cuenta</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="font-bold text-lg text-gray-800 font-mono">{selectedMethod.account}</span>
+                <div className="grid gap-4">
+                  {/* Cuenta */}
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-600">Cuenta:</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-mono font-bold text-lg">{selectedPaymentMethod.account}</span>
                         <button 
-                          onClick={() => navigator.clipboard.writeText(selectedMethod.account)}
-                          className="ml-2 text-blue-600 hover:text-blue-800 text-xs"
-                          title="Copiar número"
+                          onClick={() => navigator.clipboard.writeText(selectedPaymentMethod.account)}
+                          className="text-blue-600 hover:text-blue-800 p-1"
+                          title="Copiar"
                         >
-                          📋 Copiar
+                          📋
                         </button>
                       </div>
                     </div>
                   </div>
 
-                  {/* Tipo de cuenta */}
-                  <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                          <span className="text-yellow-600 font-bold text-sm">🏦</span>
-                        </div>
-                        <span className="text-sm font-medium text-gray-600">Tipo de cuenta</span>
-                      </div>
-                      <span className="font-semibold text-gray-800">{selectedMethod.type}</span>
+                  {/* Tipo */}
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-600">Tipo:</span>
+                      <span className="font-semibold">{selectedPaymentMethod.type}</span>
                     </div>
                   </div>
 
                   {/* Titular */}
-                  <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                          <span className="text-indigo-600 font-bold text-sm">👤</span>
-                        </div>
-                        <span className="text-sm font-medium text-gray-600">Titular de la cuenta</span>
-                      </div>
-                      <span className="font-semibold text-gray-800">{selectedMethod.owner}</span>
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-600">Titular:</span>
+                      <span className="font-semibold">{selectedPaymentMethod.owner}</span>
                     </div>
                   </div>
 
-                  {/* Monto destacado */}
-                  <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg p-6 text-white shadow-lg">
-                    <div className="text-center">
-                      <p className="text-sm font-medium opacity-90 mb-1">💸 Monto a transferir</p>
-                      <p className="text-3xl font-bold tracking-tight">${total.toLocaleString()}</p>
-                      <p className="text-xs opacity-80 mt-1">COP (Pesos Colombianos)</p>
-                    </div>
+                  {/* Monto */}
+                  <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg p-6 text-white text-center">
+                    <p className="text-sm opacity-90 mb-1">💸 Monto a transferir</p>
+                    <p className="text-4xl font-bold">${total.toLocaleString()}</p>
+                    <p className="text-xs opacity-80 mt-1">COP (Pesos Colombianos)</p>
                   </div>
                 </div>
 
-                {/* Instrucción importante */}
-                <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                  <div className="flex items-start gap-2">
-                    <span className="text-amber-600 text-sm">⚠️</span>
-                    <p className="text-xs text-amber-800">
-                      <strong>Importante:</strong> Transfiere exactamente <strong>${total.toLocaleString()}</strong> para agilizar la validación.
-                    </p>
+                {/* Instrucción */}
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <span className="text-amber-600">⚠️</span>
+                    <div className="text-sm text-amber-800">
+                      <p className="font-semibold">Importante:</p>
+                      <p>Transfiere exactamente <strong>${total.toLocaleString()}</strong> para agilizar la validación.</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          )}
-          
-          {/* Mensaje cuando no hay método seleccionado */}
-          {!selectedMethod && (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-              <p className="text-gray-600">👆 Por favor selecciona un método de pago para ver los datos de transferencia</p>
-            </div>
-          )}
 
-          <Button
-            onClick={() => setStep(2)}
-            className="w-full btn-primary"
-            disabled={!selectedMethod}
-          >
-            {selectedMethod ? 'Ya realicé la transferencia →' : 'Selecciona un método de pago'}
-          </Button>
-        </div>
-      ) : (
-        // Paso 2: Comprobante
-        <div className="space-y-6">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <h3 className="font-semibold text-green-900 mb-2">
-              📄 Datos del Comprobante
-            </h3>
-            <p className="text-green-800 text-sm">
-              Ingresa los datos de tu transferencia para verificar el pago.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Número de referencia *
-              </label>
-              <input
-                type="text"
-                value={paymentData.reference}
-                onChange={(e) => setPaymentData(prev => ({ ...prev, reference: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Ej: 123456789"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nombre del pagador *
-              </label>
-              <input
-                type="text"
-                value={paymentData.name}
-                onChange={(e) => setPaymentData(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Nombre completo"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Fecha de transferencia *
-              </label>
-              <input
-                type="date"
-                value={paymentData.date}
-                onChange={(e) => setPaymentData(prev => ({ ...prev, date: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Monto transferido *
-              </label>
-              <input
-                type="text"
-                value={paymentData.amount}
-                onChange={(e) => setPaymentData(prev => ({ ...prev, amount: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder={`$${total.toLocaleString()}`}
-                required
-              />
+            {/* Botones */}
+            <div className="flex space-x-3">
+              <Button
+                onClick={() => setCurrentStep(1)}
+                className="flex-1 btn-secondary"
+              >
+                ← Cambiar método
+              </Button>
+              <Button
+                onClick={handleTransferDone}
+                className="flex-1 btn-primary"
+              >
+                Ya transferí →
+              </Button>
             </div>
           </div>
+        )}
 
-          <div className="flex gap-3">
-            <Button
-              onClick={() => setStep(1)}
-              className="flex-1 btn-secondary"
-            >
-              ← Volver
-            </Button>
-            
-            <Button
-              onClick={handleSubmitPayment}
-              className="flex-1 btn-primary"
-              disabled={loading || !paymentData.reference || !paymentData.name || !paymentData.date || !paymentData.amount}
-            >
-              {loading ? 'Procesando...' : 'Enviar Comprobante'}
-            </Button>
+        {/* Paso 3: Comprobante */}
+        {currentStep === 3 && (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                Ingresa los datos del comprobante
+              </h3>
+              <p className="text-gray-600">
+                Completa la información para validar tu pago
+              </p>
+            </div>
+
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-green-600">✅</span>
+                <div className="text-sm text-green-800">
+                  <p className="font-semibold">Transferencia realizada</p>
+                  <p>Ahora completa los datos de tu comprobante</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Número de referencia *
+                </label>
+                <input
+                  type="text"
+                  value={formData.reference}
+                  onChange={handleReferenceChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Ej: 123456789"
+                  maxLength={20}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nombre del pagador *
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={handleNameChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Nombre completo"
+                  maxLength={50}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Fecha de transferencia *
+                </label>
+                <input
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Monto transferido *
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={formData.amount ? `$${formatNumber(formData.amount)}` : ''}
+                    onChange={handleAmountChange}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      formData.amount && parseInt(formData.amount) !== total 
+                        ? 'border-red-300 bg-red-50' 
+                        : 'border-gray-300'
+                    }`}
+                    placeholder={`Ejemplo: $${total.toLocaleString()}`}
+                    maxLength={15}
+                  />
+                  {formData.amount && parseInt(formData.amount) !== total && (
+                    <p className="text-red-500 text-xs mt-1">
+                      El monto debe ser exactamente ${total.toLocaleString()}
+                    </p>
+                  )}
+                  {formData.amount && parseInt(formData.amount) === total && (
+                    <p className="text-green-500 text-xs mt-1">
+                      ✓ Monto correcto
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Botones */}
+            <div className="flex space-x-3">
+              <Button
+                onClick={() => setCurrentStep(2)}
+                className="flex-1 btn-secondary"
+              >
+                ← Volver
+              </Button>
+              
+              <Button
+                onClick={handleSubmitPayment}
+                className="flex-1 btn-primary"
+                disabled={loading || !isFormValid}
+              >
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    <span>Procesando...</span>
+                  </div>
+                ) : (
+                  'Enviar Comprobante'
+                )}
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </Modal>
   )
 }

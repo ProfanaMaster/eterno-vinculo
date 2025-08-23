@@ -26,13 +26,21 @@ router.post('/', async (req, res) => {
       payment_method,
       payment_reference,
       payer_name,
-      payment_date
+      payment_date,
+      transferred_amount
     } = req.body;
 
     // Validar datos requeridos
     if (!package_id || !amount || !payment_method) {
       return res.status(400).json({ 
         error: 'Datos incompletos: package_id, amount y payment_method son requeridos' 
+      });
+    }
+
+    // Validar monto transferido si se proporciona
+    if (transferred_amount && transferred_amount !== amount) {
+      return res.status(400).json({ 
+        error: `El monto transferido ($${transferred_amount.toLocaleString()}) no coincide con el total de la orden ($${amount.toLocaleString()})` 
       });
     }
 
@@ -60,6 +68,15 @@ router.post('/', async (req, res) => {
 
     // Agregar datos opcionales si están presentes
     if (payment_reference) orderData.payment_intent_id = payment_reference;
+    
+    // Guardar información adicional del pago si se proporciona
+    if (payer_name || payment_date || transferred_amount) {
+      orderData.payment_details = {
+        payer_name: payer_name || null,
+        payment_date: payment_date || null,
+        transferred_amount: transferred_amount || null
+      };
+    }
     
     const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
