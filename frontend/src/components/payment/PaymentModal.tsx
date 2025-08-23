@@ -189,9 +189,7 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
               <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600 font-bold text-sm"></span>
-                    </div>
+                    
                     <span className="text-sm font-medium text-gray-600">Método de pago</span>
                   </div>
                   <span className="font-bold text-lg text-gray-800">{selectedMethod.name}</span>
@@ -202,9 +200,7 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
               <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                      <span className="text-purple-600 font-bold text-sm"></span>
-                    </div>
+                    
                     <span className="text-sm font-medium text-gray-600">Número de cuenta</span>
                   </div>
                   <div className="text-right">
