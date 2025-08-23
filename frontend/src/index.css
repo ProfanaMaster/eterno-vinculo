@@ -61,3 +61,19 @@
     transform: translateY(0);
   }
 }
+
+@keyframes rotating-border {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-pulse-border {
+  animation: rotating-border 3s ease-in-out infinite;
+}

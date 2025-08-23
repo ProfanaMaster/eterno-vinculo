@@ -135,9 +135,19 @@ export const collectMemorialMediaUrls = (memorial) => {
     urls.push(memorial.profile_image_url)
   }
   
+  // ✅ AGREGADO: Banner/imagen de fondo
+  if (memorial.banner_image_url) {
+    urls.push(memorial.banner_image_url)
+  }
+  
   // Video conmemorativo
   if (memorial.memorial_video_url) {
     urls.push(memorial.memorial_video_url)
+  }
+  
+  // ✅ AGREGADO: Código QR
+  if (memorial.qr_code_url) {
+    urls.push(memorial.qr_code_url)
   }
   
   // Galería de imágenes

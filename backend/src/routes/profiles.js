@@ -77,49 +77,51 @@ router.post('/', requireAuth, async (req, res) => {
     const user_id = req.user.id;
 
 
-    // Verificar que el usuario tenga una orden completada
-    const { data: completedOrder, error: orderError } = await supabaseAdmin
+    // Contar órdenes pagadas (cuotas disponibles)
+    const { data: paidOrders, error: ordersError } = await supabaseAdmin
       .from('orders')
       .select('id')
       .eq('user_id', user_id)
-      .eq('status', 'completed')
-      .limit(1)
-      .single();
+      .not('paid_at', 'is', null); // Órdenes con paid_at no nulo
 
-    if (orderError || !completedOrder) {
+    if (ordersError) {
+      console.error('Error fetching paid orders:', ordersError);
+      return res.status(500).json({ error: 'Error al verificar órdenes pagadas' });
+    }
+
+    const totalQuotas = paidOrders?.length || 0;
+
+    if (totalQuotas === 0) {
       return res.status(400).json({ 
-        error: 'Necesitas una orden completada para crear un memorial' 
+        error: 'Necesitas al menos una orden pagada para crear un memorial' 
       });
     }
 
-    // Verificar que el usuario no tenga ya un memorial activo
-    const { data: existingProfile, error: profileError } = await supabaseAdmin
+    // Contar memoriales activos (no eliminados)
+    const { data: activeMemorials, error: memorialsError } = await supabaseAdmin
       .from('memorial_profiles')
       .select('id')
       .eq('user_id', user_id)
-      .is('deleted_at', null)
-      .limit(1)
-      .single();
+      .is('deleted_at', null);
 
-    if (existingProfile) {
+    if (memorialsError) {
+      console.error('Error fetching active memorials:', memorialsError);
+      return res.status(500).json({ error: 'Error al verificar memoriales activos' });
+    }
+
+    const usedQuotas = activeMemorials?.length || 0;
+    const availableQuotas = totalQuotas - usedQuotas;
+
+    if (availableQuotas <= 0) {
       return res.status(400).json({ 
-        error: 'Solo puedes crear un memorial. Elimina el existente para crear uno nuevo.' 
+        error: `Has alcanzado el límite de memoriales (${totalQuotas}). Tienes ${usedQuotas} memoriales activos.` 
       });
     }
-    
-    // Verificar si ya eliminó un memorial anteriormente
-    const { data: deletedHistory } = await supabaseAdmin
-      .from('user_memorial_history')
-      .select('id')
-      .eq('user_id', user_id)
-      .eq('action', 'deleted')
-      .limit(1);
-    
-    if (deletedHistory && deletedHistory.length > 0) {
-      return res.status(400).json({ 
-        error: 'Ya eliminaste un memorial anteriormente. No puedes crear más memoriales.' 
-      });
-    }
+
+    console.log(`✅ Usuario ${user_id} puede crear memorial: ${availableQuotas} cuotas disponibles (${totalQuotas} pagadas - ${usedQuotas} activas)`);
+
+    // Seleccionar la primera orden pagada disponible
+    const selectedOrder = paidOrders[0];
 
     // Validaciones básicas
     if (!profile_name?.trim()) {
@@ -141,7 +143,7 @@ router.post('/', requireAuth, async (req, res) => {
 
     const profileData = {
       user_id,
-      order_id: completedOrder.id,
+      order_id: selectedOrder.id,
       slug,
       profile_name: profile_name.trim(),
       description: description?.trim() || '',
@@ -194,73 +196,60 @@ router.get('/can-create', requireAuth, async (req, res) => {
   try {
     const user_id = req.user.id;
 
-    // Verificar que el usuario tenga una orden completada
-    const { data: completedOrder, error: orderError } = await supabaseAdmin
+    // Contar órdenes pagadas (cuotas disponibles)
+    const { data: paidOrders, error: ordersError } = await supabaseAdmin
       .from('orders')
       .select('id')
       .eq('user_id', user_id)
-      .eq('status', 'completed')
-      .limit(1)
-      .single();
+      .not('paid_at', 'is', null);
 
-    const hasCompletedOrder = !orderError && completedOrder;
+    if (ordersError) {
+      console.error('Error fetching paid orders:', ordersError);
+      return res.status(500).json({ error: 'Error al verificar órdenes pagadas' });
+    }
 
-    // Verificar si tiene un memorial activo
-    const { data: activeProfile, error: activeError } = await supabaseAdmin
+    const totalQuotas = paidOrders?.length || 0;
+
+    // Contar memoriales activos (no eliminados)
+    const { data: activeMemorials, error: memorialsError } = await supabaseAdmin
       .from('memorial_profiles')
       .select('id')
       .eq('user_id', user_id)
-      .is('deleted_at', null)
-      .limit(1)
-      .single();
+      .is('deleted_at', null);
 
-    const hasActiveProfile = !activeError && activeProfile;
-
-    // Verificar si ya eliminó un memorial anteriormente
-    const { data: deletedHistory, error: historyError } = await supabaseAdmin
-      .from('user_memorial_history')
-      .select('id')
-      .eq('user_id', user_id)
-      .eq('action', 'deleted')
-      .limit(1);
-
-    const hasDeletedProfile = !historyError && deletedHistory && deletedHistory.length > 0;
-
-    // Determinar si puede crear (requiere orden completada Y no tener memorial activo Y no haber eliminado uno)
-    const canCreate = hasCompletedOrder && !hasActiveProfile && !hasDeletedProfile;
-
-    let reason = null;
-    if (!hasCompletedOrder) {
-      reason = 'Necesitas una orden completada para crear un memorial.';
-    } else if (hasActiveProfile) {
-      reason = 'Solo puedes crear un memorial. Elimina el existente para crear uno nuevo.';
-    } else if (hasDeletedProfile) {
-      reason = 'Ya eliminaste un memorial anteriormente. No puedes crear más memoriales.';
+    if (memorialsError) {
+      console.error('Error fetching active memorials:', memorialsError);
+      return res.status(500).json({ error: 'Error al verificar memoriales activos' });
     }
 
-    console.log(`🔒 Verificación de restricciones para usuario ${user_id}:`, {
-      canCreate,
-      hasCompletedOrder,
-      hasActiveProfile: !!hasActiveProfile,
-      hasDeletedProfile,
-      reason
-    });
+    const usedQuotas = activeMemorials?.length || 0;
+    const availableQuotas = totalQuotas - usedQuotas;
+
+    const canCreate = availableQuotas > 0;
+
+    let reason = null;
+    if (totalQuotas === 0) {
+      reason = 'Necesitas al menos una orden pagada para crear un memorial.';
+    } else if (availableQuotas <= 0) {
+      reason = `Has alcanzado el límite de memoriales (${totalQuotas}). Tienes ${usedQuotas} memoriales activos.`;
+    }
+
+    console.log(`🔒 Verificación de cuotas para usuario ${user_id}: ${availableQuotas} disponibles (${totalQuotas} pagadas - ${usedQuotas} activas)`);
 
     res.json({
       success: true,
       canCreate,
       reason,
-      hasCompletedOrder,
-      hasActiveProfile: !!hasActiveProfile,
-      hasDeletedProfile
+      quotas: {
+        total: totalQuotas,
+        used: usedQuotas,
+        available: availableQuotas
+      }
     });
 
   } catch (error) {
-    console.error('❌ Error verificando restricciones:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Error verificando permisos de creación' 
-    });
+    console.error('Error in /can-create:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
@@ -489,7 +478,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
     // Obtener datos completos del memorial para limpieza
     const { data: profile, error: fetchError } = await supabaseAdmin
       .from('memorial_profiles')
-      .select('id, profile_image_url, memorial_video_url, gallery_images')
+      .select('id, profile_image_url, banner_image_url, memorial_video_url, gallery_images, qr_code_url')
       .eq('id', id)
       .eq('user_id', user_id)
       .is('deleted_at', null)
@@ -529,27 +518,45 @@ router.delete('/:id', requireAuth, async (req, res) => {
       console.error('Error registrando en historial:', historyError);
     }
 
-    // Limpiar archivos multimedia de R2 (no bloquear la respuesta)
+    // Limpiar archivos multimedia de R2 y registros de BD (no bloquear la respuesta)
     setImmediate(async () => {
       try {
-        console.log(`🧹 Iniciando limpieza de archivos para memorial ${id}`);
+        console.log(`🧹 Iniciando limpieza completa para memorial ${id}`);
         
-        // Limpiar archivos del memorial
+        // 1. Limpiar archivos del memorial
         const memorialCleanup = await cleanupMemorialMedia(profile);
         
-        // Limpiar archivos de memorias
+        // 2. Limpiar archivos de memorias
         let memoriesCleanup = { success: [], failed: [] };
         if (memories && memories.length > 0) {
           memoriesCleanup = await cleanupMemoriesMedia(memories);
         }
         
+        // 3. ✅ NUEVO: Eliminar registros de memorias de la base de datos
+        if (memories && memories.length > 0) {
+          try {
+            const { error: memoriesDeleteError } = await supabaseAdmin
+              .from('memories')
+              .delete()
+              .eq('memorial_profile_id', id);
+              
+            if (memoriesDeleteError) {
+              console.error(`❌ Error eliminando memorias de BD para memorial ${id}:`, memoriesDeleteError);
+            } else {
+              console.log(`✅ ${memories.length} memorias eliminadas de la base de datos`);
+            }
+          } catch (dbError) {
+            console.error(`❌ Error en eliminación de memorias de BD:`, dbError);
+          }
+        }
+        
         const totalSuccess = memorialCleanup.success.length + memoriesCleanup.success.length;
         const totalFailed = memorialCleanup.failed.length + memoriesCleanup.failed.length;
         
-        console.log(`✅ Limpieza completada para memorial ${id}: ${totalSuccess} exitosos, ${totalFailed} fallidos`);
+        console.log(`✅ Limpieza completa terminada para memorial ${id}: ${totalSuccess} archivos exitosos, ${totalFailed} archivos fallidos`);
         
       } catch (cleanupError) {
-        console.error(`❌ Error en limpieza de archivos para memorial ${id}:`, cleanupError);
+        console.error(`❌ Error en limpieza completa para memorial ${id}:`, cleanupError);
       }
     });
 

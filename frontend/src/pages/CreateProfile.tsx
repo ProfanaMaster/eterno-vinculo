@@ -14,6 +14,7 @@ function CreateProfile() {
   const [isEditing, setIsEditing] = useState(false)
   const [canCreateProfile, setCanCreateProfile] = useState(true)
   const [restrictionMessage, setRestrictionMessage] = useState('')
+  const [quotasInfo, setQuotasInfo] = useState('')
   const [checkingRestrictions, setCheckingRestrictions] = useState(true)
 
   const navigate = useNavigate()
@@ -32,6 +33,7 @@ function CreateProfile() {
     try {
       const restriction = await ProfileRestrictionsService.canUserCreateProfile()
       setCanCreateProfile(restriction.canCreate)
+      setQuotasInfo(ProfileRestrictionsService.getQuotasInfo(restriction))
       
       if (!restriction.canCreate) {
         setRestrictionMessage(ProfileRestrictionsService.getRestrictionMessage(restriction))
@@ -40,6 +42,7 @@ function CreateProfile() {
       console.error('Error verificando restricciones:', error)
       setCanCreateProfile(false)
       setRestrictionMessage('Error verificando permisos. Inténtalo más tarde.')
+      setQuotasInfo('Error obteniendo información de cuotas')
     } finally {
       setCheckingRestrictions(false)
     }
@@ -454,6 +457,13 @@ function CreateProfile() {
           <p className="text-lg text-gray-600">
             Paso {step} de 3
           </p>
+          {!isEditing && quotasInfo && (
+            <div className="mt-4 inline-block bg-blue-50 px-4 py-2 rounded-full">
+              <span className="text-blue-600 text-sm font-medium">
+                📊 {quotasInfo}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Indicador de pasos */}

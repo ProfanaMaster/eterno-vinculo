@@ -35,6 +35,8 @@ const MemoriesManager = ({ profileId }: MemoriesManagerProps) => {
       const from = (page - 1) * itemsPerPage
       const to = from + itemsPerPage - 1
 
+
+
       const { data, error, count } = await supabase
         .from('memories')
         .select('*', { count: 'exact' })
@@ -42,12 +44,15 @@ const MemoriesManager = ({ profileId }: MemoriesManagerProps) => {
         .order('created_at', { ascending: false })
         .range(from, to)
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ MemoriesManager SQL Error:', error)
+        throw error
+      }
 
       setMemories(data || [])
       setTotalPages(Math.ceil((count || 0) / itemsPerPage))
     } catch (error) {
-      console.error('Error loading memories:', error)
+      console.error('❌ MemoriesManager Error loading memories:', error)
     } finally {
       setLoading(false)
     }
@@ -55,6 +60,32 @@ const MemoriesManager = ({ profileId }: MemoriesManagerProps) => {
 
   useEffect(() => {
     loadMemories(currentPage)
+  }, [profileId, currentPage])
+
+  // Suscripción en tiempo real para recuerdos
+  useEffect(() => {
+    if (!profileId) return
+
+    const subscription = supabase
+      .channel(`memories_manager_${profileId}`)
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'memories',
+          filter: `memorial_profile_id=eq.${profileId}`
+        },
+        (payload) => {
+          console.log('💭 Memory change detected in MemoriesManager:', payload.eventType, 'for profileId:', profileId)
+          // Recargar recuerdos cuando hay cambios
+          loadMemories(currentPage)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [profileId, currentPage])
 
   const toggleVisibility = async (memoryId: string, currentStatus: boolean) => {

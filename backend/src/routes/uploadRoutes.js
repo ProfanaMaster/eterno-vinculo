@@ -69,46 +69,46 @@ const getPresignedUrlHandler = async (req, res) => {
         .limit(1)
         .single()
 
-      // Verificar si ya eliminó un memorial anteriormente
-      const { data: deletedHistory, error: historyError } = await supabaseAdmin
-        .from('user_memorial_history')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('action', 'deleted')
-        .limit(1)
-
-      const hasDeletedProfile = !historyError && deletedHistory && deletedHistory.length > 0
-
-      if (hasDeletedProfile) {
-        console.log(`🚫 Usuario ${userId} intentó subir ${type} pero ya eliminó un memorial`)
-        return res.status(403).json({ 
-          success: false,
-          error: 'No puedes subir archivos porque ya eliminaste un memorial anteriormente.' 
-        })
-      }
-
-      // Verificar si tiene orden completada (necesaria para subir archivos)
-      const { data: completedOrder, error: orderError } = await supabaseAdmin
+      // Verificar si tiene órdenes pagadas (necesarias para subir archivos)
+      const { data: paidOrders, error: orderError } = await supabaseAdmin
         .from('orders')
         .select('id')
         .eq('user_id', userId)
-        .eq('status', 'completed')
-        .limit(1)
-        .single()
+        .not('paid_at', 'is', null)
 
-      const hasCompletedOrder = !orderError && completedOrder
+      const totalQuotas = paidOrders?.length || 0
 
-      if (!hasCompletedOrder) {
-        console.log(`🚫 Usuario ${userId} intentó subir ${type} sin orden completada`)
+      if (totalQuotas === 0) {
+        console.log(`🚫 Usuario ${userId} intentó subir ${type} sin órdenes pagadas`)
         return res.status(403).json({ 
           success: false,
-          error: 'Necesitas una orden completada para subir archivos.' 
+          error: 'Necesitas al menos una orden pagada para subir archivos.' 
         })
       }
 
-      // Los videos ahora se permiten durante la creación del perfil
-      // Solo se bloquean si el usuario ya eliminó un memorial (validado arriba)
-      console.log(`✅ Usuario ${userId} puede subir ${type} - tiene orden completada y no ha eliminado memoriales`)
+      // Verificar si tiene memoriales activos
+      const { data: activeMemorials, error: memorialsError } = await supabaseAdmin
+        .from('memorial_profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .is('deleted_at', null)
+
+      const usedQuotas = activeMemorials?.length || 0
+      const availableQuotas = totalQuotas - usedQuotas
+
+      if (usedQuotas === 0 && availableQuotas > 0) {
+        console.log(`✅ Usuario ${userId} puede subir ${type} - tiene cuotas disponibles para crear memoriales`)
+      } else if (usedQuotas > 0) {
+        console.log(`✅ Usuario ${userId} puede subir ${type} - tiene memoriales activos`)
+      } else {
+        console.log(`🚫 Usuario ${userId} intentó subir ${type} sin cuotas disponibles`)
+        return res.status(403).json({ 
+          success: false,
+          error: 'No tienes cuotas disponibles para subir archivos.' 
+        })
+      }
+
+
     }
     
     // Validar nombre de archivo

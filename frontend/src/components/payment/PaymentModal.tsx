@@ -19,7 +19,7 @@ interface PaymentModalProps {
 function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const navigate = useNavigate()
   const [paymentData, setPaymentData] = useState({
-    method: 'bancolombia',
+    method: 'nequi',
     reference: '',
     amount: '',
     date: '',
@@ -42,8 +42,8 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     },
     nequi: {
       name: 'Nequi',
-      account: '300-123-4567',
-      type: 'Cuenta Nequi',
+      account: '319 665 0357',
+      type: 'Cuenta Digital',
       owner: 'Eterno Vínculo'
     },
     transfiya: {
@@ -167,30 +167,104 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             </div>
           </div>
 
-          {/* Datos de transferencia */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="font-semibold mb-3">📋 Datos para la transferencia:</h4>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Método:</span>
-                <span className="font-medium">{selectedMethod.name}</span>
+          {/* Datos de transferencia - Diseño mejorado */}
+          <div className="relative bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-6 shadow-lg overflow-hidden">
+            {/* Borde animado */}
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500 via-purple-500 via-pink-500 via-red-500 via-yellow-500 via-green-500 via-cyan-500 to-blue-500 bg-[length:400%_400%] animate-pulse-border p-[2px]">
+              <div className="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl"></div>
+            </div>
+            {/* Contenido */}
+            <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2z" />
+                </svg>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Cuenta:</span>
-                <span className="font-medium">{selectedMethod.account}</span>
+              <h4 className="font-bold text-xl text-gray-800">💳 Datos para la transferencia</h4>
+            </div>
+            
+            <div className="grid gap-4">
+              {/* Método de pago */}
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <span className="text-green-600 font-bold text-sm">💰</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-600">Método de pago</span>
+                  </div>
+                  <span className="font-bold text-lg text-gray-800">{selectedMethod.name}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Tipo:</span>
-                <span className="font-medium">{selectedMethod.type}</span>
+
+              {/* Número de cuenta */}
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                      <span className="text-purple-600 font-bold text-sm">#</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-600">Número de cuenta</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-bold text-lg text-gray-800 font-mono">{selectedMethod.account}</span>
+                    <button 
+                      onClick={() => navigator.clipboard.writeText(selectedMethod.account)}
+                      className="ml-2 text-blue-600 hover:text-blue-800 text-xs"
+                      title="Copiar número"
+                    >
+                      📋 Copiar
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Titular:</span>
-                <span className="font-medium">{selectedMethod.owner}</span>
+
+              {/* Tipo de cuenta */}
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                      <span className="text-yellow-600 font-bold text-sm">🏦</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-600">Tipo de cuenta</span>
+                  </div>
+                  <span className="font-semibold text-gray-800">{selectedMethod.type}</span>
+                </div>
               </div>
-              <div className="flex justify-between border-t pt-2 mt-2">
-                <span className="text-gray-600">Monto a transferir:</span>
-                <span className="font-bold text-lg text-primary-600">${total.toLocaleString()}</span>
+
+              {/* Titular */}
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <span className="text-indigo-600 font-bold text-sm">👤</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-600">Titular de la cuenta</span>
+                  </div>
+                  <span className="font-semibold text-gray-800">{selectedMethod.owner}</span>
+                </div>
               </div>
+
+              {/* Monto destacado */}
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg p-6 text-white shadow-lg">
+                <div className="text-center">
+                  <p className="text-sm font-medium opacity-90 mb-1">💸 Monto a transferir</p>
+                  <p className="text-3xl font-bold tracking-tight">${total.toLocaleString()}</p>
+                  <p className="text-xs opacity-80 mt-1">COP (Pesos Colombianos)</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Instrucción importante */}
+            <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <span className="text-amber-600 text-sm">⚠️</span>
+                <p className="text-xs text-amber-800">
+                  <strong>Importante:</strong> Transfiere exactamente <strong>${total.toLocaleString()}</strong> para agilizar la validación.
+                </p>
+              </div>
+            </div>
             </div>
           </div>
 

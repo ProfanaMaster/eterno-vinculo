@@ -14,7 +14,14 @@ interface Order {
   status: string
   total_amount: number
   payment_intent_id?: string
+  paid_at: string | null
   created_at: string
+}
+
+interface Quotas {
+  total: number
+  used: number
+  available: number
 }
 
 function UserDashboard() {
@@ -25,6 +32,7 @@ function UserDashboard() {
   const [orders, setOrders] = useState<Order[]>([])
   const [ordersLoading, setOrdersLoading] = useState(true)
   const [dataFetched, setDataFetched] = useState(false)
+  const [quotas, setQuotas] = useState<Quotas>({ total: 0, used: 0, available: 0 })
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; memorialId: string | null }>({ isOpen: false, memorialId: null })
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
   const [showShareSuccess, setShowShareSuccess] = useState(false)
@@ -92,11 +100,25 @@ function UserDashboard() {
       const ordersRes = await api.get('/orders')
       setOrders(ordersRes.data.data || [])
       
+      // Obtener información de cuotas
+      await fetchQuotas()
+      
     } catch (error) {
       console.error('Error fetching orders:', error)
       setDataFetched(false)
     } finally {
       setOrdersLoading(false)
+    }
+  }
+
+  const fetchQuotas = async () => {
+    try {
+      const response = await api.get('/profiles/can-create')
+      if (response.data.success && response.data.quotas) {
+        setQuotas(response.data.quotas)
+      }
+    } catch (error) {
+      logger.error('Error fetching quotas:', error)
     }
   }
 
@@ -164,9 +186,7 @@ function UserDashboard() {
     }
   }
 
-  const hasCompletedOrder = orders?.some(order => order.status === 'completed') || false
   const hasMemorial = memorials?.length > 0
-  const canCreateMemorial = hasCompletedOrder && !hasMemorial
 
   const loading = ordersLoading || memorialsLoading
 
@@ -381,10 +401,21 @@ function UserDashboard() {
         </Modal>
         
         <div className="grid grid-cols-1 gap-8">
-          {/* Gestión de Recuerdos - Solo si tiene memorial */}
-          {hasMemorial && memorials?.[0] && (
-            <MemoriesManager profileId={memorials[0].id} />
-          )}
+          {/* Gestión de Recuerdos - Para cada memorial */}
+          {hasMemorial && memorials?.map((memorial, index) => (
+            <div key={memorial.id} className="mb-8">
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  🗂️ Recuerdos de "{memorial.profile_name}"
+                  <span className="text-sm text-gray-500 font-normal">
+                    ({memorial.slug})
+                  </span>
+                </h2>
+                <MemoriesManager profileId={memorial.id} />
+              </div>
+            </div>
+          ))}
+          {!hasMemorial && console.log('⚠️ UserDashboard: No memorial found. hasMemorial:', hasMemorial, 'memorials:', memorials)}
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Mis Órdenes */}
@@ -425,17 +456,24 @@ function UserDashboard() {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Mis Memoriales</h2>
+              {quotas.total > 0 && (
+                <div className="text-sm bg-blue-50 px-3 py-1 rounded-full">
+                  <span className="text-blue-600">
+                    📊 {quotas.available} disponibles de {quotas.total} cuotas
+                  </span>
+                </div>
+              )}
             </div>
             
-            {!hasCompletedOrder ? (
+            {quotas.total === 0 ? (
               <div className="text-center py-8">
                 <div className="text-gray-400 text-4xl mb-4">🔒</div>
                 <p className="text-gray-500 mb-2">Memorial no disponible</p>
                 <p className="text-sm text-gray-400">
-                  Necesitas una orden completada para crear tu memorial
+                  Necesitas al menos una orden pagada para crear memoriales
                 </p>
               </div>
-            ) : hasMemorial ? (
+            ) : memorials && memorials.length > 0 ? (
               <div className="space-y-4">
                 {memorials?.map((memorial) => (
                   <div key={memorial.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -483,34 +521,42 @@ function UserDashboard() {
                     </div>
                   </div>
                 ))}
-                <div className="text-center py-4 border-t bg-green-50 rounded-lg">
-                  <div className="text-green-600 text-2xl mb-2">✅</div>
-                  <p className="text-sm text-green-700 font-medium">
-                    Memorial activo y funcionando
-                  </p>
-                  <p className="text-xs text-green-600 mt-1">
-                    Comparte el enlace para que otros puedan visitarlo
-                  </p>
-                </div>
+                {quotas.available > 0 && (
+                  <div className="text-center py-4 border-t bg-blue-50 rounded-lg">
+                    <div className="text-blue-600 text-2xl mb-2">➕</div>
+                    <p className="text-sm text-blue-700 font-medium">
+                      Puedes crear {quotas.available} memorial{quotas.available > 1 ? 'es' : ''} más
+                    </p>
+                    <button
+                      onClick={() => navigate('/create-memorial')}
+                      className="mt-2 btn btn-primary text-sm px-4 py-2"
+                    >
+                      ✨ Crear Nuevo Memorial
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center py-12">
                 <div className="text-gray-400 text-6xl mb-6">💝</div>
                 <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                  Es momento de crear tu memorial
+                  Es momento de crear tu{quotas.total > 1 ? ' primer' : ''} memorial
                 </h3>
-                <p className="text-gray-500 mb-6">
+                <p className="text-gray-500 mb-2">
                   Honra la memoria de tu ser querido con un hermoso memorial digital
                 </p>
+                {quotas.total > 1 && (
+                  <p className="text-sm text-blue-600 mb-6">
+                    Tienes {quotas.total} cuotas disponibles para crear memoriales
+                  </p>
+                )}
                 <button
                   onClick={() => navigate('/create-memorial')}
                   className="btn btn-primary btn-lg px-8 py-3 text-lg font-semibold"
                 >
-                  ✨ Crear Mi Memorial
+                  ✨ Crear Mi{quotas.total > 1 ? ' Primer' : ''} Memorial
                 </button>
-                <p className="text-sm text-gray-400 mt-4">
-                  Solo puedes crear un memorial por cuenta
-                </p>
+
               </div>
             )}
           </div>

@@ -44,7 +44,7 @@ interface Settings {
       type: string
       owner: string
     }
-    daviplata: {
+    transfiya: {
       name: string
       account: string
       type: string
