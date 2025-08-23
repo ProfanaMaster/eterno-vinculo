@@ -424,14 +424,6 @@ function UserDashboard() {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Mis Memoriales</h2>
-              {canCreateMemorial && (
-                <button
-                  onClick={() => navigate('/create-memorial')}
-                  className="btn btn-primary btn-sm"
-                >
-                  + Crear Memorial
-                </button>
-              )}
             </div>
             
             {!hasCompletedOrder ? (
@@ -490,22 +482,34 @@ function UserDashboard() {
                     </div>
                   </div>
                 ))}
-                <div className="text-center py-4 border-t">
-                  <p className="text-sm text-gray-500">
-                    Ya tienes un memorial creado. Solo puedes tener uno.
+                <div className="text-center py-4 border-t bg-green-50 rounded-lg">
+                  <div className="text-green-600 text-2xl mb-2">✅</div>
+                  <p className="text-sm text-green-700 font-medium">
+                    Memorial activo y funcionando
+                  </p>
+                  <p className="text-xs text-green-600 mt-1">
+                    Comparte el enlace para que otros puedan visitarlo
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8">
-                <div className="text-gray-400 text-4xl mb-4">📝</div>
-                <p className="text-gray-500 mb-4">No tienes memoriales creados</p>
+              <div className="text-center py-12">
+                <div className="text-gray-400 text-6xl mb-6">💝</div>
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                  Es momento de crear tu memorial
+                </h3>
+                <p className="text-gray-500 mb-6">
+                  Honra la memoria de tu ser querido con un hermoso memorial digital
+                </p>
                 <button
                   onClick={() => navigate('/create-memorial')}
-                  className="btn btn-primary"
+                  className="btn btn-primary btn-lg px-8 py-3 text-lg font-semibold"
                 >
-                  Crear Mi Primer Memorial
+                  ✨ Crear Mi Memorial
                 </button>
+                <p className="text-sm text-gray-400 mt-4">
+                  Solo puedes crear un memorial por cuenta
+                </p>
               </div>
             )}
           </div>

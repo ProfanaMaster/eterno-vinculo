@@ -64,7 +64,9 @@ router.use('/upload', uploadRouter)
 import uploadProxyRouter from './uploadProxy.js'
 router.use('/upload-proxy', uploadProxyRouter)
 
-
+// Proxy para frases motivacionales
+import quotesRouter from './quotesRoutes.js'
+router.use('/quotes', quotesRouter)
 
 // Registrar proxy de imágenes para servir desde R2
 import imageProxyRouter from './imageProxy.js'
