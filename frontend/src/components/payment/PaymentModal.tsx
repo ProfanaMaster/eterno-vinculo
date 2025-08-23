@@ -181,7 +181,7 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h4 className="font-bold text-xl text-gray-800">💳 Datos para la transferencia</h4>
+              <h4 className="font-bold text-xl text-gray-800">Datos para la transferencia</h4>
             </div>
             
             <div className="grid gap-4">
@@ -190,7 +190,7 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600 font-bold text-sm">💰</span>
+                      <span className="text-green-600 font-bold text-sm"></span>
                     </div>
                     <span className="text-sm font-medium text-gray-600">Método de pago</span>
                   </div>
@@ -203,7 +203,7 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                      <span className="text-purple-600 font-bold text-sm">#</span>
+                      <span className="text-purple-600 font-bold text-sm"></span>
                     </div>
                     <span className="text-sm font-medium text-gray-600">Número de cuenta</span>
                   </div>
@@ -247,13 +247,7 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
               </div>
 
               {/* Monto destacado */}
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg p-6 text-white shadow-lg">
-                <div className="text-center">
-                  <p className="text-sm font-medium opacity-90 mb-1">💸 Monto a transferir</p>
-                  <p className="text-3xl font-bold tracking-tight">${total.toLocaleString()}</p>
-                  <p className="text-xs opacity-80 mt-1">COP (Pesos Colombianos)</p>
-                </div>
-              </div>
+              
             </div>
 
             {/* Instrucción importante */}
