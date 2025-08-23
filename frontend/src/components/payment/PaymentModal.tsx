@@ -168,13 +168,7 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
           </div>
 
           {/* Datos de transferencia - Diseño mejorado */}
-          <div className="relative bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-6 shadow-lg overflow-hidden">
-            {/* Borde animado */}
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500 via-purple-500 via-pink-500 via-red-500 via-yellow-500 via-green-500 via-cyan-500 to-blue-500 bg-[length:400%_400%] animate-pulse-border p-[2px]">
-              <div className="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl"></div>
-            </div>
-            {/* Contenido */}
-            <div className="relative z-10">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-6 border-2 border-blue-300 shadow-lg ring-2 ring-blue-200 ring-opacity-50">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -254,7 +248,6 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                   <strong>Importante:</strong> Transfiere exactamente <strong>${total.toLocaleString()}</strong> para agilizar la validación.
                 </p>
               </div>
-            </div>
             </div>
           </div>
 
