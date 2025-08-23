@@ -50,7 +50,7 @@ function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
       
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className={`relative bg-white rounded-2xl shadow-xl w-full ${sizeClasses[size]} transform transition-all duration-300`}>
+        <div className={`relative bg-white rounded-2xl shadow-xl w-full ${sizeClasses[size]} transition-opacity duration-300`}>
           {/* Header */}
           {title && (
             <div className="flex items-center justify-between p-6 border-b border-gray-200">

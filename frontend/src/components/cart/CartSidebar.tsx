@@ -27,20 +27,24 @@ function CartSidebar() {
       return
     }
     setPaymentModalOpen(true)
+    // Cerrar el carrito cuando se abre el modal de pago para evitar conflictos
+    toggleCart()
   }
 
   if (!isOpen) return null
 
   return (
     <>
-      {/* Overlay */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
-        onClick={toggleCart}
-      />
+      {/* Overlay - Solo si PaymentModal está cerrado */}
+      {!paymentModalOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+          onClick={toggleCart}
+        />
+      )}
       
       {/* Sidebar */}
-      <div className="fixed right-0 top-0 h-screen w-full max-w-md bg-white shadow-xl z-50 transform transition-transform duration-300 flex flex-col">
+      <div className="fixed right-0 top-0 h-screen w-full max-w-md bg-white shadow-xl z-50 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-white flex-shrink-0">
           <h2 className="text-lg font-semibold">Carrito de Compras</h2>

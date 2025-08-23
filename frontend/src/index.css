@@ -75,5 +75,5 @@
 }
 
 .animate-pulse-border {
-  animation: rotating-border 4s linear infinite;
+  animation: rotating-border 6s ease-in-out infinite;
 }
