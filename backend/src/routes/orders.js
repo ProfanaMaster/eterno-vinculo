@@ -69,14 +69,9 @@ router.post('/', async (req, res) => {
     // Agregar datos opcionales si están presentes
     if (payment_reference) orderData.payment_intent_id = payment_reference;
     
-    // Guardar información adicional del pago si se proporciona
-    if (payer_name || payment_date || transferred_amount) {
-      orderData.payment_details = {
-        payer_name: payer_name || null,
-        payment_date: payment_date || null,
-        transferred_amount: transferred_amount || null
-      };
-    }
+    // TODO: Agregar columna payment_details JSONB a la tabla orders para guardar:
+    // - payer_name, payment_date, transferred_amount
+    console.log('📋 Datos adicionales del pago:', { payer_name, payment_date, transferred_amount });
     
     const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')

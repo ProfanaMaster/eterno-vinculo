@@ -58,7 +58,8 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     setFormData(prev => ({ ...prev, name: sanitized }))
   }
   const [loading, setLoading] = useState(false)
-  const [currentStep, setCurrentStep] = useState(1) // 1: Método, 2: Transferencia, 3: Comprobante
+  const [currentStep, setCurrentStep] = useState(1) // 1: Método, 2: Transferencia, 3: Comprobante, 4: Confirmación
+  const [showConfirmation, setShowConfirmation] = useState(false)
 
   const { items, getTotal, clearCart } = useCartStore()
   const { user } = useAuthStore()
@@ -131,6 +132,15 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     setCurrentStep(3)
   }
 
+  const handleConfirmationContinue = () => {
+    // Limpiar y cerrar
+    clearCart()
+    handleClose()
+    
+    // Redirigir al dashboard
+    navigate('/dashboard')
+  }
+
   const handleSubmitPayment = async () => {
     setLoading(true)
     
@@ -168,12 +178,9 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
       const result = await response.json()
       
-      // Limpiar y cerrar
-      clearCart()
-      handleClose()
-      
-      // Redirigir al dashboard con mensaje de éxito
-      navigate('/dashboard?payment=success')
+      // Mostrar modal de confirmación
+      setShowConfirmation(true)
+      setCurrentStep(4)
       
     } catch (error: any) {
       console.error('Error:', error)
@@ -186,6 +193,7 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const resetModal = () => {
     setCurrentStep(1)
     setSelectedMethod('')
+    setShowConfirmation(false)
     setFormData({
       reference: '',
       amount: '',
@@ -495,6 +503,51 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                 )}
               </Button>
             </div>
+          </div>
+        )}
+
+        {/* Step 4: Modal de Confirmación */}
+        {currentStep === 4 && showConfirmation && (
+          <div className="text-center p-8 space-y-6">
+            {/* Icono de éxito */}
+            <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-2xl">✓</span>
+              </div>
+            </div>
+
+            {/* Título */}
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              ¡Comprobante Enviado!
+            </h3>
+
+            {/* Mensaje principal */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <p className="text-lg text-blue-800 leading-relaxed">
+                Estamos validando tu pago, en pocos minutos podrás crear tu memorial 
+                en tu cuenta de usuario.
+              </p>
+            </div>
+
+            {/* Información adicional */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <span>📧</span>
+                <span>Te enviaremos una confirmación por email</span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm text-gray-600 mt-2">
+                <span>⏱️</span>
+                <span>Tiempo de validación: máximo 24 horas</span>
+              </div>
+            </div>
+
+            {/* Botón de continuar */}
+            <Button
+              onClick={handleConfirmationContinue}
+              className="w-full btn-primary text-lg py-4 mt-6"
+            >
+              Ir a Mi Dashboard
+            </Button>
           </div>
         )}
       </div>
