@@ -6,6 +6,7 @@ import UploadService from '@/services/uploadService'
 import Toast from '@/components/Toast'
 import { sanitizeFilename } from '@/utils/sanitize'
 import { ProfileRestrictionsService } from '@/services/profileRestrictions'
+import { logger } from '@/utils/logger'
 import '@/styles/datepicker.css'
 
 function CreateProfile() {
@@ -238,7 +239,7 @@ function CreateProfile() {
           )
           
           setUploadProgress(prev => ({ ...prev, profile: 100 }))
-          console.log('✅ Imagen de perfil subida:', profileImageUrl)
+          logger.log('✅ Imagen de perfil subida:', profileImageUrl)
         } catch (error: any) {
           console.error('❌ Error subiendo imagen de perfil:', error)
           setToast({ 
@@ -266,12 +267,12 @@ function CreateProfile() {
               }))
             },
             (fileIndex, url) => {
-              console.log(`✅ Imagen ${fileIndex + 1} subida:`, url)
+              logger.log(`✅ Imagen ${fileIndex + 1} subida:`, url)
             }
           )
           
           setUploadProgress(prev => ({ ...prev, gallery: 100 }))
-          console.log('✅ Galería completa subida:', galleryImageUrls)
+          logger.log('✅ Galería completa subida:', galleryImageUrls)
         } catch (error: any) {
           console.error('❌ Error subiendo galería:', error)
           setToast({ 
@@ -300,7 +301,7 @@ function CreateProfile() {
           )
           
           setUploadProgress(prev => ({ ...prev, video: 100 }))
-          console.log('✅ Video subido:', videoUrl)
+          logger.log('✅ Video subido:', videoUrl)
         } catch (error: any) {
           console.error('❌ Error subiendo video:', error)
           setToast({ 
@@ -347,7 +348,10 @@ function CreateProfile() {
           isUploading: false
         })
         
-        setTimeout(() => navigate('/dashboard'), 2000)
+        setTimeout(() => {
+          // Navegar con parámetro para indicar actualización necesaria
+          navigate('/dashboard?refresh=true')
+        }, 2000)
       }
     } catch (error) {
       console.error('❌ Error creating profile:', error)

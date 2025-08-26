@@ -4,6 +4,7 @@ import { Button } from '@/components/ui'
 import { sanitizeFilename } from '@/utils/sanitize'
 import LazyVideo from '@/components/ui/LazyVideo'
 import { useVideoThumbnail } from '@/hooks/useVideoThumbnail'
+import { logger } from '@/utils/logger'
 
 interface VideoUploadProps {
   currentVideo?: string
@@ -100,10 +101,10 @@ const VideoUpload = ({
 
     // Generar thumbnail automáticamente (optimización de ancho de banda)
     try {
-      console.log('🖼️ Generando thumbnail...')
+      logger.log('🖼️ Generando thumbnail...')
       const thumbnailUrl = await generateThumbnail(file, 2)
       setThumbnail(thumbnailUrl)
-      console.log('✅ Thumbnail generado')
+      logger.log('✅ Thumbnail generado')
     } catch (thumbError) {
       console.warn('⚠️ No se pudo generar thumbnail:', thumbError)
     }
@@ -203,8 +204,8 @@ const VideoUpload = ({
             className="w-full max-w-2xl mx-auto rounded-lg shadow-sm"
             controls={true}
             muted={true}
-            onLoadStart={() => console.log('🎬 Cargando video...')}
-            onLoadComplete={() => console.log('✅ Video cargado')}
+            onLoadStart={() => logger.log('🎬 Cargando video...')}
+            onLoadComplete={() => logger.log('✅ Video cargado'))
             onError={(error) => setError(error)}
           />
 

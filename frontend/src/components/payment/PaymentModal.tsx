@@ -537,7 +537,7 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-600 mt-2">
                 <span>⏱️</span>
-                <span>Tiempo de validación: máximo 24 horas</span>
+                <span>Tiempo de validación: máximo 30 minutos</span>
               </div>
             </div>
 

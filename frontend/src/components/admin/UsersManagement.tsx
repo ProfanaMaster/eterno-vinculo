@@ -17,6 +17,14 @@ interface User {
   profiles_count?: number
 }
 
+interface Profile {
+  id: string
+  slug: string
+  profile_name: string
+  is_published: boolean
+  created_at: string
+}
+
 interface UserFormData {
   email: string
   first_name: string
@@ -46,6 +54,10 @@ function UsersManagement() {
   const [showPasswordFields, setShowPasswordFields] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [userToDelete, setUserToDelete] = useState<User | null>(null)
+  const [showProfilesModal, setShowProfilesModal] = useState(false)
+  const [userProfiles, setUserProfiles] = useState<Profile[]>([])
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [loadingProfiles, setLoadingProfiles] = useState(false)
   const itemsPerPage = 10
 
   useEffect(() => {
@@ -146,17 +158,43 @@ function UsersManagement() {
     }
   }
 
-  const handleViewMemorial = async (userId: string) => {
+  const handleViewMemorial = async (user: User) => {
     try {
-      const response = await api.get(`/admin/users/${userId}/memorial`)
-      const memorial = response.data.data
-      if (memorial && memorial.slug) {
-        window.open(`/memorial/${memorial.slug}`, '_blank')
+      setLoadingProfiles(true)
+      setSelectedUser(user)
+      
+      const response = await api.get(`/admin/users/${user.id}/profiles`)
+      const profiles = response.data.data
+      
+      if (profiles && profiles.length > 0) {
+        if (profiles.length === 1) {
+          // Si solo hay un perfil, abrirlo directamente
+          const profile = profiles[0]
+          if (profile.is_published && profile.slug) {
+            window.open(`/memorial/${profile.slug}`, '_blank')
+          } else {
+            toast.error('El perfil no está publicado')
+          }
+        } else {
+          // Si hay múltiples perfiles, mostrar el modal
+          setUserProfiles(profiles)
+          setShowProfilesModal(true)
+        }
       } else {
-        toast.error('No se encontró memorial publicado para este usuario')
+        toast.error('No se encontraron perfiles para este usuario')
       }
     } catch (error: any) {
-      toast.error('Error al obtener información del memorial')
+      toast.error('Error al obtener información de los perfiles')
+    } finally {
+      setLoadingProfiles(false)
+    }
+  }
+
+  const handleOpenProfile = (profile: Profile) => {
+    if (profile.is_published && profile.slug) {
+      window.open(`/memorial/${profile.slug}`, '_blank')
+    } else {
+      toast.error('Este perfil no está publicado')
     }
   }
 
@@ -295,10 +333,11 @@ function UsersManagement() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleViewMemorial(user.id)}
+                            onClick={() => handleViewMemorial(user)}
+                            disabled={loadingProfiles}
                             className="text-blue-600 hover:text-blue-700"
                           >
-                            Ver Memorial
+                            {loadingProfiles ? 'Cargando...' : 'Ver Memorial'}
                           </Button>
                         )}
 
@@ -482,6 +521,63 @@ function UsersManagement() {
               className="bg-red-600 text-white hover:bg-red-700"
             >
               Eliminar
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal de Perfiles de Usuario */}
+      <Modal
+        isOpen={showProfilesModal}
+        onClose={() => setShowProfilesModal(false)}
+        title={`Perfiles de ${selectedUser?.name}`}
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Selecciona el perfil que deseas ver:
+          </p>
+          
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {userProfiles.map((profile) => (
+              <div
+                key={profile.id}
+                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+              >
+                <div className="flex-1">
+                  <h4 className="font-medium text-gray-900">{profile.profile_name}</h4>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      profile.is_published 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {profile.is_published ? 'Publicado' : 'Borrador'}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {new Date(profile.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleOpenProfile(profile)}
+                  disabled={!profile.is_published}
+                  className="text-blue-600 hover:text-blue-700"
+                >
+                  Ver Perfil
+                </Button>
+              </div>
+            ))}
+          </div>
+          
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setShowProfilesModal(false)}
+            >
+              Cerrar
             </Button>
           </div>
         </div>

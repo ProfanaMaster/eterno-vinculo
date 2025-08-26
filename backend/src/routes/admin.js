@@ -455,7 +455,7 @@ router.delete('/users/:id', requireAdmin, async (req, res) => {
 
 /**
  * GET /api/admin/users/:id/memorial
- * Obtener memorial de usuario
+ * Obtener memorial de usuario (mantenido para compatibilidad)
  */
 router.get('/users/:id/memorial', requireAdmin, async (req, res) => {
   try {
@@ -483,6 +483,34 @@ router.get('/users/:id/memorial', requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error fetching user memorial:', error);
     res.status(500).json({ error: 'Error al obtener memorial del usuario' });
+  }
+});
+
+/**
+ * GET /api/admin/users/:id/profiles
+ * Obtener todos los perfiles de un usuario
+ */
+router.get('/users/:id/profiles', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { data: profiles, error } = await supabaseAdmin
+      .from('memorial_profiles')
+      .select('id, slug, profile_name, is_published, created_at')
+      .eq('user_id', id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    res.json({
+      success: true,
+      data: profiles || []
+    });
+  } catch (error) {
+    console.error('Error fetching user profiles:', error);
+    res.status(500).json({ error: 'Error al obtener perfiles del usuario' });
   }
 });
 

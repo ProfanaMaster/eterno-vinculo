@@ -86,20 +86,39 @@ const getPresignedUrlHandler = async (req, res) => {
         })
       }
 
-      // Verificar si tiene memoriales activos
+      // Verificar cuotas usadas (historial de creaciones) y memoriales activos
+      const { data: createdHistory, error: historyError } = await supabaseAdmin
+        .from('user_memorial_history')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('action', 'created')
+
       const { data: activeMemorials, error: memorialsError } = await supabaseAdmin
         .from('memorial_profiles')
         .select('id')
         .eq('user_id', userId)
         .is('deleted_at', null)
 
-      const usedQuotas = activeMemorials?.length || 0
+      let usedQuotas = 0
+      const activeCount = activeMemorials?.length || 0
+      
+      if (historyError) {
+        // Fallback: usar todos los perfiles creados
+        const { data: allMemorials } = await supabaseAdmin
+          .from('memorial_profiles')
+          .select('id')
+          .eq('user_id', userId)
+        usedQuotas = allMemorials?.length || 0
+      } else {
+        usedQuotas = createdHistory?.length || 0
+      }
+
       const availableQuotas = totalQuotas - usedQuotas
 
-      if (usedQuotas === 0 && availableQuotas > 0) {
-        console.log(`✅ Usuario ${userId} puede subir ${type} - tiene cuotas disponibles para crear memoriales`)
-      } else if (usedQuotas > 0) {
+      if (activeCount > 0) {
         console.log(`✅ Usuario ${userId} puede subir ${type} - tiene memoriales activos`)
+      } else if (availableQuotas > 0) {
+        console.log(`✅ Usuario ${userId} puede subir ${type} - tiene cuotas disponibles para crear memoriales`)
       } else {
         console.log(`🚫 Usuario ${userId} intentó subir ${type} sin cuotas disponibles`)
         return res.status(403).json({ 

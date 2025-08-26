@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { supabase } from '@/config/supabase'
 import MemoryCard from '@/components/MemoryCard'
 import AddMemoryModal from '@/components/AddMemoryModal'
+import { logger } from '@/utils/logger'
 
 interface Memory {
   id: string
@@ -56,7 +57,7 @@ const MuroDeRecuerdos = ({ profileId, profileName, onOpenModal }: MuroDeRecuerdo
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'memories' },
         (payload) => {
-          console.log('Memory change:', payload)
+          logger.log('Memory change:', payload)
           loadMemories()
         }
       )

@@ -3,6 +3,7 @@ import { getUserFromToken } from '../config/supabase.js'
 import { r2Client, BUCKET_NAME, ALLOWED_TYPES, MAX_FILE_SIZES } from '../config/cloudflare.js'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import multer from 'multer'
+import { logger } from '../utils/logger.js'
 
 const router = Router()
 
@@ -44,7 +45,7 @@ const uploadFileProxy = async (req, res) => {
     const file = req.file
     const userId = req.user?.id || 'anonymous'
 
-    console.log(`📤 PROXY: Subiendo ${file?.originalname} para usuario ${userId}`)
+    logger.log(`📤 PROXY: Subiendo ${file?.originalname} para usuario ${userId}`)
 
     if (!file) {
       return res.status(400).json({ 
@@ -90,7 +91,7 @@ const uploadFileProxy = async (req, res) => {
       })
     }
 
-    console.log(`📤 Procesando archivo ${file.originalname} (${Math.round(file.size / 1024)}KB)`)
+    logger.log(`📤 Procesando archivo ${file.originalname} (${Math.round(file.size / 1024)}KB)`)
 
     // Generar key único
     const timestamp = Date.now()
@@ -116,7 +117,7 @@ const uploadFileProxy = async (req, res) => {
     const { getPublicUrl } = await import('../config/cloudflare.js')
     const publicUrl = getPublicUrl(key)
 
-    console.log(`✅ Archivo subido exitosamente: ${publicUrl}`)
+    logger.log(`✅ Archivo subido exitosamente: ${publicUrl}`)
 
     res.json({
       success: true,

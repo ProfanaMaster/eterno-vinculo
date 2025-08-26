@@ -2,6 +2,7 @@
 import { S3Client } from '@aws-sdk/client-s3'
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post'
 import dotenv from 'dotenv'
+import { logger } from '../utils/logger.js'
 
 // Cargar variables de entorno ANTES de cualquier validación
 dotenv.config()
@@ -57,7 +58,7 @@ console.log(`   💿 CDN URL: ${CDN_URL}`)
 // Generar URL prefirmada optimizada para diferentes tipos de archivo
 export const generatePresignedUrl = async (key, contentType, fileSize = 0) => {
   try {
-    console.log(`🔗 Generando URL prefirmada para: ${key}`)
+    logger.log(`🔗 Generando URL prefirmada para: ${key}`)
     
     // Determinar límite de tamaño basado en tipo de contenido
     let maxSize = MAX_FILE_SIZES.image // Por defecto usar límite de imagen
@@ -89,7 +90,7 @@ export const generatePresignedUrl = async (key, contentType, fileSize = 0) => {
       Expires: 1800 // 30 minutos
     })
 
-    console.log('✅ URL prefirmada generada exitosamente')
+    logger.log('✅ URL prefirmada generada exitosamente')
     return { url, fields }
   } catch (error) {
     console.error('❌ Error generando URL prefirmada:', error)
@@ -101,7 +102,7 @@ export const generatePresignedUrl = async (key, contentType, fileSize = 0) => {
 export const getPublicUrl = (key) => {
   // Usar la URL pública de R2 para acceso directo
   const publicUrl = `${CDN_URL}/${key}`
-  console.log(`🔗 URL pública generada: ${publicUrl}`)
+  logger.log(`🔗 URL pública generada: ${publicUrl}`)
   return publicUrl
 }
 

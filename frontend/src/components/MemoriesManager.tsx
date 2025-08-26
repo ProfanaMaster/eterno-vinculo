@@ -3,6 +3,7 @@ import { supabase } from '@/config/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getProxiedImageUrl } from '@/utils/imageUtils'
 import ConfirmModal from '@/components/ui/ConfirmModal'
+import { logger } from '@/utils/logger'
 
 interface Memory {
   id: string
@@ -76,7 +77,7 @@ const MemoriesManager = ({ profileId }: MemoriesManagerProps) => {
           filter: `memorial_profile_id=eq.${profileId}`
         },
         (payload) => {
-          console.log('💭 Memory change detected in MemoriesManager:', payload.eventType, 'for profileId:', profileId)
+          logger.log('💭 Memory change detected in MemoriesManager:', payload.eventType, 'for profileId:', profileId)
           // Recargar recuerdos cuando hay cambios
           loadMemories(currentPage)
         }

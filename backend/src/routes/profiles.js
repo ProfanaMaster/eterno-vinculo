@@ -97,28 +97,42 @@ router.post('/', requireAuth, async (req, res) => {
       });
     }
 
-    // Contar memoriales activos (no eliminados)
-    const { data: activeMemorials, error: memorialsError } = await supabaseAdmin
-      .from('memorial_profiles')
+    // Contar cuotas usadas (todas las creaciones registradas en historial)
+    const { data: createdHistory, error: historyError } = await supabaseAdmin
+      .from('user_memorial_history')
       .select('id')
       .eq('user_id', user_id)
-      .is('deleted_at', null);
+      .eq('action', 'created');
 
-    if (memorialsError) {
-      console.error('Error fetching active memorials:', memorialsError);
-      return res.status(500).json({ error: 'Error al verificar memoriales activos' });
+    let usedQuotas = 0;
+    
+    if (historyError) {
+      // Fallback: contar todos los perfiles creados (incluyendo eliminados)
+      console.warn('Error fetching history, using fallback:', historyError);
+      const { data: allMemorials, error: memorialsError } = await supabaseAdmin
+        .from('memorial_profiles')
+        .select('id')
+        .eq('user_id', user_id);
+
+      if (memorialsError) {
+        console.error('Error fetching all memorials:', memorialsError);
+        return res.status(500).json({ error: 'Error al verificar memoriales' });
+      }
+
+      usedQuotas = allMemorials?.length || 0;
+    } else {
+      usedQuotas = createdHistory?.length || 0;
     }
 
-    const usedQuotas = activeMemorials?.length || 0;
     const availableQuotas = totalQuotas - usedQuotas;
 
     if (availableQuotas <= 0) {
       return res.status(400).json({ 
-        error: `Has alcanzado el límite de memoriales (${totalQuotas}). Tienes ${usedQuotas} memoriales activos.` 
+        error: `Has alcanzado el límite de memoriales (${totalQuotas}). Has usado ${usedQuotas} de tus cuotas disponibles.` 
       });
     }
 
-    console.log(`✅ Usuario ${user_id} puede crear memorial: ${availableQuotas} cuotas disponibles (${totalQuotas} pagadas - ${usedQuotas} activas)`);
+    console.log(`✅ Usuario ${user_id} puede crear memorial: ${availableQuotas} cuotas disponibles (${totalQuotas} pagadas - ${usedQuotas} usadas)`);
 
     // Seleccionar la primera orden pagada disponible
     const selectedOrder = paidOrders[0];
@@ -172,6 +186,20 @@ router.post('/', requireAuth, async (req, res) => {
       return res.status(500).json({ error: 'Error al crear el memorial' });
     }
 
+    // Registrar en historial la creación del perfil
+    const { error: insertHistoryError } = await supabaseAdmin
+      .from('user_memorial_history')
+      .insert({
+        user_id: user_id,
+        memorial_id: profile.id,
+        action: 'created'
+      });
+
+    if (insertHistoryError) {
+      console.warn('Error registrando en historial:', insertHistoryError);
+      // No fallar la creación por esto, solo log warning
+    }
+
     // Limpiar cache al crear nuevo perfil
     const cacheKey = `profiles_${user_id}`;
     profilesCache.delete(cacheKey);
@@ -210,31 +238,44 @@ router.get('/can-create', requireAuth, async (req, res) => {
 
     const totalQuotas = paidOrders?.length || 0;
 
-    // Contar memoriales activos (no eliminados)
-    const { data: activeMemorials, error: memorialsError } = await supabaseAdmin
-      .from('memorial_profiles')
+    // Contar cuotas usadas (todas las creaciones registradas en historial)
+    const { data: createdHistory, error: historyError } = await supabaseAdmin
+      .from('user_memorial_history')
       .select('id')
       .eq('user_id', user_id)
-      .is('deleted_at', null);
+      .eq('action', 'created');
 
-    if (memorialsError) {
-      console.error('Error fetching active memorials:', memorialsError);
-      return res.status(500).json({ error: 'Error al verificar memoriales activos' });
+    let usedQuotas = 0;
+    
+    if (historyError) {
+      // Fallback: contar todos los perfiles creados (incluyendo eliminados)
+      console.warn('Error fetching history, using fallback:', historyError);
+      const { data: allMemorials, error: memorialsError } = await supabaseAdmin
+        .from('memorial_profiles')
+        .select('id')
+        .eq('user_id', user_id);
+
+      if (memorialsError) {
+        console.error('Error fetching all memorials:', memorialsError);
+        return res.status(500).json({ error: 'Error al verificar memoriales' });
+      }
+
+      usedQuotas = allMemorials?.length || 0;
+    } else {
+      usedQuotas = createdHistory?.length || 0;
     }
 
-    const usedQuotas = activeMemorials?.length || 0;
     const availableQuotas = totalQuotas - usedQuotas;
-
     const canCreate = availableQuotas > 0;
 
     let reason = null;
     if (totalQuotas === 0) {
       reason = 'Necesitas al menos una orden pagada para crear un memorial.';
     } else if (availableQuotas <= 0) {
-      reason = `Has alcanzado el límite de memoriales (${totalQuotas}). Tienes ${usedQuotas} memoriales activos.`;
+      reason = `Has alcanzado el límite de memoriales (${totalQuotas}). Has usado ${usedQuotas} de tus cuotas disponibles.`;
     }
 
-    console.log(`🔒 Verificación de cuotas para usuario ${user_id}: ${availableQuotas} disponibles (${totalQuotas} pagadas - ${usedQuotas} activas)`);
+    console.log(`🔒 Verificación de cuotas para usuario ${user_id}: ${availableQuotas} disponibles (${totalQuotas} pagadas - ${usedQuotas} usadas)`);
 
     res.json({
       success: true,

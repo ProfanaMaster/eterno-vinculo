@@ -28,7 +28,7 @@ function UserDashboard() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { memorials, loading: memorialsLoading, deleteMemorial: deleteMemorialHook } = useProfiles()
+  const { memorials, loading: memorialsLoading, deleteMemorial: deleteMemorialHook, refetch: refetchMemorials } = useProfiles()
   const [orders, setOrders] = useState<Order[]>([])
   const [ordersLoading, setOrdersLoading] = useState(true)
   const [dataFetched, setDataFetched] = useState(false)
@@ -51,7 +51,15 @@ function UserDashboard() {
       // Limpiar el parámetro de la URL
       navigate('/dashboard', { replace: true })
     }
-  }, [user, navigate, dataFetched, searchParams])
+
+    // Verificar si viene de crear un perfil y refrescar datos
+    if (searchParams.get('refresh') === 'true') {
+      refetchMemorials()
+      fetchQuotas()
+      // Limpiar el parámetro de la URL
+      navigate('/dashboard', { replace: true })
+    }
+  }, [user, navigate, dataFetched, searchParams, refetchMemorials])
 
   // Suscripción en tiempo real
   useEffect(() => {
@@ -415,7 +423,7 @@ function UserDashboard() {
               </div>
             </div>
           ))}
-          {!hasMemorial && console.log('⚠️ UserDashboard: No memorial found. hasMemorial:', hasMemorial, 'memorials:', memorials)}
+
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Mis Órdenes */}
