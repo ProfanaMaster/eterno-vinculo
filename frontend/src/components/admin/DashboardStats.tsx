@@ -42,10 +42,18 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
         const result = await response.json()
         
         if (result.success) {
+          // Obtener conteo de órdenes pendientes
+          const pendingResponse = await fetch(`${API_URL}/admin/orders/pending-count`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          const pendingResult = await pendingResponse.json()
+          
           setData({
             users: result.data.users || 0,
             orders: result.data.orders || 0,
-            pending_orders: 0, // No incluido en el endpoint
+            pending_orders: pendingResult.success ? pendingResult.count || 0 : 0,
             total_revenue: result.data.revenue || 0
           })
         }
@@ -146,7 +154,7 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
       change: '+8%'
     },
     {
-      name: 'Pagos Pendientes',
+      name: 'Ordenes Pendientes',
       value: data?.pending_orders || 0,
       icon: '⏳',
       color: 'bg-yellow-500',
