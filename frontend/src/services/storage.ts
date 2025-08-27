@@ -14,9 +14,20 @@ export const getSupabaseUrl = (bucket: string, path: string): string => {
 export const getTemplateAssets = (templateId: string): TemplateAssets => {
   const bucket = 'templates';
   
+  // Mapeo de fondos móviles específicos para plantillas 5-8
+  const mobileBackgroundMap: Record<string, string> = {
+    'template-5': 'fondo-gatos.png',
+    'template-6': 'fondo-perros.png', 
+    'template-7': 'fondo-america.png',
+    'template-8': 'fondo-cali.png'
+  };
+  
+  // Plantillas 1-4 usan fondo general móvil, 5-8 usan fondos específicos
+  const mobileBackground = mobileBackgroundMap[templateId] || 'fondo-general-moviles.png';
+  
   return {
-    mobile: getSupabaseUrl(bucket, 'fondo-general-moviles.png'),
-    desktop: getSupabaseUrl(bucket, 'fondo-general-pantalla-grande.png'),
+    mobile: getSupabaseUrl(bucket, mobileBackground),
+    desktop: getSupabaseUrl(bucket, 'fondo-general-pantalla-grande.png'), // Desktop siempre el mismo
     video: getSupabaseUrl(bucket, getTemplateVideo(templateId))
   };
 };
@@ -26,7 +37,11 @@ const getTemplateVideo = (templateId: string): string => {
     'template-1': 'fondo-olas.mp4',
     'template-2': 'fondo-viaje.mp4', 
     'template-3': 'fondo-nubes.mp4',
-    'template-4': 'fondo-girasoles.mp4'
+    'template-4': 'fondo-girasoles.mp4',
+    'template-5': 'fondo-gatos.mp4',
+    'template-6': 'fondo-perros.mp4',
+    'template-7': 'fondo-america.mp4',
+    'template-8': 'fondo-cali.mp4'
   };
   
   return videoMap[templateId] || 'fondo-olas.mp4';
@@ -52,6 +67,18 @@ export const SUPABASE_TEMPLATE_URLS = {
     },
     get 'template-4'() {
       return getSupabaseUrl('templates', 'fondo-girasoles.mp4');
+    },
+    get 'template-5'() {
+      return getSupabaseUrl('templates', 'fondo-gatos.mp4');
+    },
+    get 'template-6'() {
+      return getSupabaseUrl('templates', 'fondo-perros.mp4');
+    },
+    get 'template-7'() {
+      return getSupabaseUrl('templates', 'fondo-america.mp4');
+    },
+    get 'template-8'() {
+      return getSupabaseUrl('templates', 'fondo-cali.mp4');
     }
   }
 };

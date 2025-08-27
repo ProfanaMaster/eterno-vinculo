@@ -99,6 +99,62 @@ const TemplateStep = ({ onNext, onBack }: TemplateStepProps) => {
             secondary: '#f9fafb',
             accent: '#374151'
           }
+        },
+        {
+          id: 'template-5',
+          name: 'Gatos',
+          description: 'Para amantes de los felinos',
+          background: {
+            mobile: SUPABASE_TEMPLATE_URLS.mobile,
+            desktop: SUPABASE_TEMPLATE_URLS.desktop
+          },
+          colors: {
+            primary: '#6b7280',
+            secondary: '#f9fafb',
+            accent: '#374151'
+          }
+        },
+        {
+          id: 'template-6',
+          name: 'Perros',
+          description: 'Para amantes de los caninos',
+          background: {
+            mobile: SUPABASE_TEMPLATE_URLS.mobile,
+            desktop: SUPABASE_TEMPLATE_URLS.desktop
+          },
+          colors: {
+            primary: '#6b7280',
+            secondary: '#f9fafb',
+            accent: '#374151'
+          }
+        },
+        {
+          id: 'template-7',
+          name: 'América',
+          description: 'Temática del equipo América',
+          background: {
+            mobile: SUPABASE_TEMPLATE_URLS.mobile,
+            desktop: SUPABASE_TEMPLATE_URLS.desktop
+          },
+          colors: {
+            primary: '#6b7280',
+            secondary: '#f9fafb',
+            accent: '#374151'
+          }
+        },
+        {
+          id: 'template-8',
+          name: 'Cali',
+          description: 'Temática del equipo Deportivo Cali',
+          background: {
+            mobile: SUPABASE_TEMPLATE_URLS.mobile,
+            desktop: SUPABASE_TEMPLATE_URLS.desktop
+          },
+          colors: {
+            primary: '#6b7280',
+            secondary: '#f9fafb',
+            accent: '#374151'
+          }
         }
       ])
     } finally {
@@ -153,7 +209,12 @@ const TemplateStep = ({ onNext, onBack }: TemplateStepProps) => {
             <div className="relative h-48 rounded-t-lg overflow-hidden">
               {/* Background preview */}
               <div 
-                className="absolute inset-0 bg-cover bg-center"
+                className={`absolute inset-0 bg-center ${
+                  // Plantillas 5-8 usan bg-contain para evitar estiramiento
+                  ['template-5', 'template-6', 'template-7', 'template-8'].includes(template.id) 
+                    ? 'bg-contain' 
+                    : 'bg-cover'
+                }`}
                 style={{ 
                   backgroundImage: `url(${template.background?.desktop || '/assets/templates/fondo-general-pantalla-grande.png'})`,
                   filter: 'brightness(0.7)'

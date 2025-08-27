@@ -9,18 +9,43 @@ interface TemplateSelectorProps {
 const templates = [
   {
     id: 'template-1',
-    name: 'Elegante',
-    description: 'Diseño clásico y elegante'
+    name: 'Olas atardecer',
+    description: 'Video de olas con fondo móvil'
   },
   {
     id: 'template-2', 
-    name: 'Natural',
-    description: 'Con elementos florales'
+    name: 'Un Viaje',
+    description: 'Video de viaje con fondo móvil'
   },
   {
     id: 'template-3',
-    name: 'Minimalista', 
-    description: 'Diseño limpio y simple'
+    name: 'Nubes', 
+    description: 'Video de nubes con fondo móvil'
+  },
+  {
+    id: 'template-4',
+    name: 'Girasoles',
+    description: 'Video de girasoles con fondo móvil'
+  },
+  {
+    id: 'template-5',
+    name: 'Gatos',
+    description: 'Para amantes de los felinos'
+  },
+  {
+    id: 'template-6',
+    name: 'Perros',
+    description: 'Para amantes de los caninos'
+  },
+  {
+    id: 'template-7',
+    name: 'América',
+    description: 'Temática del equipo América'
+  },
+  {
+    id: 'template-8',
+    name: 'Cali',
+    description: 'Temática del equipo Deportivo Cali'
   }
 ]
 
@@ -56,7 +81,12 @@ const TemplateSelector = ({ selectedTemplate, onTemplateSelect }: TemplateSelect
             >
               <div className="aspect-[3/4] rounded-lg overflow-hidden">
                 <div
-                  className="w-full h-full bg-cover bg-center"
+                  className={`w-full h-full bg-center ${
+                    // Plantillas 5-8 usan bg-contain para evitar estiramiento
+                    ['template-5', 'template-6', 'template-7', 'template-8'].includes(template.id) 
+                      ? 'bg-contain' 
+                      : 'bg-cover'
+                  }`}
                   style={{ backgroundImage: `url(${backgroundImage})` }}
                 >
                   <div className="absolute inset-0 bg-black/20 rounded-lg" />

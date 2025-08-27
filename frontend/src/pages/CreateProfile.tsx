@@ -75,6 +75,30 @@ function CreateProfile() {
         name: 'Girasoles',
         description: 'Video de girasoles con fondo móvil',
         icons: ['🌻']
+      },
+      {
+        id: 'template-5',
+        name: 'Gatos',
+        description: 'Para amantes de los felinos',
+        icons: ['🐱']
+      },
+      {
+        id: 'template-6',
+        name: 'Perros',
+        description: 'Para amantes de los caninos',
+        icons: ['🐶']
+      },
+      {
+        id: 'template-7',
+        name: 'América',
+        description: 'Temática del equipo América',
+        icons: ['⚽']
+      },
+      {
+        id: 'template-8',
+        name: 'Cali',
+        description: 'Temática del equipo Deportivo Cali',
+        icons: ['🌴']
       }
     ])
     

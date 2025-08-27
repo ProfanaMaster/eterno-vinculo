@@ -37,7 +37,12 @@ const TemplateBackground = ({ templateId, className = '' }: TemplateBackgroundPr
         </video>
       ) : (
         <div 
-          className="w-full h-full bg-cover bg-center bg-no-repeat"
+          className={`w-full h-full bg-center bg-no-repeat ${
+            // Plantillas 5-8 usan bg-contain para evitar estiramiento
+            ['template-5', 'template-6', 'template-7', 'template-8'].includes(templateId) 
+              ? 'bg-contain' 
+              : 'bg-cover'
+          }`}
           style={{ backgroundImage: `url(${backgroundImage})` }}
         />
       )}
