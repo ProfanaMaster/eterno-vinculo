@@ -410,6 +410,44 @@ router.get('/preview/:slug', requireAuth, async (req, res) => {
 });
 
 /**
+ * GET /api/profiles/check-url
+ * Verificar si una URL específica se está usando en perfiles
+ */
+router.get('/check-url', requireAuth, async (req, res) => {
+  try {
+    const { url } = req.query;
+    
+    if (!url) {
+      return res.status(400).json({ error: 'URL requerida' });
+    }
+
+    const { data: profiles, error } = await supabaseAdmin
+      .from('memorial_profiles')
+      .select('id, profile_name, profile_image_url, created_at, updated_at')
+      .eq('profile_image_url', url)
+      .is('deleted_at', null);
+
+    if (error) {
+      console.error('Error checking URL:', error);
+      return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        url,
+        found: profiles.length > 0,
+        profiles: profiles
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in GET /profiles/check-url:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
  * GET /api/profiles/:id
  * Obtener perfil por ID para edición
  */

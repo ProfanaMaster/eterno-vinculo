@@ -122,12 +122,28 @@ export class ProfileService {
     // Obtener datos actuales del perfil
     const { data: profile } = await supabase
       .from('memorial_profiles')
-      .select('edit_count, user_id')
+      .select('edit_count, user_id, profile_image_url')
       .eq('id', profileId)
       .single()
 
     if (!profile) throw new NotFoundError('Memorial Profile')
     if (profile.user_id !== userId) throw new ValidationError('Unauthorized')
+
+    // Si se está actualizando la foto de perfil y es diferente a la anterior, eliminar la anterior
+    if (updateData.profile_image_url && 
+        profile.profile_image_url && 
+        updateData.profile_image_url !== profile.profile_image_url) {
+      try {
+        const { deleteR2File } = await import('../services/r2CleanupService.js')
+        await deleteR2File(profile.profile_image_url)
+        console.log('✅ Foto de perfil anterior eliminada:', profile.profile_image_url)
+      } catch (error) {
+        console.error('❌ Error eliminando foto de perfil anterior:', error)
+        // No fallar la actualización si no se puede eliminar la foto anterior
+      }
+    }
+
+
 
     const { data, error } = await supabase
       .from('memorial_profiles')

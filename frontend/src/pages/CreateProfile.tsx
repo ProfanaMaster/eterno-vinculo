@@ -17,6 +17,8 @@ function CreateProfile() {
   const [restrictionMessage, setRestrictionMessage] = useState('')
   const [quotasInfo, setQuotasInfo] = useState('')
   const [checkingRestrictions, setCheckingRestrictions] = useState(true)
+  const [existingGalleryUrls, setExistingGalleryUrls] = useState<string[]>([])
+  const [existingVideoUrl, setExistingVideoUrl] = useState<string>('')
 
   const navigate = useNavigate()
   const { id } = useParams()
@@ -121,10 +123,20 @@ function CreateProfile() {
         deathDate: memorial.death_date || '',
         description: memorial.description || '',
         profileImage: null,
+        profileImageUrl: memorial.profile_image_url || '',
         galleryImages: [],
         video: null,
         template_id: memorial.template_id || 'template-1',
         favoriteMusic: memorial.favorite_music || ''
+      })
+
+      // Guardar las URLs existentes para el envío en modo edición
+      setExistingGalleryUrls(memorial.gallery_images || [])
+      setExistingVideoUrl(memorial.memorial_video_url || '')
+      
+      console.log('📋 Datos cargados del memorial:', {
+        gallery_images: memorial.gallery_images,
+        video_url: memorial.memorial_video_url
       })
     } catch (error) {
       console.error('Error loading memorial:', error)
@@ -140,7 +152,7 @@ function CreateProfile() {
     deathDate: '',
     description: '',
     profileImage: null as File | null,
-
+    profileImageUrl: '' as string, // URL de la foto existente
     galleryImages: [] as File[],
     video: null as File | null,
     template_id: 'template-1',
@@ -273,6 +285,10 @@ function CreateProfile() {
           })
           return
         }
+      } else if (formData.profileImageUrl) {
+        // Si no se sube una nueva imagen, mantener la URL existente
+        profileImageUrl = formData.profileImageUrl
+        logger.log('✅ Manteniendo imagen de perfil existente:', profileImageUrl)
       }
 
       // Subir imágenes de galería
@@ -346,11 +362,19 @@ function CreateProfile() {
         birth_date: formData.birthDate,
         death_date: formData.deathDate,
         profile_image_url: profileImageUrl,
-        gallery_images: galleryImageUrls,
-        memorial_video_url: videoUrl,
+        gallery_images: isEditing ? existingGalleryUrls : galleryImageUrls,
+        memorial_video_url: isEditing ? existingVideoUrl : videoUrl,
         template_id: formData.template_id,
         favorite_music: formData.favoriteMusic
       }
+
+      console.log('📤 Datos a enviar:', {
+        isEditing,
+        existingGalleryUrls,
+        existingVideoUrl,
+        gallery_images: profileData.gallery_images,
+        memorial_video_url: profileData.memorial_video_url
+      })
 
       let response
       if (isEditing && id) {
@@ -706,6 +730,28 @@ function CreateProfile() {
                           >
                             Cambiar imagen
                           </button>
+                        </div>
+                      ) : formData.profileImageUrl ? (
+                        <div className="space-y-3">
+                          <img 
+                            src={formData.profileImageUrl} 
+                            alt="Foto de perfil actual" 
+                            className="w-32 h-32 object-cover rounded-full mx-auto border-4 border-white shadow-lg"
+                          />
+                          <p className="text-sm text-gray-600">Foto actual del memorial</p>
+                          <button 
+                            onClick={() => document.getElementById('profileImage')?.click()}
+                            className="text-blue-600 hover:text-blue-800 text-sm"
+                          >
+                            Cambiar imagen
+                          </button>
+                          <input
+                            type="file"
+                            accept=".jpg,.jpeg,.png"
+                            onChange={(e) => handleFileChange('profileImage', e.target.files)}
+                            className="hidden"
+                            id="profileImage"
+                          />
                         </div>
                       ) : (
                         <div>
