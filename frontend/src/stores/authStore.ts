@@ -99,7 +99,7 @@ export const useAuthStore = create<AuthState>()(
             }
 
             // Obtener datos adicionales del usuario
-            const { data: userData, error: userError } = await supabase
+            let { data: userData, error: userError } = await supabase
               .from('users')
               .select(`
                 *,

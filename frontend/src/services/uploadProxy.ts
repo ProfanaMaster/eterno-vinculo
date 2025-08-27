@@ -19,8 +19,8 @@ export const uploadViaProxy = async (
     formData.append('file', file)
     formData.append('type', type)
 
-    // Usar endpoint público para galería, autenticado para otros
-    const endpoint = type === 'gallery' ? '/upload-proxy/proxy-public' : '/upload-proxy/proxy'
+    // Usar endpoint público para galería y memorias, autenticado para otros
+    const endpoint = ['gallery', 'memory'].includes(type) ? '/upload-proxy/proxy-public' : '/upload-proxy/proxy'
     const response = await api.post(endpoint, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'

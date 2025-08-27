@@ -42,14 +42,15 @@ const TemplateStep = ({ onNext, onBack }: TemplateStepProps) => {
     } catch (error) {
       console.error('Error fetching templates:', error)
       // Fallback templates si falla la API
+      const { SUPABASE_TEMPLATE_URLS } = await import('@/services/storage')
       setTemplates([
         {
           id: 'template-1',
           name: 'Olas atardecer',
           description: 'Video de olas con fondo móvil',
           background: {
-            mobile: '/assets/templates/fondo-general-moviles.png',
-            desktop: '/assets/templates/fondo-general-pantalla-grande.png'
+            mobile: SUPABASE_TEMPLATE_URLS.mobile,
+            desktop: SUPABASE_TEMPLATE_URLS.desktop
           },
           colors: {
             primary: '#6b7280',
@@ -62,8 +63,8 @@ const TemplateStep = ({ onNext, onBack }: TemplateStepProps) => {
           name: 'Un Viaje',
           description: 'Video de viaje con fondo móvil',
           background: {
-            mobile: '/assets/templates/fondo-general-moviles.png',
-            desktop: '/assets/templates/fondo-general-pantalla-grande.png'
+            mobile: SUPABASE_TEMPLATE_URLS.mobile,
+            desktop: SUPABASE_TEMPLATE_URLS.desktop
           },
           colors: {
             primary: '#6b7280',
@@ -76,8 +77,8 @@ const TemplateStep = ({ onNext, onBack }: TemplateStepProps) => {
           name: 'Nubes',
           description: 'Video de nubes con fondo móvil',
           background: {
-            mobile: '/assets/templates/fondo-general-moviles.png',
-            desktop: '/assets/templates/fondo-general-pantalla-grande.png'
+            mobile: SUPABASE_TEMPLATE_URLS.mobile,
+            desktop: SUPABASE_TEMPLATE_URLS.desktop
           },
           colors: {
             primary: '#6b7280',
@@ -90,8 +91,8 @@ const TemplateStep = ({ onNext, onBack }: TemplateStepProps) => {
           name: 'Girasoles',
           description: 'Video de girasoles con fondo móvil',
           background: {
-            mobile: '/assets/templates/fondo-general-moviles.png',
-            desktop: '/assets/templates/fondo-general-pantalla-grande.png'
+            mobile: SUPABASE_TEMPLATE_URLS.mobile,
+            desktop: SUPABASE_TEMPLATE_URLS.desktop
           },
           colors: {
             primary: '#6b7280',

@@ -1,3 +1,5 @@
+import { SUPABASE_TEMPLATE_URLS } from '@/services/storage';
+
 export interface BackgroundConfig {
   mobile: string
   desktop: string
@@ -5,28 +7,28 @@ export interface BackgroundConfig {
 
 export const TEMPLATE_BACKGROUNDS: Record<string, BackgroundConfig> = {
   'template-1': {
-    mobile: '/assets/templates/fondo-general-moviles.png',
-    desktop: '/assets/templates/fondo-general-pantalla-grande.png'
+    mobile: SUPABASE_TEMPLATE_URLS.mobile,
+    desktop: SUPABASE_TEMPLATE_URLS.desktop
   },
   'template-2': {
-    mobile: '/assets/templates/fondo-general-moviles.png',
-    desktop: '/assets/templates/fondo-general-pantalla-grande.png'
+    mobile: SUPABASE_TEMPLATE_URLS.mobile,
+    desktop: SUPABASE_TEMPLATE_URLS.desktop
   },
   'template-3': {
-    mobile: '/assets/templates/fondo-general-moviles.png',
-    desktop: '/assets/templates/fondo-general-pantalla-grande.png'
+    mobile: SUPABASE_TEMPLATE_URLS.mobile,
+    desktop: SUPABASE_TEMPLATE_URLS.desktop
   },
   'template-4': {
-    mobile: '/assets/templates/fondo-general-moviles.png',
-    desktop: '/assets/templates/fondo-general-pantalla-grande.png'
+    mobile: SUPABASE_TEMPLATE_URLS.mobile,
+    desktop: SUPABASE_TEMPLATE_URLS.desktop
   }
 }
 
 export const TEMPLATE_VIDEOS: Record<string, string> = {
-  'template-1': '/assets/templates/fondo-olas.mp4',
-  'template-2': '/assets/templates/fondo-viaje.mp4',
-  'template-3': '/assets/templates/fondo-nubes.mp4',
-  'template-4': '/assets/templates/fondo-girasoles.mp4'
+  'template-1': SUPABASE_TEMPLATE_URLS.videos['template-1'],
+  'template-2': SUPABASE_TEMPLATE_URLS.videos['template-2'],
+  'template-3': SUPABASE_TEMPLATE_URLS.videos['template-3'],
+  'template-4': SUPABASE_TEMPLATE_URLS.videos['template-4']
 }
 
 export const MOBILE_BREAKPOINT = 460

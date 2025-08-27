@@ -55,10 +55,18 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expirado, limpiar cache y redirigir al login
+      // Token expirado, limpiar cache
       cachedToken = null
       tokenExpiry = 0
-      window.location.href = '/login'
+      
+      // Solo redirigir a home si no estamos en una página pública
+      const publicPaths = ['/muro-de-recuerdos/', '/memorial/', '/']
+      const currentPath = window.location.pathname
+      const isPublicPath = publicPaths.some(path => currentPath.includes(path) || currentPath === '/')
+      
+      if (!isPublicPath) {
+        window.location.href = '/'
+      }
     }
     return Promise.reject(error)
   }
