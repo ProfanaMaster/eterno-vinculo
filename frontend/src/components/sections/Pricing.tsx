@@ -150,13 +150,12 @@ function Pricing() {
         <div className="text-center mt-8">
           <p className="text-sm text-gray-500 mb-4">Métodos de pago aceptados:</p>
           <div className="flex justify-center items-center gap-6 opacity-60">
-            <span className="text-2xl">💳</span>
             <span className="text-sm">Nequi</span>
-            <span className="text-sm">Daviplata</span>
             <span className="text-sm">Transfiya</span>
             <span className="text-sm">Bancolombia</span>
           </div>
         </div>
+
       </div>
       
       {/* Modal de Autenticación */}

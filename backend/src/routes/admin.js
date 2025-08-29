@@ -828,6 +828,49 @@ router.put('/packages/:id', requireAdmin, async (req, res) => {
 });
 
 /**
+ * POST /api/admin/packages/sync-pricing
+ * Sincronizar datos de pricing con la tabla packages
+ */
+router.post('/packages/sync-pricing', requireAdmin, async (req, res) => {
+  try {
+    const { pricingData } = req.body;
+    
+    // ID del paquete único (definido en seed-simple.js)
+    const packageId = 'e454b0bf-ba21-4a38-8149-1b3c0dbc2a91';
+    
+    const updateData = {
+      name: pricingData.name || 'Memorial Digital Completo',
+      description: pricingData.subtitle || 'Todo lo que necesitas para honrar la memoria',
+      price: pricingData.price || 150000,
+      currency: pricingData.currency || 'COP',
+      features: pricingData.features || []
+    };
+
+    const { data: packageData, error } = await supabaseAdmin
+      .from('packages')
+      .update(updateData)
+      .eq('id', packageId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating package:', error);
+      return res.status(500).json({ error: 'Error al actualizar paquete' });
+    }
+
+    res.json({
+      success: true,
+      data: packageData,
+      message: 'Paquete sincronizado exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error in POST /admin/packages/sync-pricing:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
  * POST /api/admin/packages
  * Crear nuevo paquete
  */
@@ -933,10 +976,10 @@ router.post('/settings/init', requireAdmin, async (req, res) => {
             type: 'Cuenta Digital',
             owner: 'Eterno Vínculo'
           },
-          daviplata: {
-            name: 'DaviPlata',
-            account: '300 123 4567',
-            type: 'Cuenta Digital',
+          transfiya: {
+            name: 'Transfiya',
+            account: 'eternovinculo@transfiya.com',
+            type: 'Cuenta Transfiya',
             owner: 'Eterno Vínculo'
           }
         },
@@ -972,5 +1015,7 @@ router.post('/settings/init', requireAdmin, async (req, res) => {
     res.status(500).json({ error: 'Error al inicializar configuraciones' });
   }
 });
+
+
 
 export default router;

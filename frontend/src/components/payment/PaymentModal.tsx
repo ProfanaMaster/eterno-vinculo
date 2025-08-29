@@ -68,54 +68,35 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const total = getTotal()
 
   // Métodos de pago desde el Panel Administrativo
-  const basePaymentMethods = settings.payment_methods || {
-    bancolombia: {
-      name: 'Bancolombia',
-      account: '123-456-789-01',
-      type: 'Cuenta de Ahorros',
-      owner: 'Eterno Vínculo SAS'
-    },
-    nequi: {
-      name: 'Nequi',
-      account: '319 665 0357',
-      type: 'Cuenta Digital',
-      owner: 'Eterno Vínculo'
-    },
-    transfiya: {
-      name: 'Transfiya',
-      account: 'eternovinculo@transfiya.com',
-      type: 'Cuenta Transfiya',
-      owner: 'Eterno Vínculo'
-    }
-  }
+  const basePaymentMethods = settings.payment_methods || {} as any
 
-  // Agregar iconos y colores a los métodos del admin
-  const getMethodIcon = (key: string) => {
-    const icons: { [key: string]: string } = {
-      nequi: '📱',
-      bancolombia: '🏦',
-      transfiya: '💸',
-      daviplata: '💳'
-    }
-    return icons[key] || '💰'
-  }
+
 
   const getMethodColor = (key: string) => {
     const colors: { [key: string]: string } = {
       nequi: 'from-purple-500 to-pink-500',
       bancolombia: 'from-yellow-500 to-orange-500',
       transfiya: 'from-green-500 to-blue-500',
-      daviplata: 'from-blue-500 to-indigo-500'
+      daviplata: 'from-green-500 to-blue-500' // Mapear daviplata a transfiya
     }
     return colors[key] || 'from-gray-500 to-gray-600'
   }
 
+  const getMethodSvgIcon = (key: string) => {
+    const icons: { [key: string]: string } = {
+      nequi: '/nequi-2.svg',
+      transfiya: '/transfiya-1.svg',
+      daviplata: '/transfiya-1.svg', // Mapear daviplata a transfiya
+      bancolombia: '/bancolombia.svg'
+    }
+    return icons[key] || null
+  }
+
   const paymentMethods = Object.fromEntries(
-    Object.entries(basePaymentMethods).map(([key, method]) => [
+    Object.entries(basePaymentMethods || {}).map(([key, method]) => [
       key,
       {
         ...method,
-        icon: getMethodIcon(key),
         color: getMethodColor(key)
       }
     ])
@@ -268,7 +249,6 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                   <div className={`absolute inset-0 bg-gradient-to-r ${method.color} opacity-0 group-hover:opacity-10 transition-opacity`} />
                   
                   <div className="relative flex items-center space-x-4">
-                    <div className="text-4xl">{method.icon}</div>
                     <div className="flex-1">
                       <h4 className="text-lg font-bold text-gray-800">{method.name}</h4>
                       <p className="text-gray-600">{method.type}</p>
@@ -308,8 +288,16 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
               {/* Contenido */}
               <div className="relative z-10 space-y-4">
                 <div className="text-center mb-6">
-                  <div className="text-4xl mb-2">{selectedPaymentMethod.icon}</div>
-                  <h4 className="text-xl font-bold text-gray-800">{selectedPaymentMethod.name}</h4>
+                  <div className="flex justify-center items-center mb-4">
+                    {getMethodSvgIcon(selectedMethod) && (
+                      <img 
+                        src={getMethodSvgIcon(selectedMethod)} 
+                        alt={`${selectedPaymentMethod.name} icon`}
+                        className="w-[150px] h-[150px] object-contain"
+
+                      />
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid gap-4">
@@ -398,12 +386,8 @@ function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             </div>
 
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-green-600">✅</span>
-                <div className="text-sm text-green-800">
-                  <p className="font-semibold">Transferencia realizada</p>
-                  <p>Ahora completa los datos de tu comprobante</p>
-                </div>
+              <div className="text-sm text-green-800">
+                <p>Ahora completa los datos de tu comprobante</p>
               </div>
             </div>
 

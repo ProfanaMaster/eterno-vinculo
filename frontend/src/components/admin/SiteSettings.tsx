@@ -95,6 +95,11 @@ function SiteSettings() {
       })
 
       if (response.ok) {
+        // Si es pricing_plan, también sincronizar con la tabla packages
+        if (key === 'pricing_plan') {
+          await syncPricingWithPackages(value)
+        }
+        
         await fetchSettings()
         // Refrescar también los settings públicos
         await refetchPublicSettings()
@@ -105,6 +110,31 @@ function SiteSettings() {
       alert('Error al actualizar la configuración')
     } finally {
       setSaving(null)
+    }
+  }
+
+  const syncPricingWithPackages = async (pricingData: any) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      
+      if (!token) return
+      
+      const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api'
+      const response = await fetch(`${API_URL}/admin/packages/sync-pricing`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ pricingData })
+      })
+
+      if (!response.ok) {
+        console.error('Error sincronizando con packages')
+      }
+    } catch (error) {
+      console.error('Error en syncPricingWithPackages:', error)
     }
   }
 
@@ -137,6 +167,8 @@ function SiteSettings() {
       setInitializing(false)
     }
   }
+
+
 
   const renderHeroSettings = () => {
     return (

@@ -23,9 +23,9 @@ function MuroDeRecuerdosPage() {
       try {
         const response = await api.get(`/profiles/public/${slug}`)
         setProfile(response.data.data)
-      } catch (error) {
-        console.error('Error fetching profile:', error)
-      } finally {
+          } catch (error) {
+      // Error silencioso para producción
+    } finally {
         setLoading(false)
       }
     }

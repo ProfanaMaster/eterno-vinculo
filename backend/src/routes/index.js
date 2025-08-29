@@ -104,33 +104,7 @@ router.get('/packages', async (req, res) => {
   }
 });
 
-// Endpoint temporal de debug - REMOVER EN PRODUCCIÓN
-router.get('/debug/profiles/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    
-    const { data: profiles, error } = await supabaseAdmin
-      .from('memorial_profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-    
-    
-    if (error) {
-      return res.status(500).json({ error: 'Error al obtener perfiles', details: error });
-    }
-    
-    res.json({
-      success: true,
-      data: profiles || [],
-      debug: true
-    });
-    
-  } catch (error) {
-    console.error('Error in debug endpoint:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
-  }
-});
+
 
 // Endpoint para obtener plantillas
 router.get('/templates', async (req, res) => {

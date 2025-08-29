@@ -1,5 +1,6 @@
 import express from 'express';
 import { supabaseAdmin, getUserFromToken } from '../config/supabase.js';
+import makeWebhookService from '../services/makeWebhookService.js';
 
 const router = express.Router();
 
@@ -83,6 +84,9 @@ router.post('/', async (req, res) => {
       console.error('Error creating order:', orderError);
       return res.status(500).json({ error: 'Error al crear la orden' });
     }
+
+    // Enviar datos a Make de forma asíncrona (no bloquea la respuesta)
+    makeWebhookService.sendOrderDataAsync(order);
 
     res.status(201).json({
       success: true,

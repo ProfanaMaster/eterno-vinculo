@@ -14,17 +14,14 @@ function FAQ() {
     },
     {
       question: "¿Qué tipos de archivos puedo subir?",
-      answer: "Puedes subir fotos (JPG, PNG), videos (MP4, WebM, MOV, AVI). Para video un peso maximo de 50M, e imagenes un peso maximo de 10M."
+      answer: "Puedes subir fotos (JPG, PNG), videos (MP4, WebM, MOV, AVI). Para video un peso maximo de 65M, e imagenes un peso maximo de 2M cada una."
     },
     
     {
       question: "¿Ofrecen soporte técnico?",
-      answer: "Sí, ofrecemos soporte por email para todos los planes. Los planes Premium y Familiar incluyen soporte prioritario con respuesta en 24 horas."
+      answer: "Sí, ofrecemos soporte por email para todos los planes, respuesta en 24 horas."
     },
-    {
-      question: "¿Puedo obtener un reembolso?",
-      answer: "Ofrecemos una garantía de devolución de 30 días sin preguntas. Si no estás completamente satisfecho, te devolvemos tu dinero."
-    },
+    ,
     {
       question: "¿Cómo se comparte el memorial?",
       answer: "Puedes compartir tu memorial a través de un enlace único, código QR, redes sociales, email, o imprimiendo tarjetas con el código QR incluido."
