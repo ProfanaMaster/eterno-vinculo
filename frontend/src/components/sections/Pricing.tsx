@@ -122,6 +122,7 @@ function Pricing() {
             </ul>
 
             <button 
+              id="adquirir-memorial-btn"
               onClick={handleSelectPackage}
               className="btn btn-primary w-full text-lg py-4"
             >

@@ -338,9 +338,9 @@ function UserDashboard() {
                 onClick={() => {
                   navigate('/');
                   setTimeout(() => {
-                    const pricingSection = document.getElementById('precios');
-                    if (pricingSection) {
-                      pricingSection.scrollIntoView({ behavior: 'smooth' });
+                    const acquireButton = document.getElementById('adquirir-memorial-btn');
+                    if (acquireButton) {
+                      acquireButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                   }, 100);
                 }}
@@ -445,9 +445,9 @@ function UserDashboard() {
                   onClick={() => {
                     navigate('/');
                     setTimeout(() => {
-                      const pricingSection = document.getElementById('precios');
-                      if (pricingSection) {
-                        pricingSection.scrollIntoView({ behavior: 'smooth' });
+                      const acquireButton = document.getElementById('adquirir-memorial-btn');
+                      if (acquireButton) {
+                        acquireButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
                       }
                     }, 100);
                   }}
