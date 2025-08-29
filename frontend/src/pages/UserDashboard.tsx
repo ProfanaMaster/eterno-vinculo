@@ -332,10 +332,18 @@ function UserDashboard() {
             </div>
             <div className="bg-blue-100 rounded-lg p-4">
               <p className="text-sm text-blue-800 mb-3">
-                💝 Una vez realices el pago, podrás crear un hermoso memorial para honrar la memoria de tu ser querido.
+                Una vez realices el pago, podrás crear un hermoso memorial para honrar la memoria de tu ser querido.
               </p>
               <button
-                onClick={() => navigate('/#pricing')}
+                onClick={() => {
+                  navigate('/');
+                  setTimeout(() => {
+                    const pricingSection = document.getElementById('precios');
+                    if (pricingSection) {
+                      pricingSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }, 100);
+                }}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Ve a precios y adquiere tu paquete!
@@ -434,7 +442,15 @@ function UserDashboard() {
               <div className="text-center py-8">
                 <p className="text-gray-500 mb-4">No tienes órdenes aún</p>
                 <button
-                  onClick={() => navigate('/#pricing')}
+                  onClick={() => {
+                    navigate('/');
+                    setTimeout(() => {
+                      const pricingSection = document.getElementById('precios');
+                      if (pricingSection) {
+                        pricingSection.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }, 100);
+                  }}
                   className="btn btn-primary"
                 >
                   Ver Paquetes
