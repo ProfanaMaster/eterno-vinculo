@@ -229,7 +229,7 @@ function SiteSettings() {
                 })}
               />
               <Input
-                label="Twitter"
+                label="TikTok"
                 value={(footerData as any).social?.twitter || ''}
                 onChange={(e) => setFooterData({
                   ...footerData, 

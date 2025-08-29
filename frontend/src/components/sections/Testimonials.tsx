@@ -1,4 +1,11 @@
 function Testimonials() {
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById('precios');
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const testimonials = [
     {
       name: "Carmen López",
@@ -99,7 +106,7 @@ function Testimonials() {
           <p className="text-gray-600 mb-6">
             Comienza a crear el memorial de tu ser querido hoy mismo
           </p>
-          <button className="btn btn-primary btn-lg">
+          <button onClick={scrollToPricing} className="btn btn-primary btn-lg">
             Crear Mi Memorial Ahora
           </button>
         </div>

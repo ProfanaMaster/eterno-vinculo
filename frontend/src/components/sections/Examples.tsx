@@ -90,15 +90,13 @@ function Examples() {
         {/* Interactive Demo */}
         <div className="bg-gradient-to-r from-primary/5 to-accent/5 rounded-2xl p-8 text-center">
           <h3 className="text-2xl font-bold text-gray-900 mb-4">
-            ¿Quieres ver cómo funciona?
+            Conoce nuestras plantillas
           </h3>
           <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Prueba nuestro demo interactivo y descubre lo fácil que es crear un memorial hermoso
+            Descubre nuestras plantillas y crea un hermoso memorial para tu ser querido
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="btn btn-primary">
-              🎮 Demo Interactivo
-            </button>
+            
             <button className="btn btn-secondary">
               📋 Ver Todas las Plantillas
             </button>

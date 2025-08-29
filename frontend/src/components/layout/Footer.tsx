@@ -39,17 +39,17 @@ function Footer() {
               <div className="flex gap-4">
                 {footerSettings.social?.facebook && (
                   <a href={footerSettings.social.facebook} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-primary transition-colors">
-                    <span>📘</span>
+                    <img src="/facebook.png" alt="Facebook" className="w-5 h-5" />
                   </a>
                 )}
                 {footerSettings.social?.instagram && (
                   <a href={footerSettings.social.instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-primary transition-colors">
-                    <span>📷</span>
+                    <img src="/instagram.png" alt="Instagram" className="w-5 h-5" />
                   </a>
                 )}
                 {footerSettings.social?.twitter && (
                   <a href={footerSettings.social.twitter} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-primary transition-colors">
-                    <span>🐦</span>
+                    <img src="/tik-tok.png" alt="TikTok" className="w-5 h-5" />
                   </a>
                 )}
               </div>
@@ -84,7 +84,8 @@ function Footer() {
                 <li><a href="#precios" className="text-gray-300 hover:text-white transition-colors">Precios</a></li>
                 <li><a href="#ejemplos" className="text-gray-300 hover:text-white transition-colors">Ejemplos</a></li>
                 <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Plantillas</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Demo</a></li>
+                
+                
               </ul>
             </div>
 
@@ -95,7 +96,7 @@ function Footer() {
                 <li><a href="#faq" className="text-gray-300 hover:text-white transition-colors">Preguntas Frecuentes</a></li>
                 <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Centro de Ayuda</a></li>
                 <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Contacto</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Chat en Vivo</a></li>
+                
                 <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Tutoriales</a></li>
               </ul>
             </div>
