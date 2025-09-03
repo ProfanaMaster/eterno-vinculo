@@ -1,0 +1,35 @@
+/* Estilos globales para prevenir scroll horizontal */
+
+/* Prevenir scroll horizontal en toda la aplicación */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  position: relative;
+}
+
+/* Asegurar que el contenedor principal no cause scroll */
+#root {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Prevenir scroll horizontal en contenedores de efectos */
+.celebration-container {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Media query específico para móviles */
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+  }
+  
+  /* Asegurar que los elementos de celebración no excedan los límites */
+  .celebration-effect {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+}

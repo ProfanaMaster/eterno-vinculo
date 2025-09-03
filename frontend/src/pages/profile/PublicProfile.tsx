@@ -8,6 +8,9 @@ import { sanitizeText } from '@/utils/sanitize'
 import TemplateBackground from '@/components/profile/TemplateBackground'
 import MemoryWall from '@/components/MemoryWall'
 import { getProxiedImageUrl } from '@/utils/imageUtils'
+import { CelebrationEffect } from '@/components/CelebrationEffect'
+import { useBirthdayCelebration } from '@/hooks/useBirthdayCelebration'
+import { MemorialTimeModal } from '@/components/memorial/MemorialTimeModal'
 
 interface Profile {
   id: string
@@ -31,6 +34,14 @@ export default function PublicProfile() {
   const [error, setError] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [modalImageIndex, setModalImageIndex] = useState(0)
+  const [timeModalOpen, setTimeModalOpen] = useState(false)
+
+  // Hook para manejar celebración de cumpleaños
+  const birthdayCelebration = useBirthdayCelebration({
+    birthDate: profile?.birth_date || '',
+    profileName: profile?.profile_name || '',
+    autoStart: true
+  })
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -172,6 +183,21 @@ export default function PublicProfile() {
           </div>
         </div>
 
+        {/* Mensaje de cumpleaños */}
+        {birthdayCelebration.birthdayMessage && (
+          <div className="mb-8 text-center">
+            <div className="inline-block bg-gradient-to-r from-pink-100 via-purple-100 to-pink-100 px-6 py-4 rounded-2xl shadow-lg border border-pink-200">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🎂</span>
+                <p className="text-lg font-medium text-pink-800">
+                  {birthdayCelebration.birthdayMessage}
+                </p>
+                <span className="text-2xl">🎉</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Barra decorativa con iconos */}
         <div className="relative mb-8">
           <div className="h-1 bg-gradient-to-r from-gray-300 to-gray-400 rounded-full mx-8"></div>
@@ -265,11 +291,22 @@ export default function PublicProfile() {
         />
 
         {/* Footer decorativo */}
-        <div className="text-center py-8">
+        <div className="text-center py-8 space-y-4">
           <div className={`inline-flex items-center gap-2 px-4 py-2 ${templateStyles.card} rounded-full`}>
             <span>✨</span>
             <span className="text-sm text-gray-600">En memoria eterna</span>
             <span>✨</span>
+          </div>
+          
+          {/* Botón para datos de tiempo */}
+          <div>
+            <button
+              onClick={() => setTimeModalOpen(true)}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
+            >
+              <span className="text-lg">⏰</span>
+              <span className="font-medium">Datos no menos relevantes</span>
+            </button>
           </div>
         </div>
       </div>
@@ -287,6 +324,21 @@ export default function PublicProfile() {
         currentIndex={modalImageIndex}
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
+      />
+
+      {/* Efecto de celebración de cumpleaños */}
+      <CelebrationEffect 
+        isActive={birthdayCelebration.isCelebrating}
+        onComplete={birthdayCelebration.stopCelebration}
+      />
+
+      {/* Modal de tiempo memorial */}
+      <MemorialTimeModal
+        isOpen={timeModalOpen}
+        onClose={() => setTimeModalOpen(false)}
+        profileName={profile.profile_name}
+        birthDate={profile.birth_date}
+        deathDate={profile.death_date}
       />
     </ResponsiveBackground>
   )

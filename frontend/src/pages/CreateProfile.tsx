@@ -134,10 +134,7 @@ function CreateProfile() {
       setExistingGalleryUrls(memorial.gallery_images || [])
       setExistingVideoUrl(memorial.memorial_video_url || '')
       
-      console.log('📋 Datos cargados del memorial:', {
-        gallery_images: memorial.gallery_images,
-        video_url: memorial.memorial_video_url
-      })
+
     } catch (error) {
       console.error('Error loading memorial:', error)
       setToast({ message: 'Error al cargar el memorial', type: 'error', isVisible: true })
@@ -368,13 +365,7 @@ function CreateProfile() {
         favorite_music: formData.favoriteMusic
       }
 
-      console.log('📤 Datos a enviar:', {
-        isEditing,
-        existingGalleryUrls,
-        existingVideoUrl,
-        gallery_images: profileData.gallery_images,
-        memorial_video_url: profileData.memorial_video_url
-      })
+
 
       let response
       if (isEditing && id) {
