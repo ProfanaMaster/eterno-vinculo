@@ -19,6 +19,7 @@ interface Settings {
     currency: string
     features: string[]
   }
+
   footer_info?: {
     company_name: string
     description: string
@@ -50,6 +51,16 @@ interface Settings {
       type: string
       owner: string
     }
+  }
+  examples_section?: {
+    memorial_profiles: Array<{
+      profile_name: string
+      profile_image_url: string
+      birth_date: string
+      death_date: string
+      slug: string
+      description?: string
+    }>
   }
 }
 

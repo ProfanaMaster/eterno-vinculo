@@ -20,11 +20,52 @@ function SiteSettings() {
   const [paymentData, setPaymentData] = useState({})
   const [statsData, setStatsData] = useState({})
   const [pricingData, setPricingData] = useState({})
+  const [examplesData, setExamplesData] = useState({})
+  const [existingProfiles, setExistingProfiles] = useState<any[]>([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showProfileSuggestions, setShowProfileSuggestions] = useState(false)
   const { refetch: refetchPublicSettings } = useSettings()
 
   useEffect(() => {
     fetchSettings()
+    fetchExistingProfiles()
   }, [])
+
+  // Cerrar sugerencias al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (!target.closest('.profile-search-container')) {
+        setShowProfileSuggestions(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const fetchExistingProfiles = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      
+      if (!token) return
+      
+      const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api'
+      const response = await fetch(`${API_URL}/admin/memorial-profiles`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        setExistingProfiles(result.data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching profiles:', error)
+    }
+  }
 
   const fetchSettings = async () => {
     try {
@@ -64,6 +105,10 @@ function SiteSettings() {
             case 'pricing_plan':
               setPricingData(setting.value || {})
               break
+            case 'examples_section':
+              setExamplesData(setting.value || {})
+              break
+
           }
         })
       } else {
@@ -461,6 +506,225 @@ function SiteSettings() {
     )
   }
 
+  const renderExamplesSettings = () => {
+    const addProfile = () => {
+      const newProfile = {
+        profile_name: '',
+        profile_image_url: '',
+        birth_date: '',
+        death_date: '',
+        slug: '',
+        description: ''
+      }
+      setExamplesData({
+        ...examplesData,
+        memorial_profiles: [...(examplesData.memorial_profiles || []), newProfile]
+      })
+    }
+
+    const removeProfile = (index: number) => {
+      const updatedProfiles = (examplesData.memorial_profiles || []).filter((_, i) => i !== index)
+      setExamplesData({
+        ...examplesData,
+        memorial_profiles: updatedProfiles
+      })
+    }
+
+    const updateProfile = (index: number, field: string, value: string) => {
+      const updatedProfiles = [...(examplesData.memorial_profiles || [])]
+      updatedProfiles[index] = { ...updatedProfiles[index], [field]: value }
+      setExamplesData({
+        ...examplesData,
+        memorial_profiles: updatedProfiles
+      })
+    }
+
+    const selectExistingProfile = (profile: any, index: number) => {
+      const updatedProfiles = [...(examplesData.memorial_profiles || [])]
+      updatedProfiles[index] = {
+        profile_name: profile.profile_name,
+        profile_image_url: profile.profile_image_url || '',
+        birth_date: profile.birth_date || '',
+        death_date: profile.death_date || '',
+        slug: profile.slug || '',
+        description: profile.description || ''
+      }
+      setExamplesData({
+        ...examplesData,
+        memorial_profiles: updatedProfiles
+      })
+      setSearchTerm('')
+      setShowProfileSuggestions(false)
+    }
+
+    const filteredProfiles = existingProfiles.filter(profile =>
+      profile.profile_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
+    return (
+      <div className="bg-white rounded-xl shadow-sm border p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Sección de Ejemplos</h3>
+        <p className="text-gray-600 mb-6">
+          Configura hasta 3 perfiles memoriales reales para mostrar como ejemplos en la página principal.
+        </p>
+        
+        <div className="space-y-8">
+          {(examplesData.memorial_profiles || []).map((profile: any, index: number) => (
+            <div key={index} className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                    <span className="text-primary-600 text-sm font-semibold">{index + 1}</span>
+                  </div>
+                  <h4 className="text-md font-medium text-gray-900">Perfil {index + 1}</h4>
+                </div>
+                <button
+                  onClick={() => removeProfile(index)}
+                  className="group p-2 rounded-lg hover:bg-red-50 transition-all duration-200"
+                  title="Eliminar perfil"
+                >
+                  <svg 
+                    className="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors duration-200" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" 
+                    />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="relative profile-search-container">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Perfil</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={profile.profile_name || ''}
+                      onChange={(e) => {
+                        updateProfile(index, 'profile_name', e.target.value)
+                        setSearchTerm(e.target.value)
+                        setShowProfileSuggestions(true)
+                      }}
+                      onFocus={() => setShowProfileSuggestions(true)}
+                      placeholder="Escribe para buscar perfiles existentes..."
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                    {profile.profile_name && (
+                      <button
+                        onClick={() => {
+                          updateProfile(index, 'profile_name', '')
+                          setSearchTerm('')
+                          setShowProfileSuggestions(false)
+                        }}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Sugerencias de perfiles */}
+                  {showProfileSuggestions && searchTerm && filteredProfiles.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {filteredProfiles.map((suggestedProfile, suggestionIndex) => (
+                        <button
+                          key={suggestionIndex}
+                          onClick={() => selectExistingProfile(suggestedProfile, index)}
+                          className="w-full px-3 py-2 text-left hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                        >
+                          <div className="font-medium">{suggestedProfile.profile_name}</div>
+                          <div className="text-sm text-gray-600">
+                            {suggestedProfile.birth_date && suggestedProfile.death_date 
+                              ? `${suggestedProfile.birth_date} - ${suggestedProfile.death_date}`
+                              : 'Sin fechas'
+                            }
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <Input
+                  label="URL de la Imagen"
+                  value={profile.profile_image_url || ''}
+                  onChange={(e) => updateProfile(index, 'profile_image_url', e.target.value)}
+                  placeholder="https://ejemplo.com/imagen.jpg"
+                />
+                <Input
+                  label="Fecha de Nacimiento"
+                  type="date"
+                  value={profile.birth_date || ''}
+                  onChange={(e) => updateProfile(index, 'birth_date', e.target.value)}
+                />
+                <Input
+                  label="Fecha de Fallecimiento"
+                  type="date"
+                  value={profile.death_date || ''}
+                  onChange={(e) => updateProfile(index, 'death_date', e.target.value)}
+                />
+                <Input
+                  label="Slug del Memorial"
+                  value={profile.slug || ''}
+                  onChange={(e) => updateProfile(index, 'slug', e.target.value)}
+                  placeholder="maria-elena-gonzalez"
+                />
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                  <textarea
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    rows={2}
+                    value={profile.description || ''}
+                    onChange={(e) => updateProfile(index, 'description', e.target.value)}
+                    placeholder="Breve descripción del perfil"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          {(examplesData.memorial_profiles || []).length === 0 ? (
+            <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
+              <div className="text-6xl mb-4">📝</div>
+              <h4 className="text-lg font-medium text-gray-900 mb-2">No hay perfiles configurados</h4>
+              <p className="text-gray-600 mb-6">Agrega perfiles memoriales para mostrar como ejemplos</p>
+              <Button
+                onClick={addProfile}
+                className="btn-primary"
+              >
+                + Agregar Primer Perfil
+              </Button>
+            </div>
+          ) : (examplesData.memorial_profiles || []).length < 3 && (
+            <div className="text-center">
+              <Button
+                onClick={addProfile}
+                className="btn-secondary"
+              >
+                + Agregar Perfil
+              </Button>
+            </div>
+          )}
+          
+          <Button
+            onClick={() => updateSetting('examples_section', examplesData)}
+            loading={saving === 'examples_section'}
+            className="btn-primary"
+          >
+            Guardar Cambios
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -491,22 +755,29 @@ function SiteSettings() {
           <p className="text-gray-600 mb-4">Inicializa las configuraciones por defecto para comenzar.</p>
         </div>
       ) : (
-        settings.map((setting) => {
-        switch (setting.key) {
-          case 'hero_section':
-            return <div key={setting.key}>{renderHeroSettings()}</div>
-          case 'footer_info':
-            return <div key={setting.key}>{renderFooterSettings()}</div>
-          case 'payment_methods':
-            return <div key={setting.key}>{renderPaymentSettings()}</div>
-          case 'site_stats':
-            return <div key={setting.key}>{renderStatsSettings()}</div>
-          case 'pricing_plan':
-            return <div key={setting.key}>{renderPricingSettings()}</div>
-          default:
-            return null
-        }
-      })
+        <>
+          {settings.map((setting) => {
+            switch (setting.key) {
+              case 'hero_section':
+                return <div key={setting.key}>{renderHeroSettings()}</div>
+              case 'footer_info':
+                return <div key={setting.key}>{renderFooterSettings()}</div>
+              case 'payment_methods':
+                return <div key={setting.key}>{renderPaymentSettings()}</div>
+              case 'site_stats':
+                return <div key={setting.key}>{renderStatsSettings()}</div>
+              case 'pricing_plan':
+                return <div key={setting.key}>{renderPricingSettings()}</div>
+              default:
+                return null
+            }
+          })}
+          
+          {/* Sección de Ejemplos al final */}
+          {settings.find(s => s.key === 'examples_section') && (
+            <div>{renderExamplesSettings()}</div>
+          )}
+        </>
       )}
     </div>
   )

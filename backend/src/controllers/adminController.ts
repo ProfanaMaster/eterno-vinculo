@@ -169,3 +169,38 @@ export const updateSetting = catchAsync(async (req: Request, res: Response) => {
     setting: data
   })
 })
+
+export const getPublicSettings = catchAsync(async (req: Request, res: Response) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('site_settings')
+      .select('*')
+      .order('key')
+
+    if (error) throw error
+
+    // Filtrar solo configuraciones públicas
+    const publicSettings = data.filter((setting: any) => {
+      const key = setting.key
+      // Solo permitir configuraciones públicas
+      return [
+        'hero_section',
+        'site_stats', 
+        'pricing_plan',
+        'footer_info',
+        'examples_section',
+        'payment_methods' // Necesario para el frontend - incluir completo
+      ].includes(key)
+    })
+
+    res.json({
+      success: true,
+      data: publicSettings
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Error obteniendo configuraciones públicas'
+    })
+  }
+})

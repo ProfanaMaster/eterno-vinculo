@@ -1016,6 +1016,27 @@ router.post('/settings/init', requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * GET /api/admin/memorial-profiles
+ * Obtener perfiles memoriales para autocompletado
+ */
+router.get('/memorial-profiles', requireAdmin, async (req, res) => {
+  try {
+    const { data: profiles, error } = await supabaseAdmin
+      .from('memorial_profiles')
+      .select('id, profile_name, profile_image_url, birth_date, death_date, slug, description')
+      .order('profile_name');
 
+    if (error) throw error;
+
+    res.json({
+      success: true,
+      data: profiles
+    });
+  } catch (error) {
+    console.error('Error fetching memorial profiles:', error);
+    res.status(500).json({ error: 'Error al obtener perfiles memoriales' });
+  }
+});
 
 export default router;

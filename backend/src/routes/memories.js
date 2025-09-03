@@ -2,6 +2,11 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { supabaseAdmin } from '../config/supabase.js';
 import { deleteR2File } from '../services/r2CleanupService.js';
+import svgCaptcha from 'svg-captcha';
+
+// Cache para almacenar captchas generados (en producción usar Redis)
+const captchaCache = new Map();
+const CAPTCHA_TTL = 10 * 60 * 1000; // 10 minutos
 
 // Función para obtener usuario desde token
 const getUserFromToken = async (token) => {
@@ -84,6 +89,120 @@ const isValidImageUrl = (url) => {
   }
 };
 
+// Función para validar contenido de imagen más robusta
+const validateImageContent = async (url) => {
+  if (!url || typeof url !== 'string') return false;
+  
+  try {
+    const urlObj = new URL(url);
+    
+    // Permitir URLs de Supabase storage (legacy)
+    const isSupabaseUrl = urlObj.hostname.includes('supabase.co') && 
+                         urlObj.pathname.includes('/storage/v1/object/public/');
+    
+    // Permitir URLs de Cloudflare R2
+    const isCloudflareR2Url = urlObj.hostname.includes('r2.cloudflarestorage.com') ||
+                             urlObj.hostname.includes('cloudflare.com') ||
+                             urlObj.hostname.includes('r2.dev') ||
+                             urlObj.hostname === process.env.CLOUDFLARE_R2_DOMAIN;
+    
+    if (!isSupabaseUrl && !isCloudflareR2Url) {
+      return false;
+    }
+
+    // Verificar que la imagen sea realmente una imagen válida
+    const response = await fetch(url, { 
+      method: 'HEAD',
+      timeout: 5000 // 5 segundos de timeout
+    });
+    
+    if (!response.ok) return false;
+    
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.startsWith('image/')) {
+      return false;
+    }
+
+    // Verificar tamaño de imagen (máximo 2MB - consistente con frontend)
+    const contentLength = response.headers.get('content-length');
+    if (contentLength && parseInt(contentLength) > 2 * 1024 * 1024) {
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error validando imagen:', error);
+    return false;
+  }
+};
+
+// Función para generar captcha
+const generateCaptcha = () => {
+  const captcha = svgCaptcha.create({
+    size: 4,
+    noise: 2,
+    color: true,
+    background: '#f0f0f0'
+  });
+  
+  const captchaId = Math.random().toString(36).substring(2, 15);
+  captchaCache.set(captchaId, {
+    text: captcha.text.toLowerCase(),
+    timestamp: Date.now()
+  });
+  
+  // Limpiar captchas expirados
+  const now = Date.now();
+  for (const [key, value] of captchaCache.entries()) {
+    if (now - value.timestamp > CAPTCHA_TTL) {
+      captchaCache.delete(key);
+    }
+  }
+  
+  return { id: captchaId, svg: captcha.data };
+};
+
+// Función para verificar captcha
+const verifyCaptcha = (captchaId, userInput) => {
+  const captcha = captchaCache.get(captchaId);
+  if (!captcha) return false;
+  
+  const isValid = captcha.text === userInput.toLowerCase();
+  if (isValid) {
+    captchaCache.delete(captchaId); // Usar una sola vez
+  }
+  
+  return isValid;
+};
+
+/**
+ * GET /api/memories/captcha
+ * Generar nuevo captcha para el formulario
+ */
+router.get('/captcha', (req, res) => {
+  try {
+    const captcha = generateCaptcha();
+    
+    res.set({
+      'Content-Type': 'image/svg+xml',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        captchaId: captcha.id,
+        svg: captcha.svg
+      }
+    });
+  } catch (error) {
+    console.error('Error generando captcha:', error);
+    res.status(500).json({ error: 'Error generando captcha' });
+  }
+});
+
 /**
  * POST /api/memories
  * Crear nuevo recuerdo (público, sin autenticación)
@@ -96,7 +215,9 @@ router.post('/', memoriesRateLimit, async (req, res) => {
       author_name,
       message,
       song,
-      things_list
+      things_list,
+      captcha_id,
+      captcha_input
     } = req.body;
 
     // Validaciones estrictas
@@ -104,14 +225,30 @@ router.post('/', memoriesRateLimit, async (req, res) => {
       return res.status(400).json({ error: 'ID de memorial requerido' });
     }
 
-    console.log('📸 Validando URL de imagen:', photo_url);
+    // Validar captcha
+    if (!captcha_id || !captcha_input) {
+      return res.status(400).json({ error: 'Captcha requerido' });
+    }
+
+    if (!verifyCaptcha(captcha_id, captcha_input)) {
+      return res.status(400).json({ error: 'Captcha incorrecto' });
+    }
+
+    // console.log('📸 Validando URL de imagen:', photo_url);
     
     if (!photo_url || !isValidImageUrl(photo_url)) {
-      console.log('❌ URL de imagen inválida:', photo_url);
+      // console.log('❌ URL de imagen inválida:', photo_url);
       return res.status(400).json({ error: 'URL de imagen inválida' });
     }
     
-    console.log('✅ URL de imagen válida:', photo_url);
+    // Validación robusta del contenido de la imagen
+    const isImageValid = await validateImageContent(photo_url);
+    if (!isImageValid) {
+      // console.log('❌ Contenido de imagen inválido:', photo_url);
+      return res.status(400).json({ error: 'La imagen no es válida o está corrupta' });
+    }
+    
+    // console.log('✅ URL de imagen válida:', photo_url);
 
     const cleanAuthorName = sanitizeText(author_name);
     if (!cleanAuthorName || cleanAuthorName.length < 2) {

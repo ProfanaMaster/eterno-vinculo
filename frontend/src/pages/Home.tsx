@@ -8,6 +8,7 @@ import Testimonials from '../components/sections/Testimonials'
 import FAQ from '../components/sections/FAQ'
 import Footer from '../components/layout/Footer'
 import CartSidebar from '../components/cart/CartSidebar'
+import WhatsAppFloatingButton from '../components/WhatsAppFloatingButton'
 
 function Home() {
   return (
@@ -23,6 +24,7 @@ function Home() {
       </main>
       <Footer />
       <CartSidebar />
+      <WhatsAppFloatingButton />
     </div>
   )
 }

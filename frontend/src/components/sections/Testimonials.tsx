@@ -1,8 +1,14 @@
 function Testimonials() {
   const scrollToPricing = () => {
-    const pricingSection = document.getElementById('precios');
-    if (pricingSection) {
-      pricingSection.scrollIntoView({ behavior: 'smooth' });
+    const acquireButton = document.getElementById('adquirir-memorial-btn');
+    if (acquireButton) {
+      acquireButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      // Fallback: si no encuentra el botón, hacer scroll a la sección
+      const pricingSection = document.getElementById('precios');
+      if (pricingSection) {
+        pricingSection.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -107,7 +113,7 @@ function Testimonials() {
             Comienza a crear el memorial de tu ser querido hoy mismo
           </p>
           <button onClick={scrollToPricing} className="btn btn-primary btn-lg">
-            Crear Mi Memorial Ahora
+            Crear Memorial Ahora
           </button>
         </div>
       </div>

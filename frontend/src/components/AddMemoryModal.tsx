@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/config/supabase'
+import Captcha from '@/components/ui/Captcha'
 
 interface AddMemoryModalProps {
   isOpen: boolean
@@ -25,9 +26,16 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [captchaId, setCaptchaId] = useState('')
+  const [captchaInput, setCaptchaInput] = useState('')
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleCaptchaChange = (id: string, input: string) => {
+    setCaptchaId(id);
+    setCaptchaInput(input);
   }
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,7 +115,9 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
           author_name: sanitizedName,
           message: sanitizedMessage,
           song: sanitizedSong || null,
-          things_list: filteredThings.map(item => sanitizeInput(item))
+          things_list: filteredThings.map(item => sanitizeInput(item)),
+          captcha_id: captchaId,
+          captcha_input: captchaInput
         })
       })
 
@@ -321,6 +331,11 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
                     <span>Agregar otro recuerdo</span>
                   </button>
                 )}
+              </div>
+
+              {/* Captcha */}
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <Captcha onCaptchaChange={handleCaptchaChange} />
               </div>
 
               {/* Checkbox autorización */}

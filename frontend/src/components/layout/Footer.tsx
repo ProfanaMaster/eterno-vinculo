@@ -1,8 +1,30 @@
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useSettings } from '@/contexts/SettingsContext'
 
 function Footer() {
   const { settings, loading } = useSettings()
   const footerSettings = settings.footer_info || {}
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  const handleNavigation = (section: string) => {
+    if (location.pathname === '/') {
+      // Si estamos en la página principal, hacer scroll a la sección
+      const element = document.getElementById(section)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' })
+      }
+    } else {
+      // Si estamos en otra página, navegar a la principal y luego a la sección
+      navigate('/')
+      setTimeout(() => {
+        const element = document.getElementById(section)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' })
+        }
+      }, 100)
+    }
+  }
   
   if (loading) {
     return (
@@ -80,12 +102,10 @@ function Footer() {
             <div>
               <h4 className="font-semibold text-lg mb-6">Producto</h4>
               <ul className="space-y-3">
-                <li><a href="#caracteristicas" className="text-gray-300 hover:text-white transition-colors">Características</a></li>
-                <li><a href="#precios" className="text-gray-300 hover:text-white transition-colors">Precios</a></li>
-                <li><a href="#ejemplos" className="text-gray-300 hover:text-white transition-colors">Ejemplos</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Plantillas</a></li>
-                
-                
+                <li><button onClick={() => handleNavigation('caracteristicas')} className="text-gray-300 hover:text-white transition-colors text-left w-full">Características</button></li>
+                <li><button onClick={() => handleNavigation('precios')} className="text-gray-300 hover:text-white transition-colors text-left w-full">Precios</button></li>
+                <li><button onClick={() => handleNavigation('ejemplos')} className="text-gray-300 hover:text-white transition-colors text-left w-full">Ejemplos</button></li>
+                <li><button onClick={() => navigate('/template')} className="text-gray-300 hover:text-white transition-colors text-left w-full">Plantillas</button></li>
               </ul>
             </div>
 
@@ -93,11 +113,10 @@ function Footer() {
             <div>
               <h4 className="font-semibold text-lg mb-6">Soporte</h4>
               <ul className="space-y-3">
-                <li><a href="#faq" className="text-gray-300 hover:text-white transition-colors">Preguntas Frecuentes</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Centro de Ayuda</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Contacto</a></li>
-                
-                <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Tutoriales</a></li>
+                <li><button onClick={() => handleNavigation('faq')} className="text-gray-300 hover:text-white transition-colors text-left w-full">Preguntas Frecuentes</button></li>
+                <li><button onClick={() => handleNavigation('inicio')} className="text-gray-300 hover:text-white transition-colors text-left w-full">Centro de Ayuda</button></li>
+                <li><button onClick={() => handleNavigation('inicio')} className="text-gray-300 hover:text-white transition-colors text-left w-full">Contacto</button></li>
+                <li><button onClick={() => handleNavigation('inicio')} className="text-gray-300 hover:text-white transition-colors text-left w-full">Tutoriales</button></li>
               </ul>
             </div>
           </div>

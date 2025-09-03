@@ -1,29 +1,51 @@
-import { useState } from 'react'
-import { useAuthStore } from '@/stores/authStore'
-import { useCartStore } from '@/stores/cartStore'
-import AuthModal from '@/components/auth/AuthModal'
+import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuthStore } from '@/stores/authStore';
+import { useCartStore } from '@/stores/cartStore';
+import AuthModal from '@/components/auth/AuthModal';
 
 function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [authModalOpen, setAuthModalOpen] = useState(false)
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const navigate = useNavigate();
+  const location = useLocation();
   
-  const { user, isAuthenticated, logout } = useAuthStore()
-  const { getItemCount, toggleCart } = useCartStore()
+  const { user, isAuthenticated, logout } = useAuthStore();
+  const { getItemCount, toggleCart } = useCartStore();
   
   const handleCreateMemorial = () => {
     if (isAuthenticated) {
       // Usuario autenticado - ir a precios
-      const pricingSection = document.getElementById('precios')
+      const pricingSection = document.getElementById('precios');
       if (pricingSection) {
-        pricingSection.scrollIntoView({ behavior: 'smooth' })
+        pricingSection.scrollIntoView({ behavior: 'smooth' });
       }
     } else {
       // Usuario no autenticado - abrir modal de registro
-      setAuthMode('register')
-      setAuthModalOpen(true)
+      setAuthMode('register');
+      setAuthModalOpen(true);
     }
-  }
+  };
+
+  const handleNavigation = (section: string) => {
+    if (location.pathname === '/') {
+      // Si estamos en la página principal, hacer scroll a la sección
+      const element = document.getElementById(section);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      // Si estamos en otra página, navegar a la principal y luego a la sección
+      navigate('/');
+      setTimeout(() => {
+        const element = document.getElementById(section);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  };
 
   return (
     <header className="bg-white/95 backdrop-blur-sm shadow-sm border-b border-gray-100 sticky top-0 z-50">
@@ -42,21 +64,36 @@ function Header() {
 
           {/* Navigation Desktop */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#inicio" className="text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium">
+            <button 
+              onClick={() => handleNavigation('inicio')} 
+              className="text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
+            >
               Inicio
-            </a>
-            <a href="#caracteristicas" className="text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium">
+            </button>
+            <button 
+              onClick={() => handleNavigation('caracteristicas')} 
+              className="text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
+            >
               Características
-            </a>
-            <a href="#ejemplos" className="text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium">
+            </button>
+            <button 
+              onClick={() => handleNavigation('ejemplos')} 
+              className="text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
+            >
               Ejemplos
-            </a>
-            <a href="#precios" className="text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium">
+            </button>
+            <button 
+              onClick={() => handleNavigation('precios')} 
+              className="text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
+            >
               Precios
-            </a>
-            <a href="#faq" className="text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium">
+            </button>
+            <button 
+              onClick={() => handleNavigation('faq')} 
+              className="text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
+            >
               FAQ
-            </a>
+            </button>
           </nav>
 
           {/* CTA Buttons */}
@@ -109,7 +146,7 @@ function Header() {
             ) : (
               <>
                 <button 
-                  onClick={() => { setAuthMode('login'); setAuthModalOpen(true) }}
+                  onClick={() => { setAuthMode('login'); setAuthModalOpen(true); }}
                   className="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200"
                 >
                   Iniciar Sesión
@@ -143,27 +180,42 @@ function Header() {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-100 animate-fade-in">
             <nav className="flex flex-col space-y-2">
-              <a href="#inicio" onClick={() => setIsMenuOpen(false)} className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium">
+              <button 
+                onClick={() => { handleNavigation('inicio'); setIsMenuOpen(false); }} 
+                className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium text-left w-full"
+              >
                 Inicio
-              </a>
-              <a href="#caracteristicas" onClick={() => setIsMenuOpen(false)} className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium">
+              </button>
+              <button 
+                onClick={() => { handleNavigation('caracteristicas'); setIsMenuOpen(false); }} 
+                className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium text-left w-full"
+              >
                 Características
-              </a>
-              <a href="#ejemplos" onClick={() => setIsMenuOpen(false)} className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium">
+              </button>
+              <button 
+                onClick={() => { handleNavigation('ejemplos'); setIsMenuOpen(false); }} 
+                className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium text-left w-full"
+              >
                 Ejemplos
-              </a>
-              <a href="#precios" onClick={() => setIsMenuOpen(false)} className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium">
+              </button>
+              <button 
+                onClick={() => { handleNavigation('precios'); setIsMenuOpen(false); }} 
+                className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium text-left w-full"
+              >
                 Precios
-              </a>
-              <a href="#faq" onClick={() => setIsMenuOpen(false)} className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium">
+              </button>
+              <button 
+                onClick={() => { handleNavigation('faq'); setIsMenuOpen(false); }} 
+                className="px-3 py-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors duration-200 font-medium text-left w-full"
+              >
                 FAQ
-              </a>
+              </button>
               <div className="flex flex-col space-y-3 pt-4 mt-4 border-t border-gray-100">
                 {isAuthenticated ? (
                   <>
                     {/* Carrito */}
                     <button 
-                      onClick={() => { toggleCart(); setIsMenuOpen(false) }}
+                      onClick={() => { toggleCart(); setIsMenuOpen(false); }}
                       className="flex items-center justify-center space-x-2 p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors duration-200"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,7 +241,7 @@ function Header() {
                     
                     {/* Dashboard */}
                     <button 
-                      onClick={() => { window.location.href = '/dashboard'; setIsMenuOpen(false) }}
+                      onClick={() => { window.location.href = '/dashboard'; setIsMenuOpen(false); }}
                       className="btn btn-secondary w-full"
                     >
                       Dashboard
@@ -197,7 +249,7 @@ function Header() {
                     
                     {/* Cerrar Sesión */}
                     <button 
-                      onClick={() => { logout(); setIsMenuOpen(false) }}
+                      onClick={() => { logout(); setIsMenuOpen(false); }}
                       className="btn btn-outline w-full"
                     >
                       Cerrar Sesión
@@ -206,13 +258,13 @@ function Header() {
                 ) : (
                   <>
                     <button 
-                      onClick={() => { setAuthMode('login'); setAuthModalOpen(true); setIsMenuOpen(false) }}
+                      onClick={() => { setAuthMode('login'); setAuthModalOpen(true); setIsMenuOpen(false); }}
                       className="btn btn-secondary w-full"
                     >
                       Iniciar Sesión
                     </button>
                     <button 
-                      onClick={() => { handleCreateMemorial(); setIsMenuOpen(false) }}
+                      onClick={() => { handleCreateMemorial(); setIsMenuOpen(false); }}
                       className="btn btn-primary w-full"
                     >
                       Crear Memorial
@@ -232,7 +284,7 @@ function Header() {
         defaultMode={authMode}
       />
     </header>
-  )
+  );
 }
 
-export default Header
+export default Header;

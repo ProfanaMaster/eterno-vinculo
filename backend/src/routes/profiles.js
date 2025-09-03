@@ -32,6 +32,23 @@ const profilesRateLimit = rateLimit({
   trustProxy: true
 });
 
+// Rate limiting específico para perfiles públicos (más permisivo)
+const publicProfileRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100, // máximo 100 vistas por IP cada 15 minutos
+  message: { error: 'Demasiadas solicitudes. Intenta de nuevo en 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  trustProxy: true
+});
+
+// Función para validar slug seguro
+const validateSlug = (slug) => {
+  if (!slug || typeof slug !== 'string') return false;
+  // Solo permite letras, números y guiones, longitud 3-50 caracteres
+  return /^[a-zA-Z0-9-]+$/.test(slug) && slug.length >= 3 && slug.length <= 50;
+};
+
 // Middleware para verificar autenticación
 const requireAuth = async (req, res, next) => {
   try {
@@ -350,9 +367,13 @@ router.get('/my-profiles', profilesRateLimit, requireAuth, async (req, res) => {
  * GET /api/profiles/public/:slug
  * Vista pública - solo memoriales publicados, sin autenticación
  */
-router.get('/public/:slug', async (req, res) => {
+router.get('/public/:slug', publicProfileRateLimit, async (req, res) => {
   try {
     const { slug } = req.params;
+
+    if (!validateSlug(slug)) {
+      return res.status(400).json({ error: 'Slug inválido' });
+    }
 
     const { data: profile, error } = await supabaseAdmin
       .from('memorial_profiles')
@@ -365,6 +386,14 @@ router.get('/public/:slug', async (req, res) => {
     if (error || !profile) {
       return res.status(404).json({ error: 'Memorial no encontrado o no publicado' });
     }
+
+    // Headers de seguridad para prevenir vulnerabilidades
+    res.set({
+      'X-Frame-Options': 'DENY',
+      'X-Content-Type-Options': 'nosniff',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'X-XSS-Protection': '1; mode=block'
+    });
 
     res.json({
       success: true,

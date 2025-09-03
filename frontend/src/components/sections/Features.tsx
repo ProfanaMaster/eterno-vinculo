@@ -65,28 +65,6 @@ function Features() {
           ))}
         </div>
 
-        {/* CTA Section */}
-        <div className="text-center mt-16">
-          <div className="bg-gradient-to-r from-primary-50 to-accent-50 rounded-2xl p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              ¿Listo para comenzar?
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Crea tu primer memorial en menos de 10 minutos
-            </p>
-            <button 
-              onClick={() => {
-                const pricingSection = document.getElementById('precios')
-                if (pricingSection) {
-                  pricingSection.scrollIntoView({ behavior: 'smooth' })
-                }
-              }}
-              className="btn btn-primary btn-lg"
-            >
-              Ver Paquetes
-            </button>
-          </div>
-        </div>
       </div>
     </section>
   )

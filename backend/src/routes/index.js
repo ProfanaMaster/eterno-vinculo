@@ -12,20 +12,6 @@ router.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' })
 })
 
-// Test endpoint para verificar rutas
-router.get('/test', (req, res) => {
-  res.json({ 
-    message: 'API funcionando correctamente',
-    timestamp: new Date().toISOString(),
-    routes: [
-      'GET /api/health',
-      'GET /api/profiles/public/:slug',
-      'GET /api/profiles/my-profiles',
-      'POST /api/profiles'
-    ]
-  })
-})
-
 // Settings endpoint
 router.get('/settings', async (req, res) => {
   try {

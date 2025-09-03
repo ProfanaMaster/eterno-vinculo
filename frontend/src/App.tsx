@@ -10,6 +10,7 @@ import CreateProfile from '@/pages/CreateProfile'
 import PublicProfile from '@/pages/profile/PublicProfile'
 import PreviewProfile from '@/pages/profile/PreviewProfile'
 import MuroDeRecuerdos from '@/pages/MuroDeRecuerdos'
+import TemplatePage from '@/pages/Template'
 import { api } from '@/services/api'
 
 // Wrapper component para manejar la ruta
@@ -84,6 +85,7 @@ function App() {
           <Route path="/create-memorial" element={<CreateProfile />} />
           <Route path="/edit/:id" element={<CreateProfile />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/template" element={<TemplatePage />} />
           <Route path="/memorial/:slug" element={<PublicProfile />} />
           <Route path="/preview/:slug" element={<PreviewProfile />} />
           <Route path="/muro-de-recuerdos/:slug" element={<MuroDeRecuerdosPage />} />

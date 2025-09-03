@@ -48,12 +48,21 @@ const r2Client = new S3Client({
   }
 })
 
-// Log de configuración
-console.log('🔧 Cloudflare R2 Configuration:')
-console.log(`   📦 Bucket: ${BUCKET_NAME}`)
-console.log(`   🌐 Endpoint: ${R2_ENDPOINT}`)
-console.log(`   🔑 Access Key: ${R2_ACCESS_KEY_ID.substring(0, 8)}...`)
-console.log(`   💿 CDN URL: ${CDN_URL}`)
+// Configuración de Cloudflare R2
+const config = {
+  endpoint: R2_ENDPOINT,
+  region: 'auto',
+  credentials: {
+    accessKeyId: R2_ACCESS_KEY_ID,
+    secretAccessKey: R2_SECRET_ACCESS_KEY
+  }
+}
+
+// console.log('🔧 Cloudflare R2 Configuration:')
+// console.log(`   📦 Bucket: ${BUCKET_NAME}`)
+// console.log(`   🌐 Endpoint: ${R2_ENDPOINT}`)
+// console.log(`   🔑 Access Key: ${R2_ACCESS_KEY_ID.substring(0, 8)}...`)
+// console.log(`   💿 CDN URL: ${CDN_URL}`)
 
 // Generar URL prefirmada optimizada para diferentes tipos de archivo
 export const generatePresignedUrl = async (key, contentType, fileSize = 0) => {

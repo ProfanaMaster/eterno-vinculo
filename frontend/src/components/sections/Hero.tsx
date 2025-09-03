@@ -60,9 +60,15 @@ function Hero() {
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <button 
                 onClick={() => {
-                  const pricingSection = document.getElementById('precios')
-                  if (pricingSection) {
-                    pricingSection.scrollIntoView({ behavior: 'smooth' })
+                  const acquireButton = document.getElementById('adquirir-memorial-btn');
+                  if (acquireButton) {
+                    acquireButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  } else {
+                    // Fallback: si no encuentra el botón, hacer scroll a la sección
+                    const pricingSection = document.getElementById('precios');
+                    if (pricingSection) {
+                      pricingSection.scrollIntoView({ behavior: 'smooth' });
+                    }
                   }
                 }}
                 className="btn btn-primary btn-lg"
@@ -71,14 +77,22 @@ function Hero() {
               </button>
               <button 
                 onClick={() => {
+                  // Abrir modal de ejemplos en la sección Examples
                   const examplesSection = document.getElementById('ejemplos')
                   if (examplesSection) {
                     examplesSection.scrollIntoView({ behavior: 'smooth' })
+                    // Simular clic en el botón "Ver Ejemplos Reales" después de un breve delay
+                    setTimeout(() => {
+                      const examplesButton = examplesSection.querySelector('button[onclick*="setIsModalOpen"]')
+                      if (examplesButton) {
+                        examplesButton.click()
+                      }
+                    }, 800)
                   }
                 }}
                 className="btn btn-secondary btn-lg"
               >
-                {heroSettings.cta_secondary || '📖 Ver Ejemplos'}
+                {heroSettings.cta_secondary || 'Ver Ejemplos'}
               </button>
             </div>
 
@@ -109,8 +123,8 @@ function Hero() {
                     <div className="w-16 h-16 bg-white rounded-full mx-auto mb-3 flex items-center justify-center shadow-md">
                       <span className="text-2xl">👤</span>
                     </div>
-                    <h3 className="font-semibold text-gray-800">María Elena González</h3>
-                    <p className="text-sm text-gray-600">1945 - 2023</p>
+                    <h3 className="font-semibold text-gray-800">Memorial Digital</h3>
+                    <p className="text-sm text-gray-600">Honrando la memoria</p>
                   </div>
                 </div>
                 <div className="space-y-2">
