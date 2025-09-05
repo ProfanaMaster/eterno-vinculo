@@ -11,7 +11,11 @@ export const getDashboardStats = catchAsync(async (req: Request, res: Response) 
       supabaseAdmin.from('users').select('id', { count: 'exact', head: true }),
       supabaseAdmin.from('orders').select('id', { count: 'exact', head: true }),
       supabaseAdmin.from('memorial_profiles').select('id', { count: 'exact', head: true }),
-      supabaseAdmin.from('orders').select('total_amount').eq('status', 'completed')
+      supabaseAdmin
+        .from('orders')
+        .select('total_amount, users!inner(role)')
+        .eq('status', 'completed')
+        .not('users.role', 'in', '(admin,super_admin)')
     ])
 
     // Calcular ingresos totales
