@@ -22,6 +22,20 @@ app.use(cors({
 app.use(express.json({ limit: '70mb' }))
 app.use(express.urlencoded({ extended: true, limit: '70mb' }))
 
+// Ruta raíz para health check
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Eterno Vínculo Backend API',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/api/health',
+      upload: '/api/upload/health'
+    }
+  })
+})
+
 // Rutas principales
 app.use('/api', routes)
 

@@ -3,11 +3,15 @@ export const errorHandler = (error, req, res, next) => {
   const statusCode = error.statusCode || 500
   const message = error.message || 'Internal server error'
   
-  console.error('Error:', {
-    message,
-    statusCode,
-    url: req.originalUrl,
-    method: req.method
+  // Log más detallado para Railway
+  console.error('🚨 Error:', {
+    mensaje: message,
+    'Código de estado': statusCode,
+    URL: req.originalUrl,
+    método: req.method,
+    timestamp: new Date().toISOString(),
+    userAgent: req.get('User-Agent'),
+    ip: req.ip
   })
 
   res.status(statusCode).json({
@@ -19,7 +23,7 @@ export const errorHandler = (error, req, res, next) => {
 
 // Middleware para manejar rutas no encontradas
 export const notFoundHandler = (req, res, next) => {
-  const error = new Error(`Route ${req.originalUrl} not found`)
+  const error = new Error(`Ruta ${req.originalUrl} no encontrada`)
   error.statusCode = 404
   next(error)
 }
