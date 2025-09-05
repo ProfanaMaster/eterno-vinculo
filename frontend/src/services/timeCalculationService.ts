@@ -105,7 +105,7 @@ export const calculateMemorialTime = (birthDate: string, deathDate: string): Mem
   const today = new Date();
   const todayString = today.toISOString().split('T')[0];
   
-  // Tiempo que estuvo con nosotros
+  // Tiempo que estuvo en este mundo
   const timeWithUs = calculateTimeDifference(birthDate, deathDate);
   
   // Tiempo que ha pasado sin esa persona
@@ -121,7 +121,7 @@ export const calculateMemorialTime = (birthDate: string, deathDate: string): Mem
 
 /**
  * Obtiene mensaje personalizado para el tiempo con nosotros
- * @param timeWithUs - Tiempo que estuvo con nosotros
+ * @param timeWithUs - Tiempo que estuvo en este mundo
  * @returns Mensaje personalizado
  */
 export const getTimeWithUsMessage = (timeWithUs: TimeCalculation): string => {
@@ -135,6 +135,10 @@ export const getTimeWithUsMessage = (timeWithUs: TimeCalculation): string => {
   
   if (timeWithUs.years < 5) {
     return 'Años de alegría y aprendizaje que nunca olvidaremos';
+  }
+  
+  if (timeWithUs.years < 10) {
+    return 'Años de momentos preciosos y recuerdos inolvidables';
   }
   
   if (timeWithUs.years < 20) {
@@ -160,6 +164,10 @@ export const getTimeWithoutYouMessage = (timeWithoutYou: TimeCalculation): strin
   
   if (timeWithoutYou.years < 5) {
     return 'Años han pasado, pero tu presencia sigue siendo tan real como el primer día';
+  }
+  
+  if (timeWithoutYou.years < 10) {
+    return 'Años han pasado, pero tu amor y recuerdo siguen iluminando nuestros días';
   }
   
   if (timeWithoutYou.years < 20) {

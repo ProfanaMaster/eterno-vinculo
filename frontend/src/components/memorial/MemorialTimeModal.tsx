@@ -50,7 +50,7 @@ export const MemorialTimeModal: React.FC<MemorialTimeModalProps> = ({
                   <h2 className="text-2xl font-bold text-gray-800">
                     Datos no menos relevantes
                   </h2>
-                  <p className="text-gray-600">Tiempo que compartimos y tiempo sin ti</p>
+                  <p className="text-gray-600">Tiempo que compartimos, y el tiempo sin ti</p>
                 </div>
               </div>
               <button
@@ -66,14 +66,14 @@ export const MemorialTimeModal: React.FC<MemorialTimeModalProps> = ({
 
           {/* Content */}
           <div className="p-6 space-y-8">
-            {/* Tiempo que estuvo con nosotros */}
+            {/* Tiempo que estuvo en este mundo */}
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-lg">💚</span>
                 </div>
                 <h3 className="text-xl font-semibold text-green-800">
-                  Tiempo que estuvo con nosotros
+                  Tiempo que estuvo en este mundo
                 </h3>
               </div>
               
