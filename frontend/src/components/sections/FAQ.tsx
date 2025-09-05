@@ -82,7 +82,10 @@ function FAQ() {
               Nuestro equipo de soporte está aquí para ayudarte con cualquier pregunta
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="btn btn-primary">
+              <button 
+                className="btn btn-primary"
+                onClick={() => window.open('mailto:contacto@eternovinculo.com?subject=Consulta de Soporte', '_blank')}
+              >
                 Contactar Soporte
               </button>
             </div>
