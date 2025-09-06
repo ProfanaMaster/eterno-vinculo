@@ -81,11 +81,12 @@ const TemplateSelector = ({ selectedTemplate, onTemplateSelect }: TemplateSelect
             >
               <div className="aspect-[3/4] rounded-lg overflow-hidden">
                 <div
-                  className={`w-full h-full bg-center ${
-                    // Plantillas 5-8 usan bg-contain para evitar estiramiento
-                    ['template-5', 'template-6', 'template-7', 'template-8'].includes(template.id) 
-                      ? 'bg-contain' 
-                      : 'bg-cover'
+                  className={`w-full h-full ${
+                    ['template-7', 'template-8'].includes(template.id)
+                      ? 'bg-repeat-y bg-center bg-contain' // Templates 7-8: mantienen proporciones naturales y se repiten verticalmente
+                      : ['template-5', 'template-6'].includes(template.id)
+                        ? 'bg-contain bg-center bg-no-repeat' // Plantillas 5-6 usan bg-contain para evitar estiramiento
+                        : 'bg-cover bg-center bg-no-repeat' // Otras plantillas usan bg-cover
                   }`}
                   style={{ backgroundImage: `url(${backgroundImage})` }}
                 >
