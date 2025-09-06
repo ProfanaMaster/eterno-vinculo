@@ -304,10 +304,9 @@ export default function PublicProfile() {
           <div>
             <button
               onClick={() => setTimeModalOpen(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
+              className="px-8 py-4 bg-blue-600 text-white font-semibold text-lg rounded-lg shadow-xl hover:bg-blue-700 hover:shadow-2xl active:bg-blue-800 active:shadow-lg transition-all duration-150 cursor-pointer"
             >
-              <span className="text-lg">⏰</span>
-              <span className="font-medium">Datos no menos relevantes</span>
+              Ver Datos no Menos Importantes
             </button>
           </div>
         </div>

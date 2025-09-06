@@ -44,11 +44,13 @@ export const MemorialTimeModal: React.FC<MemorialTimeModalProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xl">⏰</span>
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-800">
-                    Datos no menos relevantes
+                    Datos no Menos Importantes
                   </h2>
                   <p className="text-gray-600">Tiempo que compartimos, y el tiempo sin ti</p>
                 </div>
