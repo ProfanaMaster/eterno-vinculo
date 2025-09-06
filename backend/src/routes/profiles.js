@@ -42,6 +42,16 @@ const publicProfileRateLimit = rateLimit({
   trustProxy: true
 });
 
+// Rate limiting más estricto para incremento de visitas
+const visitIncrementRateLimit = rateLimit({
+  windowMs: 60 * 1000, // 1 minuto
+  max: process.env.NODE_ENV === 'development' ? 20 : 5, // Más permisivo en desarrollo
+  message: { error: 'Demasiados incrementos de visita. Intenta de nuevo en un minuto.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  trustProxy: true
+});
+
 // Función para validar slug seguro
 const validateSlug = (slug) => {
   if (!slug || typeof slug !== 'string') return false;
@@ -402,6 +412,78 @@ router.get('/public/:slug', publicProfileRateLimit, async (req, res) => {
 
   } catch (error) {
     console.error('Error in GET /profiles/public/:slug:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
+ * POST /api/profiles/public/:slug/visit
+ * Incrementar contador de visitas (sin autenticación)
+ */
+router.post('/public/:slug/visit', visitIncrementRateLimit, async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    if (!validateSlug(slug)) {
+      return res.status(400).json({ error: 'Slug inválido' });
+    }
+
+    // Obtener información del request para logging
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    const userAgent = req.get('User-Agent');
+    const referrer = req.get('Referer');
+
+    // Incrementar contador de visitas usando función SQL segura
+    const { data: visitCount, error: incrementError } = await supabaseAdmin
+      .rpc('increment_visit_with_log', { 
+        p_memorial_slug: slug,
+        p_ip_address: ipAddress,
+        p_user_agent: userAgent,
+        p_referrer: referrer
+      });
+
+    if (incrementError) {
+      // Fallback: usar update directo si la función no existe
+      const { data: profile, error: fetchError } = await supabaseAdmin
+        .from('memorial_profiles')
+        .select('visit_count')
+        .eq('slug', slug)
+        .eq('is_published', true)
+        .is('deleted_at', null)
+        .single();
+
+      if (fetchError || !profile) {
+        return res.status(404).json({ error: 'Memorial no encontrado' });
+      }
+
+      const newCount = (profile.visit_count || 0) + 1;
+      
+      const { data: updatedProfile, error: updateError } = await supabaseAdmin
+        .from('memorial_profiles')
+        .update({ visit_count: newCount })
+        .eq('slug', slug)
+        .eq('is_published', true)
+        .is('deleted_at', null)
+        .select('visit_count')
+        .single();
+
+      if (updateError || !updatedProfile) {
+        return res.status(404).json({ error: 'Memorial no encontrado' });
+      }
+
+      return res.json({
+        success: true,
+        visit_count: updatedProfile.visit_count
+      });
+    }
+
+    res.json({
+      success: true,
+      visit_count: visitCount
+    });
+
+  } catch (error) {
+    console.error('Error in POST /profiles/public/:slug/visit:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

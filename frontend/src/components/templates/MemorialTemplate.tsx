@@ -1,16 +1,19 @@
 import { ResponsiveBackground } from '@/components/ui'
 import { getProxiedImageUrl } from '@/utils/imageUtils'
 import { sanitizeText } from '@/utils/sanitize'
+import VisitCounter from '@/components/VisitCounter'
 
 interface MemorialTemplateProps {
   templateId: string
   profileData: {
+    slug: string
     profile_name: string
     description: string
     birth_date: string
     death_date: string
     profile_image_url?: string
     gallery_images?: string[]
+    visit_count?: number
   }
 }
 
@@ -18,7 +21,7 @@ const MemorialTemplate = ({ templateId, profileData }: MemorialTemplateProps) =>
   return (
     <ResponsiveBackground 
       templateId={templateId}
-      className="min-h-screen"
+      className="min-h-screen relative"
     >
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
@@ -70,6 +73,15 @@ const MemorialTemplate = ({ templateId, profileData }: MemorialTemplateProps) =>
             </div>
           )}
         </div>
+      </div>
+
+      {/* Contador de visitas - esquina inferior derecha */}
+      <div className="absolute bottom-4 right-4 z-10">
+        <VisitCounter 
+          slug={profileData.slug} 
+          initialCount={profileData.visit_count || 0}
+          className="bg-white/80 backdrop-blur-sm px-3 py-2 rounded-full shadow-lg border border-gray-200/50"
+        />
       </div>
     </ResponsiveBackground>
   )

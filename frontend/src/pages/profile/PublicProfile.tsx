@@ -11,6 +11,7 @@ import { getProxiedImageUrl } from '@/utils/imageUtils'
 import { CelebrationEffect } from '@/components/CelebrationEffect'
 import { useBirthdayCelebration } from '@/hooks/useBirthdayCelebration'
 import { MemorialTimeModal } from '@/components/memorial/MemorialTimeModal'
+import VisitCounter from '@/components/VisitCounter'
 
 interface Profile {
   id: string
@@ -25,6 +26,7 @@ interface Profile {
   memorial_video_url?: string
   template_id?: string
   favorite_music?: string
+  visit_count?: number
 }
 
 export default function PublicProfile() {
@@ -117,7 +119,7 @@ export default function PublicProfile() {
   return (
     <ResponsiveBackground 
       templateId={profile?.template_id || 'general-1'}
-      className="min-h-screen"
+      className="min-h-screen relative"
     >
       {/* Template Background */}
       <TemplateBackground templateId={profile.template_id || 'template-1'} />
@@ -340,6 +342,15 @@ export default function PublicProfile() {
         birthDate={profile.birth_date}
         deathDate={profile.death_date}
       />
+
+      {/* Contador de visitas - esquina inferior derecha */}
+      <div className="absolute bottom-4 right-4 z-10">
+        <VisitCounter 
+          slug={profile.slug} 
+          initialCount={profile.visit_count || 0}
+          className="bg-white/80 backdrop-blur-sm px-3 py-2 rounded-full shadow-lg border border-gray-200/50"
+        />
+      </div>
     </ResponsiveBackground>
   )
 }
