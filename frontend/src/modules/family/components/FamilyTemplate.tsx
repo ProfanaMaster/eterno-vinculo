@@ -35,8 +35,16 @@ export default function FamilyTemplate({ templateId, profileData }: FamilyTempla
   const getGlowClasses = (memberIndex: number) => {
     const isGlowing = glowingIndex === memberIndex;
     return isGlowing 
-      ? 'bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-white/50 shadow-white/50 shadow-2xl transition-all duration-1000 ease-in-out'
+      ? 'bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-white/50 shadow-white/80 shadow-2xl transition-all duration-1000 ease-in-out ring-2 ring-white/30 ring-opacity-50'
       : 'bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-white/50 transition-all duration-1000 ease-in-out';
+  };
+
+  // Función para obtener las clases de resplandor de las fotos
+  const getPhotoGlowClasses = (memberIndex: number) => {
+    const isGlowing = glowingIndex === memberIndex;
+    return isGlowing 
+      ? 'w-40 h-40 rounded-full object-cover border-4 border-white shadow-2xl mx-auto shadow-white/80 shadow-2xl transition-all duration-1000 ease-in-out ring-4 ring-white/30 ring-opacity-50'
+      : 'w-40 h-40 rounded-full object-cover border-4 border-white shadow-2xl mx-auto transition-all duration-1000 ease-in-out';
   };
   
 
@@ -161,7 +169,7 @@ export default function FamilyTemplate({ templateId, profileData }: FamilyTempla
                       <img
                         src={getProxiedImageUrl(member.profile_image_url)}
                         alt={member.name}
-                        className="w-40 h-40 rounded-full object-cover border-4 border-white shadow-2xl mx-auto"
+                        className={getPhotoGlowClasses(index)}
                       />
                       <div className="mt-4">
                         <div className={getGlowClasses(index)}>
@@ -183,7 +191,7 @@ export default function FamilyTemplate({ templateId, profileData }: FamilyTempla
                         <img
                           src={getProxiedImageUrl(member.profile_image_url)}
                           alt={member.name}
-                          className="w-40 h-40 rounded-full object-cover border-4 border-white shadow-2xl mx-auto"
+                          className={getPhotoGlowClasses(index + 2)}
                         />
                         <div className="mt-4">
                           <div className={getGlowClasses(index + 2)}>
@@ -206,7 +214,7 @@ export default function FamilyTemplate({ templateId, profileData }: FamilyTempla
                         <img
                           src={getProxiedImageUrl(member.profile_image_url)}
                           alt={member.name}
-                          className="w-40 h-40 rounded-full object-cover border-4 border-white shadow-2xl mx-auto"
+                          className={getPhotoGlowClasses(index + 4)}
                         />
                         <div className="mt-4">
                           <div className={getGlowClasses(index + 4)}>
@@ -255,21 +263,25 @@ export default function FamilyTemplate({ templateId, profileData }: FamilyTempla
                         <h3 className="text-xl font-serif text-gray-800 font-semibold mb-3 tracking-wide">
                           {member.name}
                         </h3>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-center gap-3">
-                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
-                            <span className="text-gray-600 font-medium">Nacimiento</span>
-                            <span className="text-gray-800 font-semibold">{formatDate(member.birth_date)}</span>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between px-2">
+                            <div className="flex items-center gap-2">
+                              <svg className="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                              </svg>
+                              <span className="text-gray-600 font-medium text-sm">Nacimiento</span>
+                            </div>
+                            <span className="text-gray-800 font-semibold text-sm">{formatDate(member.birth_date)}</span>
                           </div>
                           <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-                          <div className="flex items-center justify-center gap-3">
-                            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            <span className="text-gray-600 font-medium">Fallecimiento</span>
-                            <span className="text-gray-800 font-semibold">{formatDate(member.death_date)}</span>
+                          <div className="flex items-center justify-between px-2">
+                            <div className="flex items-center gap-2">
+                              <svg className="w-5 h-5 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                              <span className="text-gray-600 font-medium text-sm">Fallecimiento</span>
+                            </div>
+                            <span className="text-gray-800 font-semibold text-sm">{formatDate(member.death_date)}</span>
                           </div>
                         </div>
                       </div>
