@@ -9,6 +9,7 @@
     "dev": "nodemon src/index.js",
     "migrate": "tsx scripts/migrate.js",
     "seed": "node scripts/seed.js",
+    "fix-family-slugs": "node scripts/fix-family-slugs.js",
     "build": "echo 'No build step required for Node.js'",
     "postinstall": "echo 'Dependencies installed successfully'"
   },

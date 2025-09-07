@@ -79,7 +79,17 @@ function CartSidebar() {
                   Explora nuestros paquetes y encuentra el memorial perfecto
                 </p>
                 <button
-                  onClick={toggleCart}
+                  onClick={() => {
+                    toggleCart();
+                    // Navegar a la página principal y luego a precios
+                    window.location.href = '/';
+                    setTimeout(() => {
+                      const pricingSection = document.getElementById('precios');
+                      if (pricingSection) {
+                        pricingSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                    }, 100);
+                  }}
                   className="btn btn-primary px-6 py-3"
                 >
                   Ver Paquetes

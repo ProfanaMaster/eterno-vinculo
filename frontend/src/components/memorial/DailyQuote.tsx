@@ -123,46 +123,57 @@ function DailyQuote({
   }
 
   return (
-    <div className={`rounded-lg p-6 shadow-sm ${styles.container} ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
-          <div className={`text-xl mr-3 ${styles.icon}`}>💫</div>
-          <h3 className="text-sm font-medium opacity-75">
-            Reflexión del día
-          </h3>
+    <div className={`${className}`}>
+      {/* Contenido con estilo elegante */}
+      <div className="bg-gradient-to-r from-gray-50/80 to-white/80 backdrop-blur-sm rounded-xl p-6 border border-gray-100/50 shadow-sm">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400/30 via-amber-300/30 to-yellow-400/30 rounded-t-xl"></div>
+        
+        {/* Header dentro del cuadro */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center">
+            <div className="text-xl mr-3">💫</div>
+            <h3 className="text-sm font-medium bg-gradient-to-r from-yellow-600 via-amber-500 to-yellow-600 bg-clip-text text-transparent tracking-wide">
+              Reflexión del día
+            </h3>
+          </div>
+          
+          {showRefresh && (
+            <button
+              onClick={loadRandomQuote}
+              className="text-xs text-amber-600/70 hover:text-amber-600 transition-colors duration-200 font-medium"
+              title="Nueva frase"
+            >
+              🔄 Cambiar
+            </button>
+          )}
+        </div>
+
+        {/* Fecha */}
+        <div className="mb-4 text-xs text-gray-500 font-medium">
+          {new Date().toLocaleDateString('es-ES', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}
         </div>
         
-        {showRefresh && (
-          <button
-            onClick={loadRandomQuote}
-            className={`text-xs ${styles.refresh} hover:underline transition-colors duration-200`}
-            title="Nueva frase"
-          >
-            🔄 Cambiar
-          </button>
-        )}
-      </div>
+        {/* Quote */}
+        <blockquote className="mb-4">
+          <div className="text-gray-800 text-base leading-relaxed font-medium mb-3 tracking-wide">
+            "{quote.text}"
+          </div>
+          <footer className="text-sm text-gray-600 font-medium">
+            — {quote.author}
+          </footer>
+        </blockquote>
 
-      {/* Quote */}
-      <blockquote className="mb-4">
-        <div className={`text-lg leading-relaxed ${styles.quote} font-medium mb-3`}>
-          "{quote.text}"
+        {/* Footer */}
+        <div className="mt-4 flex justify-end">
+          <div className="flex items-center gap-2 text-amber-600/70">
+            <span className="text-xs font-medium tracking-wider">CADA DÍA UNA NUEVA REFLEXIÓN</span>
+          </div>
         </div>
-        <footer className={`text-sm ${styles.author} font-medium`}>
-          — {quote.author}
-        </footer>
-      </blockquote>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between text-xs opacity-60">
-        <span>Cada día trae una nueva reflexión</span>
-        <span>🕰️ {new Date().toLocaleDateString('es-ES', { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        })}</span>
       </div>
     </div>
   )

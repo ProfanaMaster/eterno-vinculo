@@ -32,6 +32,10 @@ const TemplateBackground = ({ templateId, className = '' }: TemplateBackgroundPr
           loop
           playsInline
           className="w-full h-full object-cover"
+          onError={(e) => {
+            console.warn('Error cargando video template:', templateVideo, e);
+            e.currentTarget.style.display = 'none';
+          }}
         >
           <source src={templateVideo} type="video/mp4" />
         </video>

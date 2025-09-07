@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { SettingsProvider } from '@/contexts/SettingsContext'
 import Home from '@/pages/Home'
 import VerifyEmail from '@/pages/VerifyEmail'
+import ResetPassword from '@/pages/ResetPassword'
 import AdminDashboard from '@/pages/AdminDashboard'
 import UserDashboard from '@/pages/UserDashboard'
 import CreateProfile from '@/pages/CreateProfile'
@@ -26,19 +27,29 @@ function MuroDeRecuerdosPage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        // Detectar tipo de perfil basándose en el slug
-        const isFamilySlug = slug?.startsWith('familia-')
+        // Detectar tipo de perfil basándose en la ruta actual y el slug
+        const currentPath = window.location.pathname
+        const isFamilyRoute = currentPath.startsWith('/familia/')
+        const isFamilySlug = slug && slug.startsWith('familia-')
         
-        if (isFamilySlug) {
-          // Es un perfil familiar
-          const response = await api.get(`/family-profiles/public/${slug}`)
-          setProfile(response.data.data)
-          setIsFamilyProfile(true)
+        if (isFamilyRoute || isFamilySlug) {
+          // Es una ruta familiar o un slug familiar, intentar solo perfil familiar
+          try {
+            const response = await api.get(`/family-profiles/public/${slug}`)
+            setProfile(response.data.data)
+            setIsFamilyProfile(true)
+          } catch (familyError) {
+            throw familyError
+          }
         } else {
-          // Es un perfil individual
-          const response = await api.get(`/profiles/public/${slug}`)
-          setProfile(response.data.data)
-          setIsFamilyProfile(false)
+          // Es una ruta individual, intentar solo perfil individual
+          try {
+            const response = await api.get(`/profiles/public/${slug}`)
+            setProfile(response.data.data)
+            setIsFamilyProfile(false)
+          } catch (individualError) {
+            throw individualError
+          }
         }
       } catch (error) {
         // Error silencioso para producción
@@ -143,6 +154,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/dashboard" element={<UserDashboard />} />
           <Route path="/select-memorial-type" element={<SelectMemorialType />} />
           <Route path="/create" element={<CreateProfile />} />

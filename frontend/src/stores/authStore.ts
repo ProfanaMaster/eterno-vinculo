@@ -23,6 +23,7 @@ interface AuthState {
   // Acciones
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, name: string) => Promise<void>
+  resetPassword: (email: string) => Promise<void>
   logout: () => Promise<void>
   checkAuth: () => Promise<void>
   clearError: () => void
@@ -228,6 +229,56 @@ export const useAuthStore = create<AuthState>()(
               loading: false 
             })
             throw error // Re-lanzar para que AuthModal pueda manejarlo
+          }
+        },
+
+        // Restablecer contraseña
+        resetPassword: async (email: string) => {
+          set({ loading: true, error: null })
+          
+          try {
+            console.log('🔍 Intentando restablecer contraseña para:', email)
+            
+            // Enviar el email de restablecimiento directamente
+            // Por seguridad, no verificamos si el email existe
+            const redirectUrl = `${window.location.origin}/reset-password`
+            console.log('🔗 URL de redirección:', redirectUrl)
+            
+            const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+              redirectTo: redirectUrl
+            })
+
+            console.log('📧 Respuesta de Supabase:', { data, error })
+
+            if (error) {
+              console.error('❌ Error de Supabase Auth:', error)
+              
+              if (error.message.includes('Invalid email')) {
+                throw new Error('Email inválido')
+              } else if (error.message.includes('Too many requests')) {
+                throw new Error('Demasiados intentos. Intenta nuevamente en unos minutos')
+              } else if (error.message.includes('Email rate limit exceeded')) {
+                throw new Error('Demasiados emails enviados. Intenta nuevamente en unos minutos')
+              } else if (error.message.includes('Email not confirmed')) {
+                throw new Error('Debes confirmar tu email antes de restablecer la contraseña')
+              } else if (error.message.includes('For security purposes')) {
+                throw new Error('Por seguridad, no se puede enviar el email. Contacta al administrador.')
+              } else {
+                throw new Error(`Error: ${error.message}`)
+              }
+            }
+
+            console.log('✅ Email de restablecimiento enviado exitosamente')
+            console.log('📧 Datos de respuesta:', data)
+            set({ loading: false, error: null })
+            
+          } catch (error: any) {
+            console.error('❌ Error en resetPassword:', error)
+            set({ 
+              error: error.message || 'Error al enviar el enlace de restablecimiento',
+              loading: false 
+            })
+            throw error
           }
         },
 

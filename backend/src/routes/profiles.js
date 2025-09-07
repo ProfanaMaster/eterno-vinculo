@@ -25,7 +25,7 @@ const CACHE_TTL = 30000; // 30 segundos
 // Rate limiting para perfiles
 const profilesRateLimit = rateLimit({
   windowMs: 60 * 1000, // 1 minuto
-  max: 10, // máximo 10 requests por minuto
+  max: process.env.NODE_ENV === 'development' ? 60 : 10, // Más permisivo en desarrollo
   message: { error: 'Demasiadas solicitudes, intenta de nuevo en un minuto' },
   standardHeaders: true,
   legacyHeaders: false,

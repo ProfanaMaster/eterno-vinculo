@@ -14,6 +14,16 @@ const visitRateLimit = rateLimit({
   legacyHeaders: false,
 });
 
+// Rate limiting para perfiles familiares
+const familyProfilesRateLimit = rateLimit({
+  windowMs: 60 * 1000, // 1 minuto
+  max: process.env.NODE_ENV === 'development' ? 60 : 10, // Más permisivo en desarrollo
+  message: { error: 'Demasiadas solicitudes, intenta de nuevo en un minuto' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  trustProxy: true
+});
+
 // Rate limiting para creación de perfiles
 const createProfileRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
@@ -186,7 +196,7 @@ router.post('/', requireAuth, createProfileRateLimit, async (req, res) => {
       .replace(/[^\w\s-]/g, '')
       .replace(/\s+/g, '-')
       .substring(0, 50);
-    const slug = `familia-${baseSlug}-${Date.now()}`;
+    const slug = `${baseSlug}-${Date.now()}`;
 
     // Crear el perfil familiar
     const familyProfileData = {
@@ -377,7 +387,7 @@ router.post('/:id/visit', visitRateLimit, async (req, res) => {
  * GET /api/family-profiles/my-profiles
  * Obtener perfiles familiares del usuario autenticado
  */
-router.get('/my-profiles', requireAuth, async (req, res) => {
+router.get('/my-profiles', familyProfilesRateLimit, requireAuth, async (req, res) => {
   try {
     const user_id = req.user.id;
 

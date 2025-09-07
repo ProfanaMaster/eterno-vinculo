@@ -13,6 +13,7 @@ import { useBirthdayCelebration } from '@/hooks/useBirthdayCelebration'
 import { MemorialTimeModal } from '@/components/memorial/MemorialTimeModal'
 import VisitCounter from '@/components/VisitCounter'
 import { MemorialProfile } from '@/types/family'
+import MemorialFooter from '@/components/ui/MemorialFooter'
 
 export default function PublicProfile() {
   const { slug } = useParams<{ slug: string }>()
@@ -205,10 +206,39 @@ export default function PublicProfile() {
             <div className="absolute top-0 right-0 w-20 h-20 opacity-5">
               <div className="text-6xl transform rotate-12">{templateStyles.icons[0]}</div>
             </div>
-            <h2 className={`text-xl font-semibold ${templateStyles.accent} mb-4 flex items-center gap-2`}>
-              <span>🌹</span> En memoria
-            </h2>
-            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap relative z-10">{sanitizeText(profile.description)}</p>
+            
+            {/* Título con efecto cristal */}
+            <div className="relative mb-4">
+              <div className="absolute inset-0 rounded-lg" style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.1) 100%)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+              }}></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/10 via-amber-200/10 to-yellow-300/10 rounded-lg"></div>
+              <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/30 to-transparent rounded-t-lg"></div>
+              <h2 className="relative text-xl font-semibold text-center tracking-wide py-3 px-4">
+                <span className="inline-block bg-gradient-to-r from-yellow-600 via-amber-500 to-yellow-600 bg-clip-text text-transparent flex items-center justify-center gap-2">
+                  <span>🌹</span> En memoria
+                </span>
+                <div className="mt-1 w-16 h-0.5 bg-gradient-to-r from-yellow-400 to-amber-400 mx-auto rounded-full shadow-lg"></div>
+              </h2>
+            </div>
+            
+            {/* Contenido con estilo elegante */}
+            <div className="relative z-10 mt-6">
+              <div className="bg-gradient-to-r from-gray-50/80 to-white/80 backdrop-blur-sm rounded-xl p-6 border border-gray-100/50 shadow-sm">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400/30 via-amber-300/30 to-yellow-400/30 rounded-t-xl"></div>
+                <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-base font-medium tracking-wide">
+                  {sanitizeText(profile.description)}
+                </p>
+                <div className="mt-4 flex justify-end">
+                  <div className="flex items-center gap-2 text-amber-600/70">
+                    <span className="text-xs font-medium tracking-wider">EN MEMORIA ETERNA</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -280,20 +310,27 @@ export default function PublicProfile() {
 
         {/* Footer decorativo */}
         <div className="text-center py-8 space-y-4">
-          <div className={`inline-flex items-center gap-2 px-4 py-2 ${templateStyles.card} rounded-full`}>
-            <span>✨</span>
-            <span className="text-sm text-gray-600">En memoria eterna</span>
-            <span>✨</span>
-          </div>
-          
           {/* Botón para datos de tiempo */}
           <div>
-            <button
-              onClick={() => setTimeModalOpen(true)}
-              className="px-8 py-4 bg-blue-600 text-white font-semibold text-lg rounded-lg shadow-xl hover:bg-blue-700 hover:shadow-2xl active:bg-blue-800 active:shadow-lg transition-all duration-150 cursor-pointer"
-            >
-              Ver Datos no Menos Importantes
-            </button>
+            <div className="relative inline-block">
+              <div className="absolute inset-0 bg-gradient-to-r from-yellow-600/30 via-yellow-500/30 to-yellow-600/30 rounded-xl blur-sm"></div>
+              <button
+                onClick={() => setTimeModalOpen(true)}
+                className="relative px-8 py-4 text-white font-semibold text-lg rounded-xl shadow-2xl hover:shadow-3xl active:shadow-lg transition-all duration-300 cursor-pointer border border-yellow-500/40"
+                style={{
+                  background: 'linear-gradient(135deg, #D4AF37 0%, #FFD700 50%, #B8860B 100%)',
+                  boxShadow: '0 25px 50px -12px rgba(212, 175, 55, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #B8860B 0%, #D4AF37 50%, #8B7355 100%)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #D4AF37 0%, #FFD700 50%, #B8860B 100%)'
+                }}
+              >
+                Ver Datos no Menos Importantes
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -336,6 +373,9 @@ export default function PublicProfile() {
           className="bg-white/80 backdrop-blur-sm px-3 py-2 rounded-full shadow-lg border border-gray-200/50"
         />
       </div>
+
+      {/* Footer del sitio */}
+      <MemorialFooter />
     </ResponsiveBackground>
   )
 }

@@ -373,7 +373,9 @@ router.delete('/:id', requireAuth, async (req, res) => {
         id, 
         photo_url,
         memorial_profile_id,
-        memorial_profiles!inner(user_id)
+        family_profile_id,
+        memorial_profiles(user_id),
+        family_profiles(user_id)
       `)
       .eq('id', id)
       .single();
@@ -382,8 +384,16 @@ router.delete('/:id', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Recuerdo no encontrado' });
     }
 
-    // Verificar que el usuario es propietario del memorial
-    if (memory.memorial_profiles.user_id !== userId) {
+    // Verificar que el usuario es propietario del memorial (individual o familiar)
+    let isOwner = false;
+    
+    if (memory.memorial_profile_id && memory.memorial_profiles) {
+      isOwner = memory.memorial_profiles.user_id === userId;
+    } else if (memory.family_profile_id && memory.family_profiles) {
+      isOwner = memory.family_profiles.user_id === userId;
+    }
+
+    if (!isOwner) {
       return res.status(403).json({ error: 'No tienes permisos para eliminar este recuerdo' });
     }
 

@@ -11,6 +11,28 @@ export const getSupabaseUrl = (bucket: string, path: string): string => {
   return data.publicUrl;
 };
 
+export const checkFileExists = async (bucket: string, path: string): Promise<boolean> => {
+  try {
+    // Intentar obtener el archivo directamente
+    const { data, error } = await supabase.storage.from(bucket).download(path);
+    
+    if (error) {
+      // Si hay error, verificar si es porque el archivo no existe
+      if (error.message?.includes('Object not found') || error.message?.includes('not found')) {
+        return false;
+      }
+      console.warn('Error verificando archivo:', path, error);
+      return false;
+    }
+    
+    // Si no hay error y hay data, el archivo existe
+    return data !== null;
+  } catch (error) {
+    console.warn('Error verificando archivo:', path, error);
+    return false;
+  }
+};
+
 export const getTemplateAssets = (templateId: string): TemplateAssets => {
   const bucket = 'templates';
   
@@ -44,8 +66,8 @@ const getTemplateVideo = (templateId: string): string => {
     'template-6': 'fondo-perros.mp4',
     'template-7': 'fondo-america.mp4',
     'template-8': 'fondo-cali.mp4',
-    'family-1': 'fondo-familiar.mp4', // Archivo correcto que SÍ existe
-    'family-2': 'fondo-familiar-2.mp4'
+    'family-1': 'fondo-familiar.mp4', // Video que SÍ existe
+    'family-2': 'fondo-familiar-2.mp4'  // Video que SÍ existe
   };
   
   return videoMap[templateId] || 'fondo-olas.mp4';
@@ -85,10 +107,10 @@ export const SUPABASE_TEMPLATE_URLS = {
       return getSupabaseUrl('templates', 'fondo-cali.mp4');
     },
     get 'family-1'() {
-      return getSupabaseUrl('templates', 'fondo-familiar.mp4');
+      return getSupabaseUrl('templates', 'fondo-familiar.mp4'); // Video que SÍ existe
     },
     get 'family-2'() {
-      return getSupabaseUrl('templates', 'fondo-familiar-2.mp4');
+      return getSupabaseUrl('templates', 'fondo-familiar-2.mp4'); // Video que SÍ existe
     }
   }
 };

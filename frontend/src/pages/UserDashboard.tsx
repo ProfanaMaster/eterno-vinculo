@@ -278,19 +278,6 @@ function UserDashboard() {
               >
                 Inicio
               </button>
-              <button
-                onClick={async () => {
-                  try {
-                    const response = await api.get('/profiles/debug-quotas')
-                    alert('Ver consola para detalles completos de debug')
-                  } catch (error) {
-                    console.error('Error debug:', error)
-                  }
-                }}
-                className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
-              >
-                🔍 Debug
-              </button>
             </div>
           </div>
 
@@ -381,9 +368,9 @@ function UserDashboard() {
                 onClick={() => {
                   navigate('/');
                   setTimeout(() => {
-                    const acquireButton = document.getElementById('adquirir-memorial-btn');
-                    if (acquireButton) {
-                      acquireButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const pricingSection = document.getElementById('precios');
+                    if (pricingSection) {
+                      pricingSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                   }, 100);
                 }}
@@ -503,9 +490,9 @@ function UserDashboard() {
                   onClick={() => {
                     navigate('/');
                     setTimeout(() => {
-                      const acquireButton = document.getElementById('adquirir-memorial-btn');
-                      if (acquireButton) {
-                        acquireButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      const pricingSection = document.getElementById('precios');
+                      if (pricingSection) {
+                        pricingSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
                       }
                     }, 100);
                   }}

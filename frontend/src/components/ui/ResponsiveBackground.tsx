@@ -26,6 +26,11 @@ const ResponsiveBackground = ({ templateId, children, className = '' }: Responsi
           loop
           playsInline
           className="absolute inset-0 w-full h-full object-cover"
+          onError={(e) => {
+            console.warn('Error cargando video:', videoUrl, e);
+            // Ocultar el video si hay error
+            e.currentTarget.style.display = 'none';
+          }}
         >
           <source src={videoUrl} type="video/mp4" />
         </video>

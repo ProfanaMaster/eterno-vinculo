@@ -114,6 +114,7 @@ const MemoriesManager = ({ profileId, isFamilyProfile = false }: MemoriesManager
     setConfirmModal({ isOpen: true, memoryId, photoUrl })
   }
 
+
   const confirmDelete = async () => {
     if (!confirmModal.memoryId) return
 
@@ -132,7 +133,9 @@ const MemoriesManager = ({ profileId, isFamilyProfile = false }: MemoriesManager
         throw new Error(errorData.error || 'Error al eliminar el recuerdo')
       }
 
+      // Eliminar de la lista local
       setMemories(prev => prev.filter(memory => memory.id !== confirmModal.memoryId))
+      setConfirmModal({ isOpen: false, memoryId: null, photoUrl: '' })
     } catch (error) {
       console.error('Error deleting memory:', error)
       alert('Error al eliminar el recuerdo')

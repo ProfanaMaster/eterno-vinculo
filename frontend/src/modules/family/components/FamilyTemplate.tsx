@@ -7,6 +7,7 @@ import { useResponsiveBackground } from '@/hooks/useResponsiveBackground'
 import { useState, useEffect } from 'react'
 import MemoryWall from '@/components/MemoryWall'
 import FamilyVisitCounter from '@/components/FamilyVisitCounter'
+import MemorialFooter from '@/components/ui/MemorialFooter'
 
 interface FamilyTemplateProps {
   templateId: string;
@@ -43,8 +44,8 @@ export default function FamilyTemplate({ templateId, profileData }: FamilyTempla
   const getPhotoGlowClasses = (memberIndex: number) => {
     const isGlowing = glowingIndex === memberIndex;
     return isGlowing 
-      ? 'w-40 h-40 rounded-full object-cover border-4 border-white shadow-2xl mx-auto shadow-white/80 shadow-2xl transition-all duration-1000 ease-in-out ring-4 ring-white/30 ring-opacity-50'
-      : 'w-40 h-40 rounded-full object-cover border-4 border-white shadow-2xl mx-auto transition-all duration-1000 ease-in-out';
+      ? 'w-40 h-40 rounded-full object-cover border-4 shadow-2xl mx-auto transition-all duration-1000 ease-in-out ring-4 ring-opacity-50'
+      : 'w-40 h-40 rounded-full object-cover border-4 shadow-2xl mx-auto transition-all duration-1000 ease-in-out';
   };
   
 
@@ -117,7 +118,15 @@ export default function FamilyTemplate({ templateId, profileData }: FamilyTempla
           muted
           loop
           playsInline
+          preload="metadata"
           className="absolute inset-0 w-full h-full object-cover rounded-b-3xl"
+          style={{
+            imageRendering: 'high-quality'
+          }}
+          onError={(e) => {
+            console.warn('Error cargando video familiar:', TEMPLATE_VIDEOS[templateId], e);
+            e.currentTarget.style.display = 'none';
+          }}
         >
           <source src={TEMPLATE_VIDEOS[templateId]} type="video/mp4" />
         </video>
@@ -170,6 +179,13 @@ export default function FamilyTemplate({ templateId, profileData }: FamilyTempla
                         src={getProxiedImageUrl(member.profile_image_url)}
                         alt={member.name}
                         className={getPhotoGlowClasses(index)}
+                        style={{
+                          borderColor: glowingIndex === index ? '#FFD700' : '#D4AF37',
+                          boxShadow: glowingIndex === index 
+                            ? '0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(212, 175, 55, 0.4)' 
+                            : '0 0 20px rgba(212, 175, 55, 0.5), 0 0 40px rgba(184, 134, 11, 0.3)',
+                          ringColor: glowingIndex === index ? '#FFD700' : '#D4AF37'
+                        }}
                       />
                       <div className="mt-4">
                         <div className={getGlowClasses(index)}>
@@ -192,6 +208,13 @@ export default function FamilyTemplate({ templateId, profileData }: FamilyTempla
                           src={getProxiedImageUrl(member.profile_image_url)}
                           alt={member.name}
                           className={getPhotoGlowClasses(index + 2)}
+                          style={{
+                            borderColor: glowingIndex === (index + 2) ? '#FFD700' : '#D4AF37',
+                            boxShadow: glowingIndex === (index + 2) 
+                              ? '0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(212, 175, 55, 0.4)' 
+                              : '0 0 20px rgba(212, 175, 55, 0.5), 0 0 40px rgba(184, 134, 11, 0.3)',
+                            ringColor: glowingIndex === (index + 2) ? '#FFD700' : '#D4AF37'
+                          }}
                         />
                         <div className="mt-4">
                           <div className={getGlowClasses(index + 2)}>
@@ -215,6 +238,13 @@ export default function FamilyTemplate({ templateId, profileData }: FamilyTempla
                           src={getProxiedImageUrl(member.profile_image_url)}
                           alt={member.name}
                           className={getPhotoGlowClasses(index + 4)}
+                          style={{
+                            borderColor: glowingIndex === (index + 4) ? '#FFD700' : '#D4AF37',
+                            boxShadow: glowingIndex === (index + 4) 
+                              ? '0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(212, 175, 55, 0.4)' 
+                              : '0 0 20px rgba(212, 175, 55, 0.5), 0 0 40px rgba(184, 134, 11, 0.3)',
+                            ringColor: glowingIndex === (index + 4) ? '#FFD700' : '#D4AF37'
+                          }}
                         />
                         <div className="mt-4">
                           <div className={getGlowClasses(index + 4)}>
@@ -295,10 +325,24 @@ export default function FamilyTemplate({ templateId, profileData }: FamilyTempla
           {/* Carrusel de Videos */}
           <div className="mb-12">
             <div className="max-w-4xl mx-auto">
-              <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/50">
-                <h2 className="text-2xl font-serif text-gray-800 font-semibold mb-6 text-center tracking-wide">
-                  Videos Conmemorativos
-                </h2>
+              <div className="bg-transparent rounded-2xl p-6">
+                <div className="relative mb-6">
+                  <div className="absolute inset-0 bg-white/10 backdrop-blur-2xl rounded-xl border border-white/20 shadow-2xl"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-white/5 rounded-xl"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/10 via-amber-200/10 to-yellow-300/10 rounded-xl"></div>
+                  <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl"></div>
+                  <div className="absolute inset-0 rounded-xl" style={{
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.1) 100%)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255,255,255,0.2)'
+                  }}></div>
+                  <h2 className="relative text-2xl font-serif text-gray-800 font-semibold text-center tracking-wide py-4 px-6">
+                    <span className="inline-block bg-gradient-to-r from-yellow-600 via-amber-500 to-yellow-600 bg-clip-text text-transparent drop-shadow-lg">
+                      Videos Conmemorativos
+                    </span>
+                    <div className="mt-2 w-24 h-0.5 bg-gradient-to-r from-yellow-400 to-amber-400 mx-auto rounded-full shadow-lg"></div>
+                  </h2>
+                </div>
                 
                 {family_members && family_members.some(member => member.memorial_video_url) ? (
                   <div className="relative group">
@@ -372,10 +416,35 @@ export default function FamilyTemplate({ templateId, profileData }: FamilyTempla
               <div className="absolute top-0 right-0 w-20 h-20 opacity-5">
                 <div className="text-6xl transform rotate-12">{templateStyles.icons[0]}</div>
               </div>
-              <h2 className={`text-xl font-semibold ${templateStyles.accent} mb-4 flex items-center gap-2`}>
-                <span>🌹</span> En memoria
-              </h2>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap relative z-10">{sanitizeText(description)}</p>
+              <div className="relative mb-4">
+                <div className="absolute inset-0 rounded-lg" style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.1) 100%)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                }}></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/10 via-amber-200/10 to-yellow-300/10 rounded-lg"></div>
+                <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/30 to-transparent rounded-t-lg"></div>
+                <h2 className="relative text-xl font-semibold text-center tracking-wide py-3 px-4">
+                  <span className="inline-block bg-gradient-to-r from-yellow-600 via-amber-500 to-yellow-600 bg-clip-text text-transparent flex items-center justify-center gap-2 drop-shadow-lg">
+                    <span>🌹</span> En memoria
+                  </span>
+                  <div className="mt-1 w-16 h-0.5 bg-gradient-to-r from-yellow-400 to-amber-400 mx-auto rounded-full shadow-lg"></div>
+                </h2>
+              </div>
+              <div className="relative z-10 mt-6">
+                <div className="bg-gradient-to-r from-gray-50/80 to-white/80 backdrop-blur-sm rounded-xl p-6 border border-gray-100/50 shadow-sm">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400/30 via-amber-300/30 to-yellow-400/30 rounded-t-xl"></div>
+                  <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-base font-medium tracking-wide">
+                    {sanitizeText(description)}
+                  </p>
+                <div className="mt-4 flex justify-end">
+                  <div className="flex items-center gap-2 text-amber-600/70">
+                    <span className="text-xs font-medium tracking-wider">EN MEMORIA ETERNA</span>
+                  </div>
+                </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -405,9 +474,22 @@ export default function FamilyTemplate({ templateId, profileData }: FamilyTempla
           {/* 3. Galería de Recuerdos */}
           {gallery_images && gallery_images.length > 0 && (
             <div className={`${templateStyles.card} p-6 mb-8`}>
-              <h2 className={`text-xl font-semibold ${templateStyles.accent} mb-4 flex items-center gap-2`}>
-                <span>📸</span> Galería de recuerdos
-              </h2>
+              <div className="relative mb-4">
+                <div className="absolute inset-0 rounded-lg" style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.1) 100%)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                }}></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/10 via-amber-200/10 to-yellow-300/10 rounded-lg"></div>
+                <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/30 to-transparent rounded-t-lg"></div>
+                <h2 className="relative text-xl font-semibold text-center tracking-wide py-3 px-4">
+                  <span className="inline-block bg-gradient-to-r from-yellow-600 via-amber-500 to-yellow-600 bg-clip-text text-transparent flex items-center justify-center gap-2 drop-shadow-lg">
+                    <span>📸</span> Galería de recuerdos
+                  </span>
+                  <div className="mt-1 w-16 h-0.5 bg-gradient-to-r from-yellow-400 to-amber-400 mx-auto rounded-full shadow-lg"></div>
+                </h2>
+              </div>
               
               {/* Grid de 6 fotos */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
@@ -486,38 +568,57 @@ export default function FamilyTemplate({ templateId, profileData }: FamilyTempla
               </div>
               
               <div className="relative z-10">
-                <h2 className={`text-xl font-semibold ${templateStyles.accent} mb-4 flex items-center gap-2`}>
-                  <span>🎵</span> Su canción favorita
-                </h2>
-                
-                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900 mb-1">
-                      {isYouTubeUrl ? 'Video de YouTube' : favorite_music}
-                    </p>
-                    {isYouTubeUrl && (
-                      <p className="text-sm text-gray-600">
-                        Enlace directo a YouTube
-                      </p>
-                    )}
-                    {!isYouTubeUrl && (
-                      <p className="text-sm text-gray-600">
-                        Buscar en YouTube
-                      </p>
-                    )}
-                  </div>
-                  
-                  <button
-                    onClick={handlePlay}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
-                    <span className="text-sm font-medium">
-                      {isYouTubeUrl ? 'Ver' : 'Buscar'}
+                <div className="relative mb-4">
+                  <div className="absolute inset-0 rounded-lg" style={{
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.1) 100%)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                  }}></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/10 via-amber-200/10 to-yellow-300/10 rounded-lg"></div>
+                  <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/30 to-transparent rounded-t-lg"></div>
+                  <h2 className="relative text-xl font-semibold text-center tracking-wide py-3 px-4">
+                    <span className="inline-block bg-gradient-to-r from-yellow-600 via-amber-500 to-yellow-600 bg-clip-text text-transparent flex items-center justify-center gap-2 drop-shadow-lg">
+                      <span>🎵</span> Canción para la Familia
                     </span>
-                  </button>
+                    <div className="mt-1 w-16 h-0.5 bg-gradient-to-r from-yellow-400 to-amber-400 mx-auto rounded-full shadow-lg"></div>
+                  </h2>
+                </div>
+                
+                <div className="mt-6">
+                  <div className="bg-gradient-to-r from-gray-50/80 to-white/80 backdrop-blur-sm rounded-xl p-6 border border-gray-100/50 shadow-sm">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400/30 via-amber-300/30 to-yellow-400/30 rounded-t-xl"></div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="text-gray-800 text-base font-medium tracking-wide mb-2">
+                          {isYouTubeUrl ? 'Video de YouTube' : favorite_music}
+                        </p>
+                        {isYouTubeUrl && (
+                          <p className="text-sm text-gray-600 font-medium">
+                            Enlace directo a YouTube
+                          </p>
+                        )}
+                        {!isYouTubeUrl && (
+                          <p className="text-sm text-gray-600 font-medium">
+                            Buscar en YouTube
+                          </p>
+                        )}
+                      </div>
+                      
+                      <button
+                        onClick={handlePlay}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        <span className="text-sm font-medium">
+                          {isYouTubeUrl ? 'Ver' : 'Buscar'}
+                        </span>
+                      </button>
+                    </div>
+                    
+                  </div>
                 </div>
                 
                 {/* Reproductor embebido */}
@@ -590,6 +691,9 @@ export default function FamilyTemplate({ templateId, profileData }: FamilyTempla
             className="bg-white/80 backdrop-blur-sm px-3 py-2 rounded-full shadow-lg border border-gray-200/50"
           />
         </div>
+
+        {/* Footer del sitio */}
+        <MemorialFooter />
       </ResponsiveBackground>
     </div>
   );
