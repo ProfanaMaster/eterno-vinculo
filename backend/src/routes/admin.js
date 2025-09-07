@@ -13,6 +13,11 @@ const requireAdmin = async (req, res, next) => {
 
     const user = await getUserFromToken(token);
     
+    // Verificar que el usuario existe
+    if (!user || !user.id) {
+      return res.status(401).json({ error: 'Token inválido o usuario no encontrado' });
+    }
+    
     // Verificar rol de admin
     const { data: userData, error } = await supabaseAdmin
       .from('users')
@@ -802,7 +807,7 @@ router.get('/packages', requireAdmin, async (req, res) => {
 router.put('/packages/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, price, features, is_active } = req.body;
+    const { name, description, price, features, is_active, package_type } = req.body;
 
     const { data: packageData, error } = await supabaseAdmin
       .from('packages')
@@ -812,6 +817,7 @@ router.put('/packages/:id', requireAdmin, async (req, res) => {
         price,
         features,
         is_active,
+        package_type,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
@@ -839,34 +845,75 @@ router.post('/packages/sync-pricing', requireAdmin, async (req, res) => {
   try {
     const { pricingData } = req.body;
     
-    // ID del paquete único (definido en seed-simple.js)
-    const packageId = 'e454b0bf-ba21-4a38-8149-1b3c0dbc2a91';
-    
-    const updateData = {
-      name: pricingData.name || 'Memorial Digital Completo',
-      description: pricingData.subtitle || 'Todo lo que necesitas para honrar la memoria',
-      price: pricingData.price || 150000,
-      currency: pricingData.currency || 'COP',
-      features: pricingData.features || []
-    };
+    // Verificar si tiene estructura de múltiples paquetes
+    if (pricingData.packages && Array.isArray(pricingData.packages)) {
+      // Sincronizar múltiples paquetes
+      const results = [];
+      
+      for (const pkg of pricingData.packages) {
+        const updateData = {
+          name: pkg.name || 'Memorial Digital',
+          description: pkg.subtitle || 'Memorial digital completo',
+          price: pkg.price || 150000,
+          currency: pkg.currency || 'COP',
+          features: pkg.features || [],
+          is_active: true
+        };
 
-    const { data: packageData, error } = await supabaseAdmin
-      .from('packages')
-      .update(updateData)
-      .eq('id', packageId)
-      .select()
-      .single();
+        const { data: packageData, error } = await supabaseAdmin
+          .from('packages')
+          .upsert({
+            id: pkg.id,
+            ...updateData,
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single();
 
-    if (error) {
-      console.error('Error updating package:', error);
-      return res.status(500).json({ error: 'Error al actualizar paquete' });
+        if (error) {
+          console.error(`Error updating package ${pkg.id}:`, error);
+          continue;
+        }
+
+        results.push(packageData);
+      }
+
+      res.json({
+        success: true,
+        data: results,
+        message: `${results.length} paquetes sincronizados exitosamente`
+      });
+
+    } else {
+      // Mantener compatibilidad con estructura antigua (un solo paquete)
+      const packageId = 'e454b0bf-ba21-4a38-8149-1b3c0dbc2a91';
+      
+      const updateData = {
+        name: pricingData.name || 'Memorial Digital Completo',
+        description: pricingData.subtitle || 'Todo lo que necesitas para honrar la memoria',
+        price: pricingData.price || 150000,
+        currency: pricingData.currency || 'COP',
+        features: pricingData.features || []
+      };
+
+      const { data: packageData, error } = await supabaseAdmin
+        .from('packages')
+        .update(updateData)
+        .eq('id', packageId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating package:', error);
+        return res.status(500).json({ error: 'Error al actualizar paquete' });
+      }
+
+      res.json({
+        success: true,
+        data: packageData,
+        message: 'Paquete sincronizado exitosamente'
+      });
     }
-
-    res.json({
-      success: true,
-      data: packageData,
-      message: 'Paquete sincronizado exitosamente'
-    });
 
   } catch (error) {
     console.error('Error in POST /admin/packages/sync-pricing:', error);
@@ -1042,5 +1089,6 @@ router.get('/memorial-profiles', requireAdmin, async (req, res) => {
     res.status(500).json({ error: 'Error al obtener perfiles memoriales' });
   }
 });
+
 
 export default router;

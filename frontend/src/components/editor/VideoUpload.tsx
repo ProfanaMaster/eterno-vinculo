@@ -5,6 +5,7 @@ import { sanitizeFilename } from '@/utils/sanitize'
 import LazyVideo from '@/components/ui/LazyVideo'
 import { useVideoThumbnail } from '@/hooks/useVideoThumbnail'
 import { logger } from '@/utils/logger'
+import { supabase } from '@/config/supabase'
 
 interface VideoUploadProps {
   currentVideo?: string
@@ -121,6 +122,12 @@ const VideoUpload = ({
     setUploadProgress(0)
 
     try {
+      // Obtener token de Supabase
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        throw new Error('No estás autenticado')
+      }
+
       const formData = new FormData()
       formData.append('video', file)
 
@@ -141,7 +148,8 @@ const VideoUpload = ({
           onVideoUploaded(response.data.url)
           setVideo(response.data.url)
         } else {
-          throw new Error('Error al subir el video')
+          const errorResponse = JSON.parse(xhr.responseText || '{}')
+          throw new Error(errorResponse.error || 'Error al subir el video')
         }
         setUploading(false)
       }
@@ -151,8 +159,9 @@ const VideoUpload = ({
         setUploading(false)
       }
 
-      xhr.open('POST', '/api/upload/video')
-      xhr.setRequestHeader('Authorization', `Bearer ${localStorage.getItem('token')}`)
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api'
+      xhr.open('POST', `${API_URL}/upload/video`)
+      xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`)
       xhr.send(formData)
 
     } catch (err) {
@@ -205,7 +214,7 @@ const VideoUpload = ({
             controls={true}
             muted={true}
             onLoadStart={() => logger.log('🎬 Cargando video...')}
-            onLoadComplete={() => logger.log('✅ Video cargado'))
+            onLoadComplete={() => logger.log('✅ Video cargado')}
             onError={(error) => setError(error)}
           />
 

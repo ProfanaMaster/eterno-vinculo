@@ -22,9 +22,10 @@ interface MuroDeRecuerdosProps {
   profileId: string
   profileName: string
   onOpenModal?: () => void
+  isFamilyProfile?: boolean
 }
 
-const MuroDeRecuerdos = ({ profileId, profileName, onOpenModal }: MuroDeRecuerdosProps) => {
+const MuroDeRecuerdos = ({ profileId, profileName, onOpenModal, isFamilyProfile = false }: MuroDeRecuerdosProps) => {
   const [memories, setMemories] = useState<Memory[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -35,7 +36,7 @@ const MuroDeRecuerdos = ({ profileId, profileName, onOpenModal }: MuroDeRecuerdo
       const { data, error } = await supabase
         .from('memories')
         .select('*')
-        .eq('memorial_profile_id', profileId)
+        .eq(isFamilyProfile ? 'family_profile_id' : 'memorial_profile_id', profileId)
         .eq('is_authorized', true)
         .order('created_at', { ascending: false })
 
@@ -181,6 +182,7 @@ const MuroDeRecuerdos = ({ profileId, profileName, onOpenModal }: MuroDeRecuerdo
           setIsModalOpen(false)
           loadMemories()
         }}
+        isFamilyProfile={isFamilyProfile}
       />
       </div>
       

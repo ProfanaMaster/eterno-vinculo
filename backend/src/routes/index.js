@@ -1,6 +1,8 @@
 import { Router } from 'express'
 import ordersRouter from './orders.js'
 import profilesRouter from './profiles.js'
+import familyProfilesRouter from './familyProfiles.js'
+import familyMembersRouter from './familyMembers.js'
 import uploadRouter from './uploadRoutes.js'
 import adminRouter from './admin.js'
 import { supabaseAdmin } from '../config/supabase.js'
@@ -43,6 +45,12 @@ router.use('/orders', ordersRouter)
 // Registrar rutas de perfiles
 router.use('/profiles', profilesRouter)
 
+// Registrar rutas de perfiles familiares
+router.use('/family-profiles', familyProfilesRouter)
+
+// Registrar rutas de miembros familiares (nested bajo family-profiles)
+router.use('/family-profiles', familyMembersRouter)
+
 // Registrar rutas de upload
 router.use('/upload', uploadRouter)
 
@@ -60,6 +68,7 @@ router.use('/image-proxy', imageProxyRouter)
 
 // Registrar rutas de admin
 router.use('/admin', adminRouter)
+
 
 // Registrar rutas de memories (públicas)
 import memoriesRouter from './memories.js'

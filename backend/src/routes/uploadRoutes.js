@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import multer from 'multer'
 import { getUserFromToken } from '../config/supabase.js'
 import { 
   generatePresignedUrl, 
@@ -7,6 +8,22 @@ import {
   validateFileType,
   ALLOWED_TYPES 
 } from '../config/cloudflare.js'
+
+// Configurar multer para subida de archivos
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 100 * 1024 * 1024, // 100MB máximo
+  },
+  fileFilter: (req, file, cb) => {
+    // Permitir solo videos
+    if (file.mimetype.startsWith('video/')) {
+      cb(null, true)
+    } else {
+      cb(new Error('Solo se permiten archivos de video'), false)
+    }
+  }
+})
 
 const router = Router()
 
@@ -264,10 +281,103 @@ const getFileInfoHandler = async (req, res) => {
   }
 }
 
+// Endpoint para subir video directamente (compatibilidad con VideoUpload)
+const uploadVideoHandler = async (req, res) => {
+  try {
+    const userId = req.user?.id
+    
+    console.log('🔍 Debug uploadVideoHandler:', {
+      hasUser: !!req.user,
+      userId: userId,
+      hasFile: !!req.file
+    })
+    
+    if (!userId) {
+      return res.status(401).json({ 
+        success: false,
+        error: 'Usuario no autenticado' 
+      })
+    }
+    
+    if (!req.file) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'No se proporcionó archivo de video' 
+      })
+    }
+
+    const file = req.file
+    console.log('📤 Subiendo video:', { 
+      originalName: file.originalname,
+      size: `${Math.round(file.size / 1024 / 1024)}MB`,
+      mimetype: file.mimetype,
+      userId 
+    })
+
+    // Validar tipo de archivo
+    const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo']
+    if (!allowedTypes.includes(file.mimetype)) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Solo se permiten videos MP4, WebM, MOV y AVI' 
+      })
+    }
+
+    // Validar tamaño (65MB máximo)
+    if (file.size > 65 * 1024 * 1024) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'El video debe ser menor a 65MB' 
+      })
+    }
+
+
+    // Generar key único
+    const key = generateFileKey(userId, 'video', file.originalname)
+    
+    // Subir a Cloudflare R2 usando el cliente existente
+    const { r2Client, BUCKET_NAME } = await import('../config/cloudflare.js')
+    const { PutObjectCommand } = await import('@aws-sdk/client-s3')
+
+    const uploadParams = {
+      Bucket: BUCKET_NAME,
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+      ACL: 'public-read'
+    }
+
+    const command = new PutObjectCommand(uploadParams)
+    const result = await r2Client.send(command)
+    const publicUrl = getPublicUrl(key)
+    
+    console.log('✅ Video subido exitosamente:', publicUrl)
+    
+    res.json({
+      success: true,
+      data: {
+        url: publicUrl,
+        key,
+        size: file.size,
+        type: file.mimetype
+      },
+      message: 'Video subido exitosamente'
+    })
+  } catch (error) {
+    console.error('❌ Error subiendo video:', error)
+    res.status(500).json({ 
+      success: false,
+      error: 'Error interno del servidor al subir video',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    })
+  }
+}
+
 // Rutas
 router.post('/presigned-url', requireAuth, getPresignedUrlHandler)
 router.post('/verify', requireAuth, verifyUploadHandler)
 router.get('/file/:key', requireAuth, getFileInfoHandler)
+router.post('/video', requireAuth, upload.single('video'), uploadVideoHandler)
 
 // Ruta de health check
 router.get('/health', (req, res) => {

@@ -9,9 +9,10 @@ interface AddMemoryModalProps {
   profileId: string
   profileName: string
   onSuccess: () => void
+  isFamilyProfile?: boolean
 }
 
-const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: AddMemoryModalProps) => {
+const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess, isFamilyProfile = false }: AddMemoryModalProps) => {
   const [formData, setFormData] = useState({
     author_name: '',
     message: '',
@@ -104,21 +105,24 @@ const AddMemoryModal = ({ isOpen, onClose, profileId, profileName, onSuccess }: 
 
       // Guardar usando endpoint público
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api'
+      const requestBody = {
+        memorial_profile_id: isFamilyProfile ? null : profileId,
+        family_profile_id: isFamilyProfile ? profileId : null,
+        photo_url: photoUrl,
+        author_name: sanitizedName,
+        message: sanitizedMessage,
+        song: sanitizedSong || null,
+        things_list: filteredThings.map(item => sanitizeInput(item)),
+        captcha_id: captchaId,
+        captcha_input: captchaInput
+      }
+      
       const response = await fetch(`${API_URL}/memories`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          memorial_profile_id: profileId,
-          photo_url: photoUrl,
-          author_name: sanitizedName,
-          message: sanitizedMessage,
-          song: sanitizedSong || null,
-          things_list: filteredThings.map(item => sanitizeInput(item)),
-          captcha_id: captchaId,
-          captcha_input: captchaInput
-        })
+        body: JSON.stringify(requestBody)
       })
 
       if (!response.ok) {

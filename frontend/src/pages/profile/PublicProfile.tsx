@@ -12,26 +12,11 @@ import { CelebrationEffect } from '@/components/CelebrationEffect'
 import { useBirthdayCelebration } from '@/hooks/useBirthdayCelebration'
 import { MemorialTimeModal } from '@/components/memorial/MemorialTimeModal'
 import VisitCounter from '@/components/VisitCounter'
-
-interface Profile {
-  id: string
-  slug: string
-  profile_name: string
-  description: string
-  birth_date: string
-  death_date: string
-  profile_image_url: string
-
-  gallery_images: string[]
-  memorial_video_url?: string
-  template_id?: string
-  favorite_music?: string
-  visit_count?: number
-}
+import { MemorialProfile } from '@/types/family'
 
 export default function PublicProfile() {
   const { slug } = useParams<{ slug: string }>()
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profile, setProfile] = useState<MemorialProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -40,8 +25,9 @@ export default function PublicProfile() {
 
   // Hook para manejar celebración de cumpleaños
   const birthdayCelebration = useBirthdayCelebration({
-    birthDate: profile?.birth_date || '',
-    profileName: profile?.profile_name || '',
+    birthDate: profile?.profile_type === 'individual' ? profile.birth_date : '',
+    profileName: profile?.profile_type === 'individual' ? profile.profile_name : 
+                 profile?.profile_type === 'family' ? profile.family_name : '',
     autoStart: true
   })
 

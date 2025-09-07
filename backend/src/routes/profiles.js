@@ -244,6 +244,59 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 /**
+ * GET /api/profiles/debug-quotas
+ * Endpoint de debug para verificar cuotas
+ */
+router.get('/debug-quotas', requireAuth, async (req, res) => {
+  try {
+    const user_id = req.user.id;
+    
+    // Obtener órdenes pagadas
+    const { data: paidOrders, error: ordersError } = await supabaseAdmin
+      .from('orders')
+      .select(`
+        id,
+        package_id,
+        packages (
+          id,
+          name,
+          package_type
+        )
+      `)
+      .eq('user_id', user_id)
+      .not('paid_at', 'is', null);
+
+    // Obtener perfiles individuales
+    const { data: individualMemorials, error: individualError } = await supabaseAdmin
+      .from('memorial_profiles')
+      .select('id, profile_name, deleted_at')
+      .eq('user_id', user_id);
+
+    // Obtener perfiles familiares
+    const { data: familyMemorials, error: familyError } = await supabaseAdmin
+      .from('family_profiles')
+      .select('id, family_name, deleted_at')
+      .eq('user_id', user_id);
+
+    res.json({
+      success: true,
+      debug: {
+        user_id,
+        paidOrders: paidOrders || [],
+        individualMemorials: individualMemorials || [],
+        familyMemorials: familyMemorials || [],
+        individualActive: individualMemorials?.filter(m => !m.deleted_at) || [],
+        familyActive: familyMemorials?.filter(m => !m.deleted_at) || []
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in debug-quotas:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
  * GET /api/profiles/can-create
  * Verificar si el usuario puede crear un nuevo perfil memorial
  */
@@ -251,10 +304,18 @@ router.get('/can-create', requireAuth, async (req, res) => {
   try {
     const user_id = req.user.id;
 
-    // Contar órdenes pagadas (cuotas disponibles)
+    // Contar órdenes pagadas con información de paquetes (cuotas disponibles)
     const { data: paidOrders, error: ordersError } = await supabaseAdmin
       .from('orders')
-      .select('id')
+      .select(`
+        id,
+        package_id,
+        packages (
+          id,
+          name,
+          package_type
+        )
+      `)
       .eq('user_id', user_id)
       .not('paid_at', 'is', null);
 
@@ -265,44 +326,108 @@ router.get('/can-create', requireAuth, async (req, res) => {
 
     const totalQuotas = paidOrders?.length || 0;
 
-    // Contar cuotas usadas (todas las creaciones registradas en historial)
+    // Analizar tipos de paquetes disponibles
+    const packageTypes = {
+      individual: 0,
+      family: 0
+    };
+
+    console.log(`🔍 DEBUG - Órdenes pagadas para usuario ${user_id}:`, JSON.stringify(paidOrders, null, 2));
+
+    paidOrders?.forEach(order => {
+      const packageType = order.packages?.package_type || 'individual';
+      console.log(`📦 DEBUG - Orden ${order.id}: package_type = "${packageType}", package_name = "${order.packages?.name}"`);
+      if (packageTypes.hasOwnProperty(packageType)) {
+        packageTypes[packageType]++;
+      }
+    });
+
+    // Contar cuotas usadas por tipo de paquete
     const { data: createdHistory, error: historyError } = await supabaseAdmin
       .from('user_memorial_history')
-      .select('id')
+      .select(`
+        id,
+        memorial_id,
+        memorial_profiles (
+          id,
+          order_id,
+          orders (
+            id,
+            package_id,
+            packages (
+              id,
+              package_type
+            )
+          )
+        )
+      `)
       .eq('user_id', user_id)
       .eq('action', 'created');
 
-    let usedQuotas = 0;
+    let usedIndividualQuotas = 0;
+    let usedFamilyQuotas = 0;
     
-    if (historyError) {
-      // Fallback: contar todos los perfiles creados (incluyendo eliminados)
+    if (historyError || true) { // TEMPORAL: siempre usar fallback
+      // Fallback: contar perfiles individuales y familiares por separado
       console.warn('Error fetching history, using fallback:', historyError);
-      const { data: allMemorials, error: memorialsError } = await supabaseAdmin
+      
+      // Contar perfiles individuales (solo los no eliminados)
+      const { data: individualMemorials, error: individualError } = await supabaseAdmin
         .from('memorial_profiles')
         .select('id')
-        .eq('user_id', user_id);
+        .eq('user_id', user_id)
+        .is('deleted_at', null);
 
-      if (memorialsError) {
-        console.error('Error fetching all memorials:', memorialsError);
+      // Contar perfiles familiares (solo los no eliminados)
+      const { data: familyMemorials, error: familyError } = await supabaseAdmin
+        .from('family_profiles')
+        .select('id')
+        .eq('user_id', user_id)
+        .is('deleted_at', null);
+
+      if (individualError || familyError) {
+        console.error('Error fetching memorials:', individualError || familyError);
         return res.status(500).json({ error: 'Error al verificar memoriales' });
       }
 
-      usedQuotas = allMemorials?.length || 0;
+      usedIndividualQuotas = individualMemorials?.length || 0;
+      usedFamilyQuotas = familyMemorials?.length || 0;
+      
+      console.log(`🔍 FALLBACK - Perfiles individuales encontrados: ${usedIndividualQuotas}`);
+      console.log(`🔍 FALLBACK - Perfiles familiares encontrados: ${usedFamilyQuotas}`);
     } else {
-      usedQuotas = createdHistory?.length || 0;
+      // Contar por tipo usando el historial
+      console.log(`🔍 HISTORIAL - Registros de creación encontrados: ${createdHistory?.length || 0}`);
+      createdHistory?.forEach(history => {
+        const packageType = history.memorial_profiles?.orders?.packages?.package_type || 'individual';
+        console.log(`🔍 HISTORIAL - Tipo de paquete: ${packageType}`);
+        if (packageType === 'family') {
+          usedFamilyQuotas++;
+        } else {
+          usedIndividualQuotas++;
+        }
+      });
+      console.log(`🔍 HISTORIAL - Individual: ${usedIndividualQuotas}, Familiar: ${usedFamilyQuotas}`);
     }
 
-    const availableQuotas = totalQuotas - usedQuotas;
-    const canCreate = availableQuotas > 0;
+    // Calcular cuotas disponibles por tipo
+    const availableIndividualQuotas = packageTypes.individual - usedIndividualQuotas;
+    const availableFamilyQuotas = packageTypes.family - usedFamilyQuotas;
+    const totalAvailableQuotas = availableIndividualQuotas + availableFamilyQuotas;
+    
+    const canCreate = totalAvailableQuotas > 0;
 
     let reason = null;
     if (totalQuotas === 0) {
       reason = 'Necesitas al menos una orden pagada para crear un memorial.';
-    } else if (availableQuotas <= 0) {
-      reason = `Has alcanzado el límite de memoriales (${totalQuotas}). Has usado ${usedQuotas} de tus cuotas disponibles.`;
+    } else if (totalAvailableQuotas <= 0) {
+      reason = `Has alcanzado el límite de memoriales. Individuales: ${usedIndividualQuotas}/${packageTypes.individual}, Familiares: ${usedFamilyQuotas}/${packageTypes.family}`;
     }
 
-    console.log(`🔒 Verificación de cuotas para usuario ${user_id}: ${availableQuotas} disponibles (${totalQuotas} pagadas - ${usedQuotas} usadas)`);
+    console.log(`🔒 Verificación de cuotas para usuario ${user_id}:`);
+    console.log(`📦 Individual: ${usedIndividualQuotas}/${packageTypes.individual} usadas (${availableIndividualQuotas} disponibles)`);
+    console.log(`👨‍👩‍👧‍👦 Familiar: ${usedFamilyQuotas}/${packageTypes.family} usadas (${availableFamilyQuotas} disponibles)`);
+    console.log(`📊 Total: ${totalAvailableQuotas} cuotas disponibles de ${totalQuotas} pagadas`);
 
     res.json({
       success: true,
@@ -310,9 +435,26 @@ router.get('/can-create', requireAuth, async (req, res) => {
       reason,
       quotas: {
         total: totalQuotas,
-        used: usedQuotas,
-        available: availableQuotas
-      }
+        used: usedIndividualQuotas + usedFamilyQuotas,
+        available: totalAvailableQuotas,
+        individual: {
+          total: packageTypes.individual,
+          used: usedIndividualQuotas,
+          available: availableIndividualQuotas
+        },
+        family: {
+          total: packageTypes.family,
+          used: usedFamilyQuotas,
+          available: availableFamilyQuotas
+        }
+      },
+      packageTypes: packageTypes,
+      availableOrders: paidOrders?.map(order => ({
+        id: order.id,
+        packageId: order.package_id,
+        packageName: order.packages?.name || 'Paquete desconocido',
+        packageType: order.packages?.package_type || 'individual'
+      })) || []
     });
 
   } catch (error) {

@@ -37,6 +37,14 @@ export const TEMPLATE_BACKGROUNDS: Record<string, BackgroundConfig> = {
   'template-8': {
     get mobile() { return getSupabaseUrl('templates', 'fondo-cali.png'); },
     desktop: SUPABASE_TEMPLATE_URLS.desktop
+  },
+  'family-1': {
+    get mobile() { return getSupabaseUrl('templates', 'fondo-familiar.png'); }, // Archivo correcto que SÍ existe
+    get desktop() { return getSupabaseUrl('templates', 'fondo-general-pantalla-grande.png'); }
+  },
+  'family-2': {
+    get mobile() { return getSupabaseUrl('templates', 'fondo-familiar-2.png'); },
+    get desktop() { return getSupabaseUrl('templates', 'fondo-general-pantalla-grande.png'); }
   }
 }
 
@@ -48,7 +56,9 @@ export const TEMPLATE_VIDEOS: Record<string, string> = {
   'template-5': SUPABASE_TEMPLATE_URLS.videos['template-5'],
   'template-6': SUPABASE_TEMPLATE_URLS.videos['template-6'],
   'template-7': SUPABASE_TEMPLATE_URLS.videos['template-7'],
-  'template-8': SUPABASE_TEMPLATE_URLS.videos['template-8']
+  'template-8': SUPABASE_TEMPLATE_URLS.videos['template-8'],
+  'family-1': SUPABASE_TEMPLATE_URLS.videos['family-1'],
+  'family-2': SUPABASE_TEMPLATE_URLS.videos['family-2']
 }
 
 export const MOBILE_BREAKPOINT = 460

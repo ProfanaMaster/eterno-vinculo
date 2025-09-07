@@ -38,8 +38,8 @@ const TemplateBackground = ({ templateId, className = '' }: TemplateBackgroundPr
       ) : (
         <div 
           className={`w-full h-full ${
-            ['template-7', 'template-8'].includes(templateId)
-              ? 'bg-repeat-y bg-center bg-contain' // Templates 7-8: mantienen proporciones naturales y se repiten verticalmente
+            ['template-7', 'template-8', 'family-1', 'family-2'].includes(templateId)
+              ? 'bg-repeat-y bg-center bg-contain' // Templates 7-8 y familiares: mantienen proporciones naturales y se repiten verticalmente
               : ['template-5', 'template-6'].includes(templateId)
                 ? 'bg-contain bg-center bg-no-repeat' // Plantillas 5-6 usan bg-contain para evitar estiramiento
                 : 'bg-cover bg-center bg-no-repeat' // Otras plantillas usan bg-cover

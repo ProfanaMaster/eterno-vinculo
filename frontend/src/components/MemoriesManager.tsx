@@ -7,7 +7,8 @@ import { logger } from '@/utils/logger'
 
 interface Memory {
   id: string
-  memorial_profile_id: string
+  memorial_profile_id: string | null
+  family_profile_id: string | null
   photo_url: string
   author_name: string
   message: string
@@ -20,9 +21,10 @@ interface Memory {
 
 interface MemoriesManagerProps {
   profileId: string
+  isFamilyProfile?: boolean
 }
 
-const MemoriesManager = ({ profileId }: MemoriesManagerProps) => {
+const MemoriesManager = ({ profileId, isFamilyProfile = false }: MemoriesManagerProps) => {
   const [memories, setMemories] = useState<Memory[]>([])
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
@@ -41,7 +43,7 @@ const MemoriesManager = ({ profileId }: MemoriesManagerProps) => {
       const { data, error, count } = await supabase
         .from('memories')
         .select('*', { count: 'exact' })
-        .eq('memorial_profile_id', profileId)
+        .eq(isFamilyProfile ? 'family_profile_id' : 'memorial_profile_id', profileId)
         .order('created_at', { ascending: false })
         .range(from, to)
 
@@ -74,7 +76,7 @@ const MemoriesManager = ({ profileId }: MemoriesManagerProps) => {
           event: '*', 
           schema: 'public', 
           table: 'memories',
-          filter: `memorial_profile_id=eq.${profileId}`
+          filter: `${isFamilyProfile ? 'family_profile_id' : 'memorial_profile_id'}=eq.${profileId}`
         },
         (payload) => {
           logger.log('💭 Memory change detected in MemoriesManager:', payload.eventType, 'for profileId:', profileId)

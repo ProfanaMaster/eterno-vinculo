@@ -24,11 +24,14 @@ function SiteSettings() {
   const [existingProfiles, setExistingProfiles] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [showProfileSuggestions, setShowProfileSuggestions] = useState(false)
+  const [packages, setPackages] = useState([])
+  const [loadingPackages, setLoadingPackages] = useState(false)
   const { refetch: refetchPublicSettings } = useSettings()
 
   useEffect(() => {
     fetchSettings()
     fetchExistingProfiles()
+    fetchPackages()
   }, [])
 
   // Cerrar sugerencias al hacer clic fuera
@@ -64,6 +67,32 @@ function SiteSettings() {
       }
     } catch (error) {
       console.error('Error fetching profiles:', error)
+    }
+  }
+
+  const fetchPackages = async () => {
+    try {
+      setLoadingPackages(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      
+      if (!token) return
+      
+      const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api'
+      const response = await fetch(`${API_URL}/admin/packages`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        setPackages(result.data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching packages:', error)
+    } finally {
+      setLoadingPackages(false)
     }
   }
 
@@ -180,6 +209,31 @@ function SiteSettings() {
       }
     } catch (error) {
       console.error('Error en syncPricingWithPackages:', error)
+    }
+  }
+
+  const updatePackage = async (packageId: string, packageData: any) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      
+      if (!token) return
+      
+      const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api'
+      const response = await fetch(`${API_URL}/admin/packages/${packageId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(packageData)
+      })
+
+      if (response.ok) {
+        await fetchPackages() // Recargar paquetes
+      }
+    } catch (error) {
+      console.error('Error updating package:', error)
     }
   }
 
@@ -422,86 +476,141 @@ function SiteSettings() {
     )
   }
 
-  const renderPricingSettings = () => {
-    const updateFeature = (index: number, value: string) => {
-      const newFeatures = [...(pricingData.features || [])]
-      newFeatures[index] = value
-      setPricingData({...pricingData, features: newFeatures})
-    }
 
-    const addFeature = () => {
-      setPricingData({...pricingData, features: [...(pricingData.features || []), '']})
-    }
-
-    const removeFeature = (index: number) => {
-      const newFeatures = (pricingData.features || []).filter((_, i) => i !== index)
-      setPricingData({...pricingData, features: newFeatures})
-    }
+  // Nueva función para gestionar múltiples paquetes
+  const renderPackagesManagement = () => {
 
     return (
       <div className="bg-white rounded-xl shadow-sm border p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Plan de Precios</h3>
-        <div className="space-y-4">
-          <Input
-            label="Nombre del Plan"
-            value={pricingData.name}
-            onChange={(e) => setPricingData({...pricingData, name: e.target.value})}
-          />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Subtítulo</label>
-            <textarea
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              rows={2}
-              value={pricingData.subtitle}
-              onChange={(e) => setPricingData({...pricingData, subtitle: e.target.value})}
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label="Precio"
-              type="number"
-              value={pricingData.price}
-              onChange={(e) => setPricingData({...pricingData, price: parseInt(e.target.value)})}
-            />
-            <Input
-              label="Moneda"
-              value={pricingData.currency}
-              onChange={(e) => setPricingData({...pricingData, currency: e.target.value})}
-            />
-          </div>
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700">Características</label>
-              <Button onClick={addFeature} className="text-sm px-3 py-1 bg-gray-100 hover:bg-gray-200">
-                + Agregar
-              </Button>
-            </div>
-            <div className="space-y-2">
-              {(pricingData.features || []).map((feature: string, index: number) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    value={feature}
-                    onChange={(e) => updateFeature(index, e.target.value)}
-                    placeholder="Característica del plan"
-                  />
-                  <Button
-                    onClick={() => removeFeature(index)}
-                    className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600"
-                  >
-                    ×
-                  </Button>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Paquetes y Precios</h3>
+        <p className="text-gray-600 mb-6">
+          Gestiona todos los paquetes disponibles, precios y características. Los cambios se aplican inmediatamente.
+        </p>
+        
+        {loadingPackages ? (
+          <div className="text-center py-4">Cargando paquetes...</div>
+        ) : (
+          <div className="space-y-6">
+            {packages.map((pkg: any) => (
+              <div key={pkg.id} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-lg font-medium">
+                    {pkg.name} - ${pkg.price?.toLocaleString()} {pkg.currency}
+                  </h4>
+                  <div className="flex items-center space-x-2">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={pkg.is_active}
+                        onChange={(e) => updatePackage(pkg.id, { ...pkg, is_active: e.target.checked })}
+                        className="rounded"
+                      />
+                      <span className="ml-2 text-sm">Activo</span>
+                    </label>
+                  </div>
                 </div>
-              ))}
-            </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <Input
+                    label="Nombre"
+                    value={pkg.name || ''}
+                    onChange={(e) => setPackages(packages.map((p: any) => 
+                      p.id === pkg.id ? { ...p, name: e.target.value } : p
+                    ))}
+                  />
+                  <Input
+                    label="Precio"
+                    type="number"
+                    value={pkg.price || ''}
+                    onChange={(e) => setPackages(packages.map((p: any) => 
+                      p.id === pkg.id ? { ...p, price: parseInt(e.target.value) } : p
+                    ))}
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                  <textarea
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    rows={2}
+                    value={pkg.description || ''}
+                    onChange={(e) => setPackages(packages.map((p: any) => 
+                      p.id === pkg.id ? { ...p, description: e.target.value } : p
+                    ))}
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tipo de Paquete
+                  </label>
+                  <select
+                    value={pkg.package_type || 'individual'}
+                    onChange={(e) => setPackages(packages.map((p: any) => 
+                      p.id === pkg.id ? { ...p, package_type: e.target.value } : p
+                    ))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="individual">📱 Individual</option>
+                    <option value="family">👨‍👩‍👧‍👦 Familiar</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Individual: Para una persona | Familiar: Para múltiples miembros de familia
+                  </p>
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Características</label>
+                  {(pkg.features || []).map((feature: string, index: number) => (
+                    <div key={index} className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                        value={feature}
+                        onChange={(e) => {
+                          const newFeatures = [...pkg.features]
+                          newFeatures[index] = e.target.value
+                          setPackages(packages.map((p: any) => 
+                            p.id === pkg.id ? { ...p, features: newFeatures } : p
+                          ))
+                        }}
+                      />
+                      <button
+                        onClick={() => {
+                          const newFeatures = pkg.features.filter((_: any, i: number) => i !== index)
+                          setPackages(packages.map((p: any) => 
+                            p.id === pkg.id ? { ...p, features: newFeatures } : p
+                          ))
+                        }}
+                        className="px-3 py-2 text-red-600 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => {
+                      const newFeatures = [...(pkg.features || []), '']
+                      setPackages(packages.map((p: any) => 
+                        p.id === pkg.id ? { ...p, features: newFeatures } : p
+                      ))
+                    }}
+                    className="text-blue-600 hover:text-blue-700 text-sm"
+                  >
+                    + Agregar característica
+                  </button>
+                </div>
+
+                <Button
+                  onClick={() => updatePackage(pkg.id, pkg)}
+                  className="btn-primary"
+                >
+                  Guardar Paquete
+                </Button>
+              </div>
+            ))}
           </div>
-          <Button
-            onClick={() => updateSetting('pricing_plan', pricingData)}
-            loading={saving === 'pricing_plan'}
-            className="btn-primary"
-          >
-            Guardar Cambios
-          </Button>
-        </div>
+        )}
       </div>
     )
   }
@@ -767,11 +876,16 @@ function SiteSettings() {
               case 'site_stats':
                 return <div key={setting.key}>{renderStatsSettings()}</div>
               case 'pricing_plan':
-                return <div key={setting.key}>{renderPricingSettings()}</div>
+                return null // Eliminamos la sección antigua, usamos solo renderPackagesManagement
               default:
                 return null
             }
           })}
+          
+          {/* Nueva sección de gestión de paquetes */}
+          {settings.find(s => s.key === 'pricing_plan') && (
+            <div>{renderPackagesManagement()}</div>
+          )}
           
           {/* Sección de Ejemplos al final */}
           {settings.find(s => s.key === 'examples_section') && (

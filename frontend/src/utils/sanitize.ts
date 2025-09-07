@@ -48,3 +48,16 @@ export const sanitizeFilename = (filename: string): string => {
     .replace(/\.\./g, '')
     .trim()
 }
+
+/**
+ * Sanitiza input de usuario removiendo HTML y limitando longitud
+ */
+export const sanitizeInput = (input: string, maxLength: number = 500): string => {
+  if (!input) return ''
+  
+  return input
+    .replace(/<[^>]*>/g, '') // Remover tags HTML
+    .replace(/[<>]/g, '') // Remover caracteres < y >
+    .substring(0, maxLength) // Limitar longitud
+    .trim() // Trim al final para no afectar espacios internos
+}

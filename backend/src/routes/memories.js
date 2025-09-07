@@ -204,6 +204,45 @@ router.get('/captcha', (req, res) => {
 });
 
 /**
+ * GET /api/memories/:profileId
+ * Obtener recuerdos autorizados de un perfil (individual o familiar)
+ */
+router.get('/:profileId', async (req, res) => {
+  try {
+    const { profileId } = req.params;
+    const { type } = req.query; // 'individual' o 'family'
+
+    let whereClause = {};
+    if (type === 'family') {
+      whereClause = { family_profile_id: profileId };
+    } else {
+      whereClause = { memorial_profile_id: profileId };
+    }
+
+    const { data: memories, error } = await supabaseAdmin
+      .from('memories')
+      .select('*')
+      .match(whereClause)
+      .eq('is_authorized', true)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching memories:', error);
+      return res.status(500).json({ error: 'Error al cargar los recuerdos' });
+    }
+
+    res.json({
+      success: true,
+      data: memories || []
+    });
+
+  } catch (error) {
+    console.error('Error in GET /memories:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
  * POST /api/memories
  * Crear nuevo recuerdo (público, sin autenticación)
  */
@@ -211,6 +250,7 @@ router.post('/', memoriesRateLimit, async (req, res) => {
   try {
     const {
       memorial_profile_id,
+      family_profile_id,
       photo_url,
       author_name,
       message,
@@ -220,10 +260,14 @@ router.post('/', memoriesRateLimit, async (req, res) => {
       captcha_input
     } = req.body;
 
-    // Validaciones estrictas
-    if (!memorial_profile_id || typeof memorial_profile_id !== 'string') {
-      return res.status(400).json({ error: 'ID de memorial requerido' });
+    // Validaciones estrictas - debe tener al menos uno de los dos IDs
+    if ((!memorial_profile_id && !family_profile_id) || 
+        (memorial_profile_id && family_profile_id)) {
+      return res.status(400).json({ error: 'Se requiere ID de memorial o perfil familiar' });
     }
+
+    const profileId = memorial_profile_id || family_profile_id;
+    const isFamilyProfile = !!family_profile_id;
 
     // Validar captcha
     if (!captcha_id || !captcha_input) {
@@ -260,22 +304,24 @@ router.post('/', memoriesRateLimit, async (req, res) => {
       return res.status(400).json({ error: 'Mensaje requerido (mínimo 10 caracteres)' });
     }
 
-    // Verificar que el memorial existe y está publicado
-    const { data: memorial, error: memorialError } = await supabaseAdmin
-      .from('memorial_profiles')
+    // Verificar que el perfil existe y está publicado
+    const tableName = isFamilyProfile ? 'family_profiles' : 'memorial_profiles';
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from(tableName)
       .select('id')
-      .eq('id', memorial_profile_id)
+      .eq('id', profileId)
       .eq('is_published', true)
       .is('deleted_at', null)
       .single();
 
-    if (memorialError || !memorial) {
-      return res.status(404).json({ error: 'Memorial no encontrado' });
+    if (profileError || !profile) {
+      return res.status(404).json({ error: 'Perfil no encontrado' });
     }
 
     // Preparar datos limpios
     const memoryData = {
-      memorial_profile_id,
+      memorial_profile_id: isFamilyProfile ? null : profileId,
+      family_profile_id: isFamilyProfile ? profileId : null,
       photo_url,
       author_name: cleanAuthorName,
       message: cleanMessage,

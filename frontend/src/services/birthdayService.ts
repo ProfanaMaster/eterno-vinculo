@@ -83,7 +83,7 @@ export const getBirthdayMessage = (profileName: string, birthDate: string): stri
     return `Mañana es el cumpleaños de ${profileName} 🎂`;
   }
   
-  if (daysUntilBirthday <= 7) {
+  if (daysUntilBirthday > 1 && daysUntilBirthday <= 7) {
     return `En ${daysUntilBirthday} días será el cumpleaños de ${profileName} 🎈`;
   }
   

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { useProfiles } from '@/hooks/useProfiles'
+import { useFamilyProfiles } from '@/hooks/useFamilyProfiles'
 import { api } from '@/services/api'
 import { supabase } from '@/config/supabase'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -22,6 +23,16 @@ interface Quotas {
   total: number
   used: number
   available: number
+  individual: {
+    total: number
+    used: number
+    available: number
+  }
+  family: {
+    total: number
+    used: number
+    available: number
+  }
 }
 
 function UserDashboard() {
@@ -29,11 +40,18 @@ function UserDashboard() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { memorials, loading: memorialsLoading, deleteMemorial: deleteMemorialHook, refetch: refetchMemorials } = useProfiles()
+  const { familyProfiles, loading: familyProfilesLoading, deleteFamilyProfile: deleteFamilyProfileHook, refetch: refetchFamilyProfiles } = useFamilyProfiles()
   const [orders, setOrders] = useState<Order[]>([])
   const [ordersLoading, setOrdersLoading] = useState(true)
   const [dataFetched, setDataFetched] = useState(false)
-  const [quotas, setQuotas] = useState<Quotas>({ total: 0, used: 0, available: 0 })
-  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; memorialId: string | null }>({ isOpen: false, memorialId: null })
+  const [quotas, setQuotas] = useState<Quotas>({ 
+    total: 0, 
+    used: 0, 
+    available: 0,
+    individual: { total: 0, used: 0, available: 0 },
+    family: { total: 0, used: 0, available: 0 }
+  })
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; memorialId: string | null; isFamilyProfile?: boolean }>({ isOpen: false, memorialId: null })
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
   const [showShareSuccess, setShowShareSuccess] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
@@ -55,11 +73,12 @@ function UserDashboard() {
     // Verificar si viene de crear un perfil y refrescar datos
     if (searchParams.get('refresh') === 'true') {
       refetchMemorials()
+      refetchFamilyProfiles()
       fetchQuotas()
       // Limpiar el parámetro de la URL
       navigate('/dashboard', { replace: true })
     }
-  }, [user, navigate, dataFetched, searchParams, refetchMemorials])
+  }, [user, navigate, dataFetched, searchParams, refetchMemorials, refetchFamilyProfiles])
 
   // Suscripción en tiempo real
   useEffect(() => {
@@ -90,7 +109,6 @@ function UserDashboard() {
         }
       )
       .subscribe((status) => {
-        logger.log('🔄 Dashboard subscription status:', status)
       })
 
     return () => {
@@ -121,7 +139,9 @@ function UserDashboard() {
 
   const fetchQuotas = async () => {
     try {
-      const response = await api.get('/profiles/can-create')
+      // Agregar timestamp para evitar caché
+      const timestamp = Date.now()
+      const response = await api.get(`/profiles/can-create?t=${timestamp}`)
       if (response.data.success && response.data.quotas) {
         setQuotas(response.data.quotas)
       }
@@ -163,18 +183,24 @@ function UserDashboard() {
     })
   }
 
-  const handleDeleteClick = (memorialId: string) => {
-    setConfirmModal({ isOpen: true, memorialId })
+  const handleDeleteClick = (memorialId: string, isFamilyProfile = false) => {
+    setConfirmModal({ isOpen: true, memorialId, isFamilyProfile })
   }
 
   const confirmDelete = async () => {
     if (!confirmModal.memorialId) return
 
     try {
-      await deleteMemorialHook(confirmModal.memorialId)
+      if (confirmModal.isFamilyProfile) {
+        await deleteFamilyProfileHook(confirmModal.memorialId)
+      } else {
+        await deleteMemorialHook(confirmModal.memorialId)
+      }
     } catch (error: any) {
-      console.error('Error deleting memorial:', error)
-      alert(error.message || 'Error al eliminar el memorial')
+      console.error('Error deleting profile:', error)
+      alert(error.message || 'Error al eliminar el perfil')
+    } finally {
+      setConfirmModal({ isOpen: false, memorialId: null })
     }
   }
 
@@ -185,6 +211,10 @@ function UserDashboard() {
       setDataFetched(false)
       await fetchOrders()
       
+      // Refrescar perfiles
+      await refetchMemorials()
+      await refetchFamilyProfiles()
+      
       // Refrescar página para cargar todos los datos
       window.location.reload()
     } catch (error) {
@@ -194,9 +224,9 @@ function UserDashboard() {
     }
   }
 
-  const hasMemorial = memorials?.length > 0
+  const hasMemorial = (memorials?.length > 0) || (familyProfiles?.length > 0)
 
-  const loading = ordersLoading || memorialsLoading
+  const loading = ordersLoading || memorialsLoading || familyProfilesLoading
 
   if (loading) {
     return (
@@ -247,6 +277,19 @@ function UserDashboard() {
                 className="px-4 py-2 text-gray-600 hover:text-gray-800"
               >
                 Inicio
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const response = await api.get('/profiles/debug-quotas')
+                    alert('Ver consola para detalles completos de debug')
+                  } catch (error) {
+                    console.error('Error debug:', error)
+                  }
+                }}
+                className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+              >
+                🔍 Debug
               </button>
             </div>
           </div>
@@ -417,7 +460,7 @@ function UserDashboard() {
         </Modal>
         
         <div className="grid grid-cols-1 gap-8">
-          {/* Gestión de Recuerdos - Para cada memorial */}
+          {/* Gestión de Recuerdos - Para cada memorial individual */}
           {hasMemorial && memorials?.map((memorial, index) => (
             <div key={memorial.id} className="mb-8">
               <div className="bg-white rounded-lg shadow-sm p-6">
@@ -428,6 +471,21 @@ function UserDashboard() {
                   </span>
                 </h2>
                 <MemoriesManager profileId={memorial.id} />
+              </div>
+            </div>
+          ))}
+
+          {/* Gestión de Recuerdos - Para cada perfil familiar */}
+          {familyProfiles && familyProfiles.length > 0 && familyProfiles.map((familyProfile, index) => (
+            <div key={familyProfile.id} className="mb-8">
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  🗂️ Recuerdos de "{familyProfile.family_name}"
+                  <span className="text-sm text-gray-500 font-normal">
+                    ({familyProfile.slug})
+                  </span>
+                </h2>
+                <MemoriesManager profileId={familyProfile.id} isFamilyProfile={true} />
               </div>
             </div>
           ))}
@@ -484,6 +542,12 @@ function UserDashboard() {
                 <div className="text-sm bg-blue-50 px-3 py-1 rounded-full">
                   <span className="text-blue-600">
                     📊 {quotas.available} disponibles de {quotas.total} cuotas
+                    {quotas.individual.available > 0 && (
+                      <span className="ml-2 text-xs">(Individual: {quotas.individual.available})</span>
+                    )}
+                    {quotas.family.available > 0 && (
+                      <span className="ml-2 text-xs">(Familiar: {quotas.family.available})</span>
+                    )}
                   </span>
                 </div>
               )}
@@ -497,9 +561,14 @@ function UserDashboard() {
                   Necesitas al menos una orden pagada para crear memoriales
                 </p>
               </div>
-            ) : memorials && memorials.length > 0 ? (
-              <div className="space-y-4">
-                {memorials?.map((memorial) => (
+            ) : (memorials && memorials.length > 0) || (familyProfiles && familyProfiles.length > 0) ? (
+              <div className="space-y-6">
+                {/* Perfiles Individuales */}
+                {memorials && memorials.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 text-gray-800">📋 Perfiles Individuales</h3>
+                    <div className="space-y-4">
+                      {memorials.map((memorial) => (
                   <div key={memorial.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="space-y-3">
                       <div className="flex justify-between items-start">
@@ -544,15 +613,76 @@ function UserDashboard() {
                       </div>
                     </div>
                   </div>
-                ))}
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Perfiles Familiares */}
+                {familyProfiles && familyProfiles.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 text-gray-800">👨‍👩‍👧‍👦 Perfiles Familiares</h3>
+                    <div className="space-y-4">
+                      {familyProfiles.map((familyProfile) => (
+                        <div key={familyProfile.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-lg truncate">{familyProfile.family_name}</p>
+                                <p className="text-sm text-gray-600">
+                                  {familyProfile.is_published ? '🌐 Publicado' : '📝 Borrador'}
+                                </p>
+                                <p className="text-xs text-gray-500">{formatDate(familyProfile.created_at)}</p>
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                onClick={() => window.open(`/familia/${familyProfile.slug}`, '_blank')}
+                                className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                              >
+                                👁️ Ver
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const url = `${window.location.origin}/familia/${familyProfile.slug}`
+                                  navigator.clipboard.writeText(url)
+                                  setShowShareSuccess(true)
+                                  setTimeout(() => setShowShareSuccess(false), 3000)
+                                }}
+                                className="flex items-center gap-1 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                              >
+                                📤 Compartir
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteClick(familyProfile.id, true)}
+                                className="px-3 py-2 text-red-600 hover:text-red-800 border border-red-200 rounded-lg hover:bg-red-50"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {quotas.available > 0 && (
                   <div className="text-center py-4 border-t bg-blue-50 rounded-lg">
                     <div className="text-blue-600 text-2xl mb-2">➕</div>
                     <p className="text-sm text-blue-700 font-medium">
                       Puedes crear {quotas.available} memorial{quotas.available > 1 ? 'es' : ''} más
                     </p>
+                    <div className="text-xs text-blue-600 mb-2">
+                      {quotas.individual.available > 0 && (
+                        <span>Individual: {quotas.individual.available} </span>
+                      )}
+                      {quotas.family.available > 0 && (
+                        <span>Familiar: {quotas.family.available}</span>
+                      )}
+                    </div>
                     <button
-                      onClick={() => navigate('/create-memorial')}
+                      onClick={() => navigate('/select-memorial-type')}
                       className="mt-2 btn btn-primary text-sm px-4 py-2"
                     >
                       ✨ Crear Nuevo Memorial
@@ -575,7 +705,7 @@ function UserDashboard() {
                   </p>
                 )}
                 <button
-                  onClick={() => navigate('/create-memorial')}
+                  onClick={() => navigate('/select-memorial-type')}
                   className="btn btn-primary btn-lg px-8 py-3 text-lg font-semibold"
                 >
                   ✨ Crear Mi{quotas.total > 1 ? ' Primer' : ''} Memorial

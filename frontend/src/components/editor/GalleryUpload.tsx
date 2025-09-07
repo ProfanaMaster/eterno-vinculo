@@ -29,9 +29,9 @@ const GalleryUpload = ({ images, onImagesChange, maxImages = 6 }: GalleryUploadP
       return 'Solo se permiten archivos JPG y PNG'
     }
 
-    // Validar tamaño (5MB máximo para galería)
-    if (file.size > 5 * 1024 * 1024) {
-      return 'La imagen debe ser menor a 5MB'
+    // Validar tamaño (2MB máximo para galería)
+    if (file.size > 2 * 1024 * 1024) {
+      return 'La imagen debe ser menor a 2MB'
     }
 
     // Sanitizar nombre
@@ -236,7 +236,7 @@ const GalleryUpload = ({ images, onImagesChange, maxImages = 6 }: GalleryUploadP
           <strong>Formatos permitidos:</strong> Solo JPG y PNG
         </p>
         <p className="text-sm text-blue-700">
-          Arrastra las imágenes para reordenarlas. Máximo 5MB por imagen.
+          Arrastra las imágenes para reordenarlas. Máximo 2MB por imagen.
         </p>
       </div>
 

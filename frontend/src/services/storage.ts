@@ -19,7 +19,9 @@ export const getTemplateAssets = (templateId: string): TemplateAssets => {
     'template-5': 'fondo-gatos.png',
     'template-6': 'fondo-perros.png', 
     'template-7': 'fondo-america.png',
-    'template-8': 'fondo-cali.png'
+    'template-8': 'fondo-cali.png',
+    'family-1': 'fondo-familiar.png', // Archivo correcto que SÍ existe
+    'family-2': 'fondo-familiar-2.png'
   };
   
   // Plantillas 1-4 usan fondo general móvil, 5-8 usan fondos específicos
@@ -41,7 +43,9 @@ const getTemplateVideo = (templateId: string): string => {
     'template-5': 'fondo-gatos.mp4',
     'template-6': 'fondo-perros.mp4',
     'template-7': 'fondo-america.mp4',
-    'template-8': 'fondo-cali.mp4'
+    'template-8': 'fondo-cali.mp4',
+    'family-1': 'fondo-familiar.mp4', // Archivo correcto que SÍ existe
+    'family-2': 'fondo-familiar-2.mp4'
   };
   
   return videoMap[templateId] || 'fondo-olas.mp4';
@@ -79,6 +83,12 @@ export const SUPABASE_TEMPLATE_URLS = {
     },
     get 'template-8'() {
       return getSupabaseUrl('templates', 'fondo-cali.mp4');
+    },
+    get 'family-1'() {
+      return getSupabaseUrl('templates', 'fondo-familiar.mp4');
+    },
+    get 'family-2'() {
+      return getSupabaseUrl('templates', 'fondo-familiar-2.mp4');
     }
   }
 };

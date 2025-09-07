@@ -205,3 +205,57 @@ export const cleanupMemoriesMedia = async (memories) => {
   console.log(`🎉 Limpieza de recuerdos completada`)
   return results
 }
+
+/**
+ * Recolecta todas las URLs multimedia de un perfil familiar
+ */
+export const collectFamilyProfileMediaUrls = (familyProfile, familyMembers = []) => {
+  const urls = []
+  
+  // Video conmemorativo del perfil familiar
+  if (familyProfile.memorial_video_url) {
+    urls.push(familyProfile.memorial_video_url)
+  }
+  
+  // Galería de imágenes del perfil familiar
+  if (familyProfile.gallery_images && Array.isArray(familyProfile.gallery_images)) {
+    urls.push(...familyProfile.gallery_images)
+  }
+  
+  // Archivos de cada miembro de la familia
+  if (familyMembers && Array.isArray(familyMembers)) {
+    familyMembers.forEach(member => {
+      // Imagen de perfil del miembro
+      if (member.profile_image_url) {
+        urls.push(member.profile_image_url)
+      }
+      
+      // Video conmemorativo del miembro
+      if (member.memorial_video_url) {
+        urls.push(member.memorial_video_url)
+      }
+      
+      // Galería de imágenes del miembro
+      if (member.gallery_images && Array.isArray(member.gallery_images)) {
+        urls.push(...member.gallery_images)
+      }
+    })
+  }
+  
+  return urls.filter(url => url && typeof url === 'string')
+}
+
+/**
+ * Elimina todos los archivos multimedia de un perfil familiar
+ */
+export const cleanupFamilyProfileMedia = async (familyProfile, familyMembers = []) => {
+  const mediaUrls = collectFamilyProfileMediaUrls(familyProfile, familyMembers)
+  
+  if (mediaUrls.length === 0) {
+    return { success: [], failed: [] }
+  }
+  
+  const results = await deleteR2Files(mediaUrls)
+  
+  return results
+}

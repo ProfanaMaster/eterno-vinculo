@@ -5,9 +5,10 @@ interface MemoryWallProps {
   profileId: string
   profileName: string
   profileSlug: string
+  isFamilyProfile?: boolean
 }
 
-const MemoryWall = ({ profileId, profileName, profileSlug }: MemoryWallProps) => {
+const MemoryWall = ({ profileId, profileName, profileSlug, isFamilyProfile = false }: MemoryWallProps) => {
   const navigate = useNavigate()
 
   return (
@@ -21,7 +22,10 @@ const MemoryWall = ({ profileId, profileName, profileSlug }: MemoryWallProps) =>
           Ver Muro de los Recuerdos
         </button>
         <p className="text-gray-600 mt-3 text-sm">
-          Comparte tus recuerdos y mantén viva la memoria
+          {isFamilyProfile 
+            ? 'Comparte tus recuerdos y mantén viva la memoria familiar'
+            : 'Comparte tus recuerdos y mantén viva la memoria'
+          }
         </p>
       </div>
 
