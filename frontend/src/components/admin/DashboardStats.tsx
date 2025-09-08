@@ -16,7 +16,7 @@ interface RecentActivity {
   created_at: string
 }
 
-type AdminView = 'dashboard' | 'users' | 'orders' | 'settings'
+type AdminView = 'dashboard' | 'users' | 'orders' | 'settings' | 'special-profiles'
 
 interface DashboardStatsProps {
   onViewChange?: (view: AdminView) => void
@@ -199,7 +199,7 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
       {/* Quick Actions */}
       <div className="bg-white rounded-xl shadow-sm border p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Acciones Rápidas</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <button 
             onClick={() => onViewChange?.('orders')}
             className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200"
@@ -236,6 +236,19 @@ function DashboardStats({ onViewChange }: DashboardStatsProps) {
             <div className="text-left">
               <div className="font-medium text-gray-900">Configurar Sitio</div>
               <div className="text-sm text-gray-500">Textos y precios</div>
+            </div>
+          </button>
+
+          <button 
+            onClick={() => onViewChange?.('special-profiles')}
+            className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+          >
+            <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+              <span className="text-pink-600">💕</span>
+            </div>
+            <div className="text-left">
+              <div className="font-medium text-gray-900">Perfiles Especiales</div>
+              <div className="text-sm text-gray-500">Parejas y casos únicos</div>
             </div>
           </button>
         </div>

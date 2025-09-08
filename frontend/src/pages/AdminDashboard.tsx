@@ -7,8 +7,10 @@ import UsersManagement from '@/components/admin/UsersManagement'
 import OrdersManagement from '@/components/admin/OrdersManagement'
 import SiteSettings from '@/components/admin/SiteSettings'
 import NotificationBell from '@/components/admin/NotificationBell'
+import SpecialProfiles from './admin/SpecialProfiles'
+import CreateCoupleProfile from './admin/CreateCoupleProfile'
 
-type AdminView = 'dashboard' | 'users' | 'orders' | 'settings'
+type AdminView = 'dashboard' | 'users' | 'orders' | 'settings' | 'special-profiles' | 'create-couple-profile'
 
 function AdminDashboard() {
   const [currentView, setCurrentView] = useState<AdminView>('dashboard')
@@ -118,6 +120,10 @@ function AdminDashboard() {
         return <OrdersManagement />
       case 'settings':
         return <SiteSettings />
+      case 'special-profiles':
+        return <SpecialProfiles />
+      case 'create-couple-profile':
+        return <CreateCoupleProfile />
       default:
         return <DashboardStats onViewChange={setCurrentView} />
     }

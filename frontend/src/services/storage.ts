@@ -43,7 +43,8 @@ export const getTemplateAssets = (templateId: string): TemplateAssets => {
     'template-7': 'fondo-america.png',
     'template-8': 'fondo-cali.png',
     'family-1': 'fondo-familiar.png', // Archivo correcto que SÍ existe
-    'family-2': 'fondo-familiar-2.png'
+    'family-2': 'fondo-familiar-2.png',
+    'couple-1': 'fondo-pareja.png'
   };
   
   // Plantillas 1-4 usan fondo general móvil, 5-8 usan fondos específicos
@@ -67,7 +68,8 @@ const getTemplateVideo = (templateId: string): string => {
     'template-7': 'fondo-america.mp4',
     'template-8': 'fondo-cali.mp4',
     'family-1': 'fondo-familiar.mp4', // Video que SÍ existe
-    'family-2': 'fondo-familiar-2.mp4'  // Video que SÍ existe
+    'family-2': 'fondo-familiar-2.mp4',  // Video que SÍ existe
+    'couple-1': 'fondo-pareja.mp4'  // Video para perfiles de pareja
   };
   
   return videoMap[templateId] || 'fondo-olas.mp4';
@@ -111,6 +113,9 @@ export const SUPABASE_TEMPLATE_URLS = {
     },
     get 'family-2'() {
       return getSupabaseUrl('templates', 'fondo-familiar-2.mp4'); // Video que SÍ existe
+    },
+    get 'couple-1'() {
+      return getSupabaseUrl('templates', 'fondo-pareja.mp4'); // Video para perfiles de pareja
     }
   }
 };

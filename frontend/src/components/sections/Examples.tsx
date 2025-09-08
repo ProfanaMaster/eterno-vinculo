@@ -13,6 +13,7 @@ function Examples() {
     death_date: string;
     slug: string;
     description?: string;
+    type?: string;
   }>>([]);
 
   useEffect(() => {
@@ -150,7 +151,10 @@ function Examples() {
                           <button
                             onClick={() => {
                               if (profile.slug) {
-                                window.open(`/memorial/${profile.slug}`, '_blank');
+                                // Determinar la URL correcta según el tipo de perfil
+                                const isFamilyProfile = profile.type === 'family' || profile.slug.startsWith('familia-');
+                                const baseUrl = isFamilyProfile ? '/familia/' : '/memorial/';
+                                window.open(`${baseUrl}${profile.slug}`, '_blank');
                               }
                             }}
                             className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"

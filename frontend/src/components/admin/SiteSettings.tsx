@@ -28,6 +28,35 @@ function SiteSettings() {
   const [loadingPackages, setLoadingPackages] = useState(false)
   const { refetch: refetchPublicSettings } = useSettings()
 
+  // Función para limpiar URLs duplicadas en los perfiles de ejemplo
+  const cleanExampleProfilesUrls = (examplesData: any) => {
+    if (!examplesData.memorial_profiles) return examplesData
+
+    const cleanedProfiles = examplesData.memorial_profiles.map((profile: any) => {
+      let cleanedSlug = profile.slug || ''
+      
+      
+      // Si el slug es una URL completa, extraer solo la parte del slug
+      if (cleanedSlug.startsWith('http')) {
+        // Extraer el slug de cualquier URL completa
+        const match = cleanedSlug.match(/\/([^\/]+)$/)
+        if (match) {
+          cleanedSlug = match[1]
+        }
+      }
+      
+      return {
+        ...profile,
+        slug: cleanedSlug
+      }
+    })
+
+    return {
+      ...examplesData,
+      memorial_profiles: cleanedProfiles
+    }
+  }
+
   useEffect(() => {
     fetchSettings()
     fetchExistingProfiles()
@@ -135,7 +164,9 @@ function SiteSettings() {
               setPricingData(setting.value || {})
               break
             case 'examples_section':
-              setExamplesData(setting.value || {})
+              // Limpiar y corregir URLs duplicadas en los perfiles
+              const cleanedExamplesData = cleanExampleProfilesUrls(setting.value || {})
+              setExamplesData(cleanedExamplesData)
               break
 
           }
@@ -622,8 +653,11 @@ function SiteSettings() {
         profile_image_url: '',
         birth_date: '',
         death_date: '',
-        slug: '',
-        description: ''
+        slug: '', // Solo el slug simple
+        description: '',
+        show_birth_date: true,
+        show_death_date: true,
+        type: 'individual'
       }
       setExamplesData({
         ...examplesData,
@@ -639,7 +673,7 @@ function SiteSettings() {
       })
     }
 
-    const updateProfile = (index: number, field: string, value: string) => {
+    const updateProfile = (index: number, field: string, value: string | boolean) => {
       const updatedProfiles = [...(examplesData.memorial_profiles || [])]
       updatedProfiles[index] = { ...updatedProfiles[index], [field]: value }
       setExamplesData({
@@ -650,13 +684,29 @@ function SiteSettings() {
 
     const selectExistingProfile = (profile: any, index: number) => {
       const updatedProfiles = [...(examplesData.memorial_profiles || [])]
+      
+      // Extraer solo el slug simple, no la URL completa
+      let simpleSlug = profile.slug || ''
+      
+      // Si el slug viene como URL completa, extraer solo la parte del slug
+      if (simpleSlug.startsWith('http')) {
+        // Extraer el slug de la URL completa
+        const match = simpleSlug.match(/\/([^\/]+)$/)
+        if (match) {
+          simpleSlug = match[1]
+        }
+      }
+      
       updatedProfiles[index] = {
         profile_name: profile.profile_name,
         profile_image_url: profile.profile_image_url || '',
         birth_date: profile.birth_date || '',
         death_date: profile.death_date || '',
-        slug: profile.slug || '',
-        description: profile.description || ''
+        slug: simpleSlug, // Solo el slug simple
+        description: profile.description || '',
+        show_birth_date: profile.show_birth_date !== false, // Por defecto true
+        show_death_date: profile.show_death_date !== false, // Por defecto true
+        type: profile.type || 'individual'
       }
       setExamplesData({
         ...examplesData,
@@ -749,10 +799,23 @@ function SiteSettings() {
                           onClick={() => selectExistingProfile(suggestedProfile, index)}
                           className="w-full px-3 py-2 text-left hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
                         >
-                          <div className="font-medium">{suggestedProfile.profile_name}</div>
+                          <div className="flex items-center justify-between">
+                            <div className="font-medium">{suggestedProfile.profile_name}</div>
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                suggestedProfile.type === 'family' 
+                                  ? 'bg-blue-100 text-blue-700' 
+                                  : 'bg-green-100 text-green-700'
+                              }`}>
+                                {suggestedProfile.type === 'family' ? '👨‍👩‍👧‍👦 Familiar' : '👤 Individual'}
+                              </span>
+                            </div>
+                          </div>
                           <div className="text-sm text-gray-600">
-                            {suggestedProfile.birth_date && suggestedProfile.death_date 
+                            {suggestedProfile.type === 'individual' && suggestedProfile.birth_date && suggestedProfile.death_date 
                               ? `${suggestedProfile.birth_date} - ${suggestedProfile.death_date}`
+                              : suggestedProfile.type === 'family'
+                              ? 'Perfil familiar con múltiples miembros'
                               : 'Sin fechas'
                             }
                           </div>
@@ -767,23 +830,68 @@ function SiteSettings() {
                   onChange={(e) => updateProfile(index, 'profile_image_url', e.target.value)}
                   placeholder="https://ejemplo.com/imagen.jpg"
                 />
+                
+                {/* Configuración de visibilidad de fechas */}
+                <div className="md:col-span-2">
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h5 className="text-sm font-medium text-gray-700 mb-3">📅 Configuración de Fechas</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-center space-x-3">
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={profile.show_birth_date !== false}
+                            onChange={(e) => updateProfile(index, 'show_birth_date', e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                        </label>
+                        <span className="text-sm font-medium text-gray-700">Mostrar fecha de nacimiento</span>
+                      </div>
+                      
+                      <div className="flex items-center space-x-3">
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={profile.show_death_date !== false}
+                            onChange={(e) => updateProfile(index, 'show_death_date', e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                        </label>
+                        <span className="text-sm font-medium text-gray-700">Mostrar fecha de fallecimiento</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Campos de fechas condicionales */}
+                {profile.show_birth_date !== false && (
+                  <Input
+                    label="Fecha de Nacimiento"
+                    type="date"
+                    value={profile.birth_date || ''}
+                    onChange={(e) => updateProfile(index, 'birth_date', e.target.value)}
+                  />
+                )}
+                
+                {profile.show_death_date !== false && (
+                  <Input
+                    label="Fecha de Fallecimiento"
+                    type="date"
+                    value={profile.death_date || ''}
+                    onChange={(e) => updateProfile(index, 'death_date', e.target.value)}
+                  />
+                )}
                 <Input
-                  label="Fecha de Nacimiento"
-                  type="date"
-                  value={profile.birth_date || ''}
-                  onChange={(e) => updateProfile(index, 'birth_date', e.target.value)}
-                />
-                <Input
-                  label="Fecha de Fallecimiento"
-                  type="date"
-                  value={profile.death_date || ''}
-                  onChange={(e) => updateProfile(index, 'death_date', e.target.value)}
-                />
-                <Input
-                  label="Slug del Memorial"
+                  label={profile.type === 'family' ? "Slug del Perfil Familiar" : "Slug del Memorial"}
                   value={profile.slug || ''}
                   onChange={(e) => updateProfile(index, 'slug', e.target.value)}
-                  placeholder="maria-elena-gonzalez"
+                  placeholder={
+                    profile.type === 'family' 
+                      ? "familia-gonzales-hernandez-1234567890" 
+                      : "juan-manuel-valdez-garcia-1234567890"
+                  }
                 />
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
@@ -822,13 +930,31 @@ function SiteSettings() {
             </div>
           )}
           
-          <Button
-            onClick={() => updateSetting('examples_section', examplesData)}
-            loading={saving === 'examples_section'}
-            className="btn-primary"
-          >
-            Guardar Cambios
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => {
+                // Limpiar URLs antes de guardar
+                const cleanedData = cleanExampleProfilesUrls(examplesData)
+                updateSetting('examples_section', cleanedData)
+              }}
+              loading={saving === 'examples_section'}
+              className="btn-primary"
+            >
+              Guardar Cambios
+            </Button>
+            
+            <Button
+              onClick={() => {
+                // Forzar limpieza de URLs duplicadas
+                const cleanedData = cleanExampleProfilesUrls(examplesData)
+                setExamplesData(cleanedData)
+                alert('URLs duplicadas corregidas. Recuerda guardar los cambios.')
+              }}
+              className="btn-secondary"
+            >
+              🔧 Corregir URLs
+            </Button>
+          </div>
         </div>
       </div>
     )

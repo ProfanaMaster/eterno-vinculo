@@ -237,18 +237,15 @@ export const useAuthStore = create<AuthState>()(
           set({ loading: true, error: null })
           
           try {
-            console.log('🔍 Intentando restablecer contraseña para:', email)
             
             // Enviar el email de restablecimiento directamente
             // Por seguridad, no verificamos si el email existe
             const redirectUrl = `${window.location.origin}/reset-password`
-            console.log('🔗 URL de redirección:', redirectUrl)
             
             const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
               redirectTo: redirectUrl
             })
 
-            console.log('📧 Respuesta de Supabase:', { data, error })
 
             if (error) {
               console.error('❌ Error de Supabase Auth:', error)
@@ -268,8 +265,6 @@ export const useAuthStore = create<AuthState>()(
               }
             }
 
-            console.log('✅ Email de restablecimiento enviado exitosamente')
-            console.log('📧 Datos de respuesta:', data)
             set({ loading: false, error: null })
             
           } catch (error: any) {

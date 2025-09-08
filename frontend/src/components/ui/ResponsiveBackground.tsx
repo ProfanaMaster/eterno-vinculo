@@ -11,37 +11,18 @@ const ResponsiveBackground = ({ templateId, children, className = '' }: Responsi
   const { background, isMobile } = useResponsiveBackground(templateId)
   const videoUrl = TEMPLATE_VIDEOS[templateId]
   
-
   if (!background && !videoUrl) {
     return <div className={className}>{children}</div>
   }
 
   return (
     <div className={`relative ${className}`}>
-      {/* Video de fondo */}
-      {videoUrl && (
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-          onError={(e) => {
-            console.warn('Error cargando video:', videoUrl, e);
-            // Ocultar el video si hay error
-            e.currentTarget.style.display = 'none';
-          }}
-        >
-          <source src={videoUrl} type="video/mp4" />
-        </video>
-      )}
-      
-      {/* Imagen de fondo (fallback o overlay) */}
+      {/* Imagen de fondo */}
       {background && (
         <div
           className={`absolute inset-0 w-full h-full ${
-            ['template-7', 'template-8', 'family-1', 'family-2'].includes(templateId)
-              ? 'bg-repeat-y bg-center bg-contain' // Templates 7-8 y familiares: mantienen proporciones naturales y se repiten verticalmente
+            ['template-7', 'template-8', 'family-1', 'family-2', 'couple-1'].includes(templateId)
+              ? 'bg-repeat-y bg-center bg-contain' // Templates 7-8, familiares y parejas: mantienen proporciones naturales y se repiten verticalmente
               : ['template-5', 'template-6'].includes(templateId)
                 ? 'bg-contain bg-center bg-no-repeat' // Plantillas 5-6 usan bg-contain para evitar estiramiento
                 : 'bg-cover bg-center bg-no-repeat' // Otras plantillas usan bg-cover

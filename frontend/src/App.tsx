@@ -14,6 +14,10 @@ import PublicProfile from '@/pages/profile/PublicProfile'
 import PreviewProfile from '@/pages/profile/PreviewProfile'
 import MuroDeRecuerdos from '@/pages/MuroDeRecuerdos'
 import TemplatePage from '@/pages/Template'
+import SpecialProfiles from '@/pages/admin/SpecialProfiles'
+import CreateCoupleProfile from '@/pages/admin/CreateCoupleProfile'
+import ViewCoupleProfile from '@/pages/admin/ViewCoupleProfile'
+import PublicCoupleProfile from '@/pages/profile/PublicCoupleProfile'
 import { api } from '@/services/api'
 import { FamilyTemplate } from '@/modules/family/components'
 
@@ -162,11 +166,15 @@ function App() {
           <Route path="/create-family-memorial" element={<CreateFamilyMemorial />} />
           <Route path="/edit/:id" element={<CreateProfile />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/special-profiles" element={<SpecialProfiles />} />
+          <Route path="/admin/create-special-profile/:profileType" element={<CreateCoupleProfile />} />
+          <Route path="/admin/couple-profile/:id" element={<ViewCoupleProfile />} />
           <Route path="/template" element={<TemplatePage />} />
           <Route path="/memorial/:slug" element={<PublicProfile />} />
           <Route path="/preview/:slug" element={<PreviewProfile />} />
           <Route path="/muro-de-recuerdos/:slug" element={<MuroDeRecuerdosPage />} />
           <Route path="/familia/:slug" element={<FamilyProfilePage />} />
+          <Route path="/pareja/:slug" element={<PublicCoupleProfile />} />
 
         </Routes>
       </Router>

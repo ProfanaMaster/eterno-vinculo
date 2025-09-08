@@ -1069,20 +1069,51 @@ router.post('/settings/init', requireAdmin, async (req, res) => {
 
 /**
  * GET /api/admin/memorial-profiles
- * Obtener perfiles memoriales para autocompletado
+ * Obtener perfiles memoriales (individuales y familiares) para autocompletado
  */
 router.get('/memorial-profiles', requireAdmin, async (req, res) => {
   try {
-    const { data: profiles, error } = await supabaseAdmin
+    // Obtener perfiles memoriales individuales
+    const { data: individualProfiles, error: individualError } = await supabaseAdmin
       .from('memorial_profiles')
       .select('id, profile_name, profile_image_url, birth_date, death_date, slug, description')
       .order('profile_name');
 
-    if (error) throw error;
+    if (individualError) throw individualError;
+
+    // Obtener perfiles memoriales familiares
+    const { data: familyProfiles, error: familyError } = await supabaseAdmin
+      .from('family_profiles')
+      .select('id, family_name, description, slug, created_at')
+      .is('deleted_at', null)
+      .order('family_name');
+
+    if (familyError) throw familyError;
+
+    // Transformar perfiles familiares para que tengan la misma estructura
+    const transformedFamilyProfiles = familyProfiles?.map(profile => ({
+      id: profile.id,
+      profile_name: profile.family_name,
+      profile_image_url: null, // Los perfiles familiares no tienen imagen principal
+      birth_date: null, // Los perfiles familiares no tienen fecha de nacimiento única
+      death_date: null, // Los perfiles familiares no tienen fecha de muerte única
+      slug: profile.slug,
+      description: profile.description,
+      type: 'family' // Marcar como perfil familiar
+    })) || [];
+
+    // Transformar perfiles individuales para marcar su tipo
+    const transformedIndividualProfiles = individualProfiles?.map(profile => ({
+      ...profile,
+      type: 'individual' // Marcar como perfil individual
+    })) || [];
+
+    // Combinar ambos tipos de perfiles
+    const allProfiles = [...transformedIndividualProfiles, ...transformedFamilyProfiles];
 
     res.json({
       success: true,
-      data: profiles
+      data: allProfiles
     });
   } catch (error) {
     console.error('Error fetching memorial profiles:', error);
@@ -1090,5 +1121,317 @@ router.get('/memorial-profiles', requireAdmin, async (req, res) => {
   }
 });
 
+
+/**
+ * POST /api/admin/couple-profiles
+ * Crear un nuevo perfil de pareja
+ */
+router.post('/couple-profiles', requireAdmin, async (req, res) => {
+  try {
+    const {
+      couple_name,
+      description,
+      profile_image_url,
+      person1_name,
+      person1_alias,
+      person1_birth_date,
+      person1_zodiac_sign,
+      person2_name,
+      person2_alias,
+      person2_birth_date,
+      person2_zodiac_sign,
+      relationship_start_date,
+      anniversary_date,
+      common_interests,
+      person1_suegros,
+      person2_suegros,
+      person1_cunados,
+      person2_cunados,
+      pets,
+      short_term_goals,
+      medium_term_goals,
+      long_term_goals,
+      template_id,
+      is_published
+    } = req.body;
+
+    // Validaciones básicas
+    if (!couple_name || !description || !person1_name || !person2_name) {
+      return res.status(400).json({ 
+        error: 'Faltan campos requeridos: couple_name, description, person1_name, person2_name' 
+      });
+    }
+
+    // Crear el perfil de pareja
+    const { data: coupleProfile, error: coupleError } = await supabaseAdmin
+      .from('couple_profiles')
+      .insert({
+        couple_name,
+        description,
+        profile_image_url,
+        person1_name,
+        person1_alias,
+        person1_birth_date,
+        person1_zodiac_sign,
+        person2_name,
+        person2_alias,
+        person2_birth_date,
+        person2_zodiac_sign,
+        relationship_start_date,
+        anniversary_date,
+        common_interests: JSON.stringify(common_interests || []),
+        person1_suegros: JSON.stringify(person1_suegros || []),
+        person2_suegros: JSON.stringify(person2_suegros || []),
+        person1_cunados: JSON.stringify(person1_cunados || []),
+        person2_cunados: JSON.stringify(person2_cunados || []),
+        pets,
+        short_term_goals,
+        medium_term_goals,
+        long_term_goals,
+        template_id: template_id || 'couple-1',
+        is_published: is_published || false,
+        created_by: req.user.id,
+        slug: `${couple_name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`
+      })
+      .select()
+      .single();
+
+    if (coupleError) {
+      console.error('Error creating couple profile:', coupleError);
+      return res.status(500).json({ error: 'Error al crear el perfil de pareja' });
+    }
+
+    res.json({
+      success: true,
+      coupleProfile,
+      message: 'Perfil de pareja creado exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error in create couple profile:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
+ * POST /api/admin/couple-profiles/:id/gallery
+ * Subir fotos a la galería de un perfil de pareja
+ */
+router.post('/couple-profiles/:id/gallery', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { photos } = req.body; // Array de objetos { file_url, title }
+
+    if (!photos || !Array.isArray(photos)) {
+      return res.status(400).json({ error: 'Se requiere un array de fotos' });
+    }
+
+    // Insertar fotos en la galería
+    const galleryPhotos = photos.map((photo, index) => ({
+      couple_profile_id: id,
+      photo_url: photo.file_url,
+      photo_title: photo.title || '',
+      display_order: index + 1
+    }));
+
+    const { data, error } = await supabaseAdmin
+      .from('couple_gallery_photos')
+      .insert(galleryPhotos)
+      .select();
+
+    if (error) {
+      console.error('Error uploading gallery photos:', error);
+      return res.status(500).json({ error: 'Error al subir las fotos' });
+    }
+
+    res.json({
+      success: true,
+      photos: data,
+      message: 'Fotos subidas exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error in upload gallery photos:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
+ * POST /api/admin/couple-profiles/:id/songs
+ * Agregar canciones favoritas a un perfil de pareja
+ */
+router.post('/couple-profiles/:id/songs', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { songs } = req.body; // Array de objetos { title, youtube_url }
+
+    if (!songs || !Array.isArray(songs)) {
+      return res.status(400).json({ error: 'Se requiere un array de canciones' });
+    }
+
+    // Insertar canciones
+    const favoriteSongs = songs.map(song => ({
+      couple_profile_id: id,
+      song_title: song.title,
+      youtube_url: song.youtube_url
+    }));
+
+    const { data, error } = await supabaseAdmin
+      .from('couple_favorite_songs')
+      .insert(favoriteSongs)
+      .select();
+
+    if (error) {
+      console.error('Error adding favorite songs:', error);
+      return res.status(500).json({ error: 'Error al agregar las canciones' });
+    }
+
+    res.json({
+      success: true,
+      songs: data,
+      message: 'Canciones agregadas exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error in add favorite songs:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
+ * POST /api/admin/couple-profiles/:id/videos
+ * Subir videos especiales a un perfil de pareja
+ */
+router.post('/couple-profiles/:id/videos', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { videos } = req.body; // Array de objetos { file_url, title }
+
+    if (!videos || !Array.isArray(videos)) {
+      return res.status(400).json({ error: 'Se requiere un array de videos' });
+    }
+
+    // Insertar videos
+    const specialVideos = videos.map(video => ({
+      couple_profile_id: id,
+      video_url: video.file_url,
+      video_filename: video.title || ''
+    }));
+
+    const { data, error } = await supabaseAdmin
+      .from('couple_special_videos')
+      .insert(specialVideos)
+      .select();
+
+    if (error) {
+      console.error('Error uploading special videos:', error);
+      return res.status(500).json({ error: 'Error al subir los videos' });
+    }
+
+    res.json({
+      success: true,
+      videos: data,
+      message: 'Videos subidos exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error in upload special videos:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
+ * GET /api/admin/couple-profiles
+ * Obtener todos los perfiles de pareja
+ */
+router.get('/couple-profiles', requireAdmin, async (req, res) => {
+  try {
+    const { data: coupleProfiles, error } = await supabaseAdmin
+      .from('couple_profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching couple profiles:', error);
+      return res.status(500).json({ error: 'Error al obtener los perfiles de pareja' });
+    }
+
+    res.json({
+      success: true,
+      coupleProfiles: coupleProfiles || [],
+      message: 'Perfiles de pareja obtenidos exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error in get couple profiles:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
+ * GET /api/admin/couple-profiles/:id
+ * Obtener un perfil de pareja específico
+ */
+router.get('/couple-profiles/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Obtener el perfil principal
+    const { data: coupleProfile, error: profileError } = await supabaseAdmin
+      .from('couple_profiles')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching couple profile:', profileError);
+      return res.status(404).json({ error: 'Perfil de pareja no encontrado' });
+    }
+
+    // Obtener fotos de la galería
+    const { data: galleryPhotos } = await supabaseAdmin
+      .from('couple_gallery_photos')
+      .select('*')
+      .eq('couple_profile_id', id)
+      .order('display_order');
+
+    // Obtener canciones favoritas
+    const { data: favoriteSongs } = await supabaseAdmin
+      .from('couple_favorite_songs')
+      .select('*')
+      .eq('couple_profile_id', id)
+      .order('display_order');
+
+    // Obtener videos especiales
+    const { data: specialVideos } = await supabaseAdmin
+      .from('couple_special_videos')
+      .select('*')
+      .eq('couple_profile_id', id)
+      .order('display_order');
+
+    // Combinar todos los datos
+    const completeProfile = {
+      ...coupleProfile,
+      common_interests: coupleProfile.common_interests ? JSON.parse(coupleProfile.common_interests) : [],
+      person1_suegros: coupleProfile.person1_suegros ? JSON.parse(coupleProfile.person1_suegros) : [],
+      person2_suegros: coupleProfile.person2_suegros ? JSON.parse(coupleProfile.person2_suegros) : [],
+      person1_cunados: coupleProfile.person1_cunados ? JSON.parse(coupleProfile.person1_cunados) : [],
+      person2_cunados: coupleProfile.person2_cunados ? JSON.parse(coupleProfile.person2_cunados) : [],
+      gallery_photos: galleryPhotos || [],
+      favorite_songs: favoriteSongs || [],
+      special_videos: specialVideos || []
+    };
+
+    res.json({
+      success: true,
+      coupleProfile: completeProfile,
+      message: 'Perfil de pareja obtenido exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error in get couple profile:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
 
 export default router;
