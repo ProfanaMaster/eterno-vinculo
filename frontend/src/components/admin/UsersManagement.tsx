@@ -139,10 +139,6 @@ function UsersManagement() {
       } else {
         const response = await api.post('/admin/users', submitData)
         
-        console.log('Respuesta del backend:', response.data)
-        console.log('LoginLink recibido:', response.data.loginLink)
-        console.log('Send magic link:', formData.send_magic_link)
-        
         // Si se generó un enlace de login, mostrarlo
         if (response.data.loginLink) {
           setGeneratedLoginLink(response.data.loginLink)
