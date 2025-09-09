@@ -12,6 +12,10 @@ function MagicLinkLogin() {
   useEffect(() => {
     const handleMagicLink = async () => {
       try {
+        console.log('URL completa:', window.location.href);
+        console.log('Search params:', window.location.search);
+        console.log('Hash params:', window.location.hash);
+        
         // Obtener los parámetros de la URL (tanto de query como de hash)
         const urlParams = new URLSearchParams(window.location.search);
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -20,11 +24,19 @@ function MagicLinkLogin() {
         const accessToken = urlParams.get('access_token') || hashParams.get('access_token');
         const refreshToken = urlParams.get('refresh_token') || hashParams.get('refresh_token');
         const type = urlParams.get('type') || hashParams.get('type');
+        const token = urlParams.get('token') || hashParams.get('token');
 
-        console.log('Magic link params:', { accessToken: !!accessToken, refreshToken: !!refreshToken, type });
+        console.log('Magic link params:', { 
+          accessToken: !!accessToken, 
+          refreshToken: !!refreshToken, 
+          type,
+          token: !!token,
+          urlParams: Object.fromEntries(urlParams.entries()),
+          hashParams: Object.fromEntries(hashParams.entries())
+        });
 
+        // Si hay tokens de acceso, usarlos
         if (accessToken && refreshToken) {
-          // Establecer la sesión con los tokens
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken
@@ -36,23 +48,45 @@ function MagicLinkLogin() {
           }
 
           console.log('Session set successfully:', data);
-
-          // Esperar un poco para que la sesión se establezca
           await new Promise(resolve => setTimeout(resolve, 500));
-
-          // Actualizar el estado de autenticación
           await checkAuth();
           
           setStatus('success');
           setMessage('¡Inicio de sesión exitoso! Redirigiendo al dashboard...');
           
-          // Redirigir al dashboard después de 2 segundos
           setTimeout(() => {
             navigate('/dashboard');
           }, 2000);
           
-        } else {
-          // Si no hay tokens, verificar si ya hay una sesión activa
+        } 
+        // Si hay un token de confirmación, procesarlo
+        else if (token && type === 'signup') {
+          console.log('Processing signup token...');
+          
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: token,
+            type: 'signup'
+          });
+
+          if (error) {
+            console.error('Error verifying token:', error);
+            throw error;
+          }
+
+          console.log('Token verified successfully:', data);
+          await new Promise(resolve => setTimeout(resolve, 500));
+          await checkAuth();
+          
+          setStatus('success');
+          setMessage('¡Cuenta verificada e inicio de sesión exitoso! Redirigiendo al dashboard...');
+          
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 2000);
+          
+        } 
+        // Si no hay tokens, verificar si ya hay una sesión activa
+        else {
           const { data: { session } } = await supabase.auth.getSession();
           if (session) {
             console.log('Session already exists, redirecting...');
@@ -70,7 +104,6 @@ function MagicLinkLogin() {
         setStatus('error');
         setMessage(error.message || 'Error al procesar el enlace de acceso');
         
-        // Redirigir a la página principal después de 3 segundos
         setTimeout(() => {
           navigate('/');
         }, 3000);

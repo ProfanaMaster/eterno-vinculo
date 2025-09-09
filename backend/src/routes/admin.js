@@ -248,8 +248,9 @@ router.post('/users', requireAdmin, async (req, res) => {
     let loginLink = null;
     if (send_magic_link) {
       try {
+        // Generar un token temporal para login directo
         const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-          type: 'magiclink',
+          type: 'signup',
           email: email,
           options: {
             redirectTo: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/magic-link`
@@ -260,6 +261,7 @@ router.post('/users', requireAdmin, async (req, res) => {
           loginLink = linkData.properties.action_link;
         }
       } catch (error) {
+        console.error('Error generating magic link:', error);
         // No fallar la creación del usuario por error en generación de enlace
       }
     }
