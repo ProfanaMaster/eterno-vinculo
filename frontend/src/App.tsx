@@ -22,6 +22,7 @@ import { api } from '@/services/api'
 import { FamilyTemplate } from '@/modules/family/components'
 import SetPasswordModal from '@/components/SetPasswordModal'
 import { usePasswordSetup } from '@/hooks/usePasswordSetup'
+import MagicLinkLogin from '@/pages/MagicLinkLogin'
 
 // Wrapper component para manejar la ruta
 function MuroDeRecuerdosPage() {
@@ -176,6 +177,7 @@ function App() {
           <Route path="/muro-de-recuerdos/:slug" element={<MuroDeRecuerdosPage />} />
           <Route path="/familia/:slug" element={<FamilyProfilePage />} />
           <Route path="/pareja/:slug" element={<PublicCoupleProfile />} />
+          <Route path="/auth/magic-link" element={<MagicLinkLogin />} />
 
         </Routes>
       </Router>

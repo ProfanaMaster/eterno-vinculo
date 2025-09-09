@@ -252,7 +252,7 @@ router.post('/users', requireAdmin, async (req, res) => {
           type: 'magiclink',
           email: email,
           options: {
-            redirectTo: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard`
+            redirectTo: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/magic-link`
           }
         });
         
