@@ -1,0 +1,28 @@
+{
+  "name": "Eterno Vínculo - Admin",
+  "short_name": "Admin EV",
+  "description": "Panel de administración de Eterno Vínculo",
+  "start_url": "/admin",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo-eterno-vinculo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-eterno-vinculo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "es",
+  "scope": "/",
+  "prefer_related_applications": false
+}
