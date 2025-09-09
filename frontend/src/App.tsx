@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, useParams } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { SettingsProvider } from '@/contexts/SettingsContext'
+import { useSessionMonitor } from '@/hooks/useSessionMonitor'
 import Home from '@/pages/Home'
 import VerifyEmail from '@/pages/VerifyEmail'
 import ResetPassword from '@/pages/ResetPassword'
@@ -145,6 +146,9 @@ function FamilyProfilePage() {
 function App() {
   const { checkAuth } = useAuthStore()
   const { showModal, handlePasswordSet, handleSkip } = usePasswordSetup()
+  
+  // Monitorear sesión para detectar usuarios eliminados
+  useSessionMonitor()
 
   useEffect(() => {
     // Verificar autenticación inicial

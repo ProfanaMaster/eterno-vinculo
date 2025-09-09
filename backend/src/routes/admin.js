@@ -38,6 +38,28 @@ const requireAdmin = async (req, res, next) => {
   }
 };
 
+// Middleware para verificar autenticación (sin requerir admin)
+const requireAuth = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      return res.status(401).json({ error: 'Token requerido' });
+    }
+
+    const user = await getUserFromToken(token);
+    
+    // Verificar que el usuario existe
+    if (!user || !user.id) {
+      return res.status(401).json({ error: 'Token inválido o usuario no encontrado' });
+    }
+    
+    req.userId = user.id;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Token inválido' });
+  }
+};
+
 /**
  * GET /api/admin/dashboard
  * Verificar acceso de administrador
@@ -480,7 +502,7 @@ router.delete('/users/:id', requireAdmin, async (req, res) => {
       }
     }
 
-    // Eliminar de Supabase Auth
+    // Eliminar de Supabase Auth (esto invalidará automáticamente todas las sesiones)
     const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(id);
     if (authError) throw authError;
 
@@ -923,6 +945,32 @@ router.get('/users/search', requireAdmin, async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
+ * GET /api/users/me
+ * Verificar si el usuario actual existe (para monitoreo de sesión)
+ */
+router.get('/users/me', requireAuth, async (req, res) => {
+  try {
+    const { data: user, error } = await supabaseAdmin
+      .from('users')
+      .select('id, email, first_name, last_name, role, is_active')
+      .eq('id', req.userId)
+      .single();
+
+    if (error || !user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    if (!user.is_active) {
+      return res.status(403).json({ error: 'Usuario inactivo' });
+    }
+
+    res.json({ user });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al verificar usuario' });
   }
 });
 
