@@ -143,3 +143,4 @@ SELECT
 FROM couple_profiles cp
 WHERE cp.is_published = true;
 
+

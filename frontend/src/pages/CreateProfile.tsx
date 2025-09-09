@@ -19,6 +19,8 @@ function CreateProfile() {
   const [checkingRestrictions, setCheckingRestrictions] = useState(true)
   const [existingGalleryUrls, setExistingGalleryUrls] = useState<string[]>([])
   const [existingVideoUrl, setExistingVideoUrl] = useState<string>('')
+  const [canAddMorePhotos, setCanAddMorePhotos] = useState(false)
+  const [canAddVideo, setCanAddVideo] = useState(false)
 
   const navigate = useNavigate()
   const { id } = useParams()
@@ -42,7 +44,6 @@ function CreateProfile() {
         setRestrictionMessage(ProfileRestrictionsService.getRestrictionMessage(restriction))
       }
     } catch (error) {
-      console.error('Error verificando restricciones:', error)
       setCanCreateProfile(false)
       setRestrictionMessage('Error verificando permisos. Inténtalo más tarde.')
       setQuotasInfo('Error obteniendo información de cuotas')
@@ -134,9 +135,16 @@ function CreateProfile() {
       setExistingGalleryUrls(memorial.gallery_images || [])
       setExistingVideoUrl(memorial.memorial_video_url || '')
       
+      // Calcular condiciones de edición
+      const existingPhotosCount = (memorial.gallery_images || []).length
+      const maxPhotos = 6
+      const hasVideo = memorial.memorial_video_url && memorial.memorial_video_url.trim() !== ''
+      
+      setCanAddMorePhotos(existingPhotosCount < maxPhotos)
+      setCanAddVideo(!hasVideo)
+      
 
     } catch (error) {
-      console.error('Error loading memorial:', error)
       setToast({ message: 'Error al cargar el memorial', type: 'error', isVisible: true })
     } finally {
       setLoading(false)
@@ -209,7 +217,15 @@ function CreateProfile() {
 
     } else if (field === 'galleryImages') {
       const validFiles: File[] = []
-      Array.from(files).slice(0, 6).forEach(file => {
+      const currentTotal = isEditing ? existingGalleryUrls.length + formData.galleryImages.length : formData.galleryImages.length
+      const maxAllowed = 6 - currentTotal
+      
+      if (maxAllowed <= 0) {
+        setToast({ message: 'Ya tienes el máximo de fotos permitidas (6)', type: 'error', isVisible: true })
+        return
+      }
+      
+      Array.from(files).slice(0, maxAllowed).forEach(file => {
         const error = validateImageFile(file)
         if (error) {
           setToast({ message: `${file.name}: ${error}`, type: 'error', isVisible: true })
@@ -218,9 +234,14 @@ function CreateProfile() {
         }
       })
       if (validFiles.length > 0) {
-        setFormData(prev => ({ ...prev, galleryImages: [...prev.galleryImages, ...validFiles].slice(0, 6) }))
+        setFormData(prev => ({ ...prev, galleryImages: [...prev.galleryImages, ...validFiles] }))
       }
     } else if (field === 'video') {
+      if (isEditing && !canAddVideo) {
+        setToast({ message: 'Este memorial ya tiene un video', type: 'error', isVisible: true })
+        return
+      }
+      
       const error = validateVideoFile(files[0])
       if (error) {
         setToast({ message: error, type: 'error', isVisible: true })
@@ -272,9 +293,7 @@ function CreateProfile() {
           )
           
           setUploadProgress(prev => ({ ...prev, profile: 100 }))
-          logger.log('✅ Imagen de perfil subida:', profileImageUrl)
         } catch (error: any) {
-          console.error('❌ Error subiendo imagen de perfil:', error)
           setToast({ 
             message: `Error subiendo imagen de perfil: ${error.message}`, 
             type: 'error', 
@@ -285,7 +304,6 @@ function CreateProfile() {
       } else if (formData.profileImageUrl) {
         // Si no se sube una nueva imagen, mantener la URL existente
         profileImageUrl = formData.profileImageUrl
-        logger.log('✅ Manteniendo imagen de perfil existente:', profileImageUrl)
       }
 
       // Subir imágenes de galería
@@ -293,7 +311,7 @@ function CreateProfile() {
         try {
           setUploadProgress(prev => ({ ...prev, currentFile: 'Galería de imágenes', gallery: 0 }))
           
-          galleryImageUrls = await UploadService.uploadGalleryImages(
+          const newGalleryUrls = await UploadService.uploadGalleryImages(
             formData.galleryImages,
             (fileIndex, progress) => {
               const totalProgress = Math.round(((fileIndex * 100) + progress.percentage) / formData.galleryImages.length)
@@ -304,14 +322,14 @@ function CreateProfile() {
               }))
             },
             (fileIndex, url) => {
-              logger.log(`✅ Imagen ${fileIndex + 1} subida:`, url)
             }
           )
           
+          // Combinar URLs existentes con las nuevas
+          galleryImageUrls = isEditing ? [...existingGalleryUrls, ...newGalleryUrls] : newGalleryUrls
+          
           setUploadProgress(prev => ({ ...prev, gallery: 100 }))
-          logger.log('✅ Galería completa subida:', galleryImageUrls)
         } catch (error: any) {
-          console.error('❌ Error subiendo galería:', error)
           setToast({ 
             message: `Error subiendo galería: ${error.message}`, 
             type: 'error', 
@@ -319,6 +337,9 @@ function CreateProfile() {
           })
           return
         }
+      } else if (isEditing) {
+        // Si no hay nuevas fotos pero estamos editando, mantener las existentes
+        galleryImageUrls = existingGalleryUrls
       }
 
       // Subir video
@@ -338,9 +359,7 @@ function CreateProfile() {
           )
           
           setUploadProgress(prev => ({ ...prev, video: 100 }))
-          logger.log('✅ Video subido:', videoUrl)
         } catch (error: any) {
-          console.error('❌ Error subiendo video:', error)
           setToast({ 
             message: `Error subiendo video: ${error.message}`, 
             type: 'error', 
@@ -359,8 +378,8 @@ function CreateProfile() {
         birth_date: formData.birthDate,
         death_date: formData.deathDate,
         profile_image_url: profileImageUrl,
-        gallery_images: isEditing ? existingGalleryUrls : galleryImageUrls,
-        memorial_video_url: isEditing ? existingVideoUrl : videoUrl,
+        gallery_images: isEditing ? [...existingGalleryUrls, ...galleryImageUrls] : galleryImageUrls,
+        memorial_video_url: videoUrl || (isEditing ? existingVideoUrl : null),
         template_id: formData.template_id,
         favorite_music: formData.favoriteMusic
       }
@@ -393,7 +412,6 @@ function CreateProfile() {
         }, 2000)
       }
     } catch (error) {
-      console.error('❌ Error creating profile:', error)
       setToast({ 
         message: `Error al crear el memorial: ${(error as any).response?.data?.error || (error as any).message}`, 
         type: 'error', 
@@ -763,18 +781,23 @@ function CreateProfile() {
                   </div>
                   
                   {/* Galería */}
-                  <div className={`border-2 border-dashed rounded-lg p-6 ${isEditing ? 'border-gray-200 bg-gray-50' : 'border-gray-300'}`}>
+                  <div className={`border-2 border-dashed rounded-lg p-6 ${isEditing && !canAddMorePhotos ? 'border-gray-200 bg-gray-50' : 'border-gray-300'}`}>
                     <div className="text-center mb-4">
-                      <div className={`mb-4 ${isEditing ? 'text-gray-400' : 'text-gray-400'}`}>
+                      <div className={`mb-4 ${isEditing && !canAddMorePhotos ? 'text-gray-400' : 'text-gray-400'}`}>
                         🖼️ Galería (hasta 6 fotos)
+                        {isEditing && (
+                          <span className="text-sm text-blue-600 ml-2">
+                            ({existingGalleryUrls.length}/6 actuales)
+                          </span>
+                        )}
                       </div>
-                      {isEditing ? (
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                          <p className="text-yellow-800 text-sm mb-2">
-                            🚫 <strong>Función deshabilitada en edición</strong>
+                      {isEditing && !canAddMorePhotos ? (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <p className="text-green-800 text-sm mb-2">
+                            ✅ <strong>Galería completa</strong>
                           </p>
-                          <p className="text-yellow-700 text-xs">
-                            Si deseas cargar más archivos, comunícate con soporte
+                          <p className="text-green-700 text-xs">
+                            Ya tienes el máximo de fotos permitidas (6/6)
                           </p>
                         </div>
                       ) : (
@@ -788,9 +811,17 @@ function CreateProfile() {
                             id="galleryImages"
                           />
                           <label htmlFor="galleryImages" className="btn btn-secondary cursor-pointer">
-                            Agregar fotos ({formData.galleryImages.length}/6)
+                            {isEditing ? 
+                              `Agregar fotos (${existingGalleryUrls.length + formData.galleryImages.length}/6)` : 
+                              `Agregar fotos (${formData.galleryImages.length}/6)`
+                            }
                           </label>
                           <p className="text-xs text-gray-500 mt-2">JPG/PNG • Máx. 2MB c/u</p>
+                          {isEditing && canAddMorePhotos && (
+                            <p className="text-xs text-blue-600 mt-1">
+                              Puedes agregar {6 - existingGalleryUrls.length} fotos más
+                            </p>
+                          )}
                         </>
                       )}
                     </div>
@@ -817,17 +848,22 @@ function CreateProfile() {
                   </div>
                   
                   {/* Video */}
-                  <div className={`border-2 border-dashed rounded-lg p-6 text-center ${isEditing ? 'border-gray-200 bg-gray-50' : 'border-gray-300'}`}>
-                    <div className={`mb-4 ${isEditing ? 'text-gray-400' : 'text-gray-400'}`}>
+                  <div className={`border-2 border-dashed rounded-lg p-6 text-center ${isEditing && !canAddVideo ? 'border-gray-200 bg-gray-50' : 'border-gray-300'}`}>
+                    <div className={`mb-4 ${isEditing && !canAddVideo ? 'text-gray-400' : 'text-gray-400'}`}>
                       🎥 Video memorial (opcional)
+                      {isEditing && existingVideoUrl && (
+                        <span className="text-sm text-green-600 ml-2">
+                          (Ya tienes un video)
+                        </span>
+                      )}
                     </div>
-                    {isEditing ? (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <p className="text-yellow-800 text-sm mb-2">
-                          🚫 <strong>Función deshabilitada en edición</strong>
+                    {isEditing && !canAddVideo ? (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <p className="text-green-800 text-sm mb-2">
+                          ✅ <strong>Video ya cargado</strong>
                         </p>
-                        <p className="text-yellow-700 text-xs">
-                          Si deseas cargar más archivos, comunícate con soporte
+                        <p className="text-green-700 text-xs">
+                          Este memorial ya tiene un video memorial
                         </p>
                       </div>
                     ) : formData.video ? (
@@ -850,9 +886,14 @@ function CreateProfile() {
                           id="video"
                         />
                         <label htmlFor="video" className="btn btn-secondary cursor-pointer">
-                          Subir video
+                          {isEditing ? 'Agregar video' : 'Subir video'}
                         </label>
                         <p className="text-xs text-gray-500 mt-2">MP4/WebM/MOV/AVI • Máx. 65MB</p>
+                        {isEditing && canAddVideo && (
+                          <p className="text-xs text-blue-600 mt-1">
+                            Este memorial no tiene video, puedes agregar uno
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
@@ -882,9 +923,19 @@ function CreateProfile() {
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h3 className="font-medium mb-3">Archivos seleccionados:</h3>
                     <div className="space-y-2">
-                      <p><strong>Foto de perfil:</strong> {formData.profileImage ? `✓ ${formData.profileImage.name}` : '✗ No seleccionada'}</p>
-                      <p><strong>Galería:</strong> {formData.galleryImages.length} fotos{formData.galleryImages.length > 0 ? ` (${UploadService.formatFileSize(formData.galleryImages.reduce((acc, img) => acc + img.size, 0))})` : ''}</p>
-                      <p><strong>Video:</strong> {formData.video ? `✓ ${formData.video.name} (${UploadService.formatFileSize(formData.video.size)})` : 'No seleccionado'}</p>
+                      <p><strong>Foto de perfil:</strong> {formData.profileImage ? `✓ ${formData.profileImage.name}` : formData.profileImageUrl ? '✓ Manteniendo actual' : '✗ No seleccionada'}</p>
+                      <p><strong>Galería:</strong> {
+                        isEditing ? 
+                          `${existingGalleryUrls.length + formData.galleryImages.length} fotos totales (${existingGalleryUrls.length} existentes + ${formData.galleryImages.length} nuevas)` :
+                          `${formData.galleryImages.length} fotos`
+                      }{formData.galleryImages.length > 0 ? ` (${UploadService.formatFileSize(formData.galleryImages.reduce((acc, img) => acc + img.size, 0))})` : ''}</p>
+                      <p><strong>Video:</strong> {
+                        formData.video ? 
+                          `✓ ${formData.video.name} (${UploadService.formatFileSize(formData.video.size)})` : 
+                          isEditing && existingVideoUrl ? 
+                            '✓ Manteniendo video actual' : 
+                            'No seleccionado'
+                      }</p>
                     </div>
                   </div>
                   

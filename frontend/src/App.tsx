@@ -57,7 +57,6 @@ function MuroDeRecuerdosPage() {
         }
       } catch (error) {
         // Error silencioso para producción
-        console.error('Error fetching profile:', error)
       } finally {
         setLoading(false)
       }
@@ -107,7 +106,6 @@ function FamilyProfilePage() {
         const response = await api.get(`/family-profiles/public/${slug}`)
         setProfile(response.data.data)
       } catch (error) {
-        console.error('Error fetching family profile:', error)
       } finally {
         setLoading(false)
       }

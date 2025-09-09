@@ -39,7 +39,6 @@ function SpecialProfiles() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.access_token) {
-          console.error('No hay sesión activa');
           setLoading(false);
           return;
         }
@@ -54,10 +53,8 @@ function SpecialProfiles() {
           const data = await response.json();
           setCoupleProfiles(data.coupleProfiles || []);
         } else {
-          console.error('Error al cargar perfiles de pareja');
         }
       } catch (error) {
-        console.error('Error:', error);
       } finally {
         setLoading(false);
       }
@@ -222,7 +219,6 @@ function SpecialProfiles() {
                       <Button
                         onClick={() => {
                           // TODO: Implementar edición
-                          console.log('Editar perfil:', profile.id);
                         }}
                         variant="outline"
                         className="flex-1 text-sm"

@@ -1,5 +1,11 @@
+import { useState } from 'react'
 import { useSettings } from '@/contexts/SettingsContext'
 import { useAuthStore } from '@/stores/authStore'
+import { useUserOrders } from '@/hooks/useUserOrders'
+import { useAutoRedirect } from '@/hooks/useAutoRedirect'
+import { useDebugAuth } from '@/hooks/useDebugAuth'
+import { useNavigate } from 'react-router-dom'
+import AuthModal from '@/components/auth/AuthModal'
 
 function DashboardButton() {
   const { isAuthenticated } = useAuthStore()
@@ -20,6 +26,13 @@ function DashboardButton() {
 
 function Hero() {
   const { settings, loading } = useSettings()
+  const { isAuthenticated } = useAuthStore()
+  const { hasConfirmedOrders } = useUserOrders()
+  const { shouldRedirect } = useAutoRedirect()
+  const debugAuth = useDebugAuth() // Para debug
+  const navigate = useNavigate()
+  const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('register')
   const heroSettings = settings.hero_section || {}
   const statsSettings = settings.site_stats || {}
   
@@ -35,6 +48,23 @@ function Hero() {
       </section>
     )
   }
+
+  // TEMPORALMENTE DESHABILITADO - Solo usar redirección manual
+  // if (shouldRedirect) {
+  //   return (
+  //     <section id="inicio" className="py-20 bg-gradient-to-br from-gray-50 via-white to-blue-50">
+  //       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  //         <div className="flex items-center justify-center h-64">
+  //           <div className="text-center">
+  //             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+  //             <p className="text-lg font-medium text-gray-700">Redirigiendo al Dashboard...</p>
+  //             <p className="text-sm text-gray-500 mt-2">Tienes órdenes activas</p>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </section>
+  //   )
+  // }
 
   return (
     <section id="inicio" className="py-20 bg-gradient-to-br from-gray-50 via-white to-blue-50">
@@ -60,16 +90,20 @@ function Hero() {
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <button 
                 onClick={() => {
-                  const acquireButton = document.getElementById('adquirir-memorial-btn');
-                  if (acquireButton) {
-                    acquireButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  } else {
-                    // Fallback: si no encuentra el botón, hacer scroll a la sección
-                    const pricingSection = document.getElementById('precios');
-                    if (pricingSection) {
-                      pricingSection.scrollIntoView({ behavior: 'smooth' });
-                    }
+                  // Si no está autenticado, abrir modal de registro
+                  if (!isAuthenticated) {
+                    setAuthMode('register');
+                    setAuthModalOpen(true);
+                    return;
                   }
+                  
+                  // Si está autenticado y tiene órdenes, ir al dashboard
+                  if (isAuthenticated && hasConfirmedOrders) {
+                    navigate('/dashboard');
+                    return;
+                  }
+                  
+                  // Si está autenticado pero no tiene órdenes, no hacer nada
                 }}
                 className="btn btn-primary btn-lg"
               >
@@ -159,6 +193,13 @@ function Hero() {
           </div>
         </div>
       </div>
+      
+      {/* Modal de autenticación */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        defaultMode={authMode}
+      />
     </section>
   )
 }

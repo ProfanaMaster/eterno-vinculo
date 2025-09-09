@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Modal, Button, Input } from '@/components/ui'
 import { useAuthStore } from '@/stores/authStore'
+import { useUserOrders } from '@/hooks/useUserOrders'
+import { useNavigate } from 'react-router-dom'
 
 interface AuthModalProps {
   isOpen: boolean
@@ -24,7 +26,9 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
   const [showSuccess, setShowSuccess] = useState(false)
   const [resetEmailSent, setResetEmailSent] = useState(false)
 
-  const { login, register, resetPassword, loading, error, clearError } = useAuthStore()
+  const { login, register, resetPassword, loading, error, clearError, isAuthenticated } = useAuthStore()
+  const { hasConfirmedOrders, loading: ordersLoading } = useUserOrders()
+  const navigate = useNavigate()
 
   /**
    * Validar formulario
@@ -101,13 +105,22 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
         // Si llegamos aquí sin excepción, el login fue exitoso
         onClose()
         resetForm()
-        // Scroll suave a la sección de precios
-        setTimeout(() => {
-          const pricingSection = document.getElementById('precios')
-          if (pricingSection) {
-            pricingSection.scrollIntoView({ behavior: 'smooth' })
+        
+        // Lógica simplificada: solo redirigir si tiene órdenes
+        const checkAndRedirect = () => {
+          if (ordersLoading) {
+            // Si aún está cargando, esperar un poco más
+            setTimeout(checkAndRedirect, 200);
+            return;
           }
-        }, 100)
+          
+          if (isAuthenticated && hasConfirmedOrders) {
+            navigate('/dashboard');
+          }
+        };
+        
+        // Iniciar la verificación después de un pequeño delay
+        setTimeout(checkAndRedirect, 100);
       } else {
         await register(formData.email, formData.password, formData.name)
         
@@ -271,7 +284,7 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
       onClose={handleClose}
       title={
         mode === 'login' ? 'Iniciar Sesión' : 
-        mode === 'register' ? 'Crear Cuenta' : 
+        mode === 'register' ? 'Crear una Nueva Cuenta' : 
         'Restablecer Contraseña'
       }
       size="md"
@@ -342,7 +355,7 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
             disabled={loading}
           >
             {mode === 'login' ? 'Iniciar Sesión' : 
-             mode === 'register' ? 'Crear Cuenta' : 
+             mode === 'register' ? 'Crear una Nueva Cuenta' : 
              'Enviar Enlace'}
           </Button>
 
@@ -357,25 +370,28 @@ function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
               </button>
             </div>
           ) : (
-            <div className="text-center space-y-2">
-              <button
+            <div className="space-y-3">
+              <Button
                 type="button"
                 onClick={switchMode}
-                className="text-primary-600 hover:text-primary-700 text-sm font-medium block"
+                variant="outline"
+                className="w-full"
               >
                 {mode === 'login' 
                   ? '¿No tienes cuenta? Regístrate' 
                   : '¿Ya tienes cuenta? Inicia sesión'
                 }
-              </button>
+              </Button>
               {mode === 'login' && (
-                <button
-                  type="button"
-                  onClick={goToForgotPassword}
-                  className="text-gray-500 hover:text-gray-700 text-sm font-medium block"
-                >
-                  ¿Olvidaste tu contraseña?
-                </button>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={goToForgotPassword}
+                    className="text-gray-500 hover:text-gray-700 text-sm font-medium"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </button>
+                </div>
               )}
             </div>
           )}

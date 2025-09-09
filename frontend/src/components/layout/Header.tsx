@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useCartStore } from '@/stores/cartStore';
+import { useUserOrders } from '@/hooks/useUserOrders';
 import AuthModal from '@/components/auth/AuthModal';
 
 function Header() {
@@ -13,13 +14,14 @@ function Header() {
   
   const { user, isAuthenticated, logout } = useAuthStore();
   const { getItemCount, toggleCart } = useCartStore();
+  const { hasConfirmedOrders } = useUserOrders();
   
   const handleCreateMemorial = () => {
     if (isAuthenticated) {
-      // Usuario autenticado - ir a precios
-      const pricingSection = document.getElementById('precios');
-      if (pricingSection) {
-        pricingSection.scrollIntoView({ behavior: 'smooth' });
+      // Usuario autenticado - verificar si tiene órdenes
+      if (hasConfirmedOrders) {
+        // Si tiene órdenes, ir al dashboard
+        navigate('/dashboard');
       }
     } else {
       // Usuario no autenticado - abrir modal de registro
