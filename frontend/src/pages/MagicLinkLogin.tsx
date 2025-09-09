@@ -12,22 +12,33 @@ function MagicLinkLogin() {
   useEffect(() => {
     const handleMagicLink = async () => {
       try {
-        // Obtener los parámetros de la URL
+        // Obtener los parámetros de la URL (tanto de query como de hash)
         const urlParams = new URLSearchParams(window.location.search);
-        const accessToken = urlParams.get('access_token');
-        const refreshToken = urlParams.get('refresh_token');
-        const type = urlParams.get('type');
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        
+        // Intentar obtener tokens de ambos lugares
+        const accessToken = urlParams.get('access_token') || hashParams.get('access_token');
+        const refreshToken = urlParams.get('refresh_token') || hashParams.get('refresh_token');
+        const type = urlParams.get('type') || hashParams.get('type');
 
-        if (type === 'magiclink' && accessToken && refreshToken) {
+        console.log('Magic link params:', { accessToken: !!accessToken, refreshToken: !!refreshToken, type });
+
+        if (accessToken && refreshToken) {
           // Establecer la sesión con los tokens
-          const { error } = await supabase.auth.setSession({
+          const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken
           });
 
           if (error) {
+            console.error('Error setting session:', error);
             throw error;
           }
+
+          console.log('Session set successfully:', data);
+
+          // Esperar un poco para que la sesión se establezca
+          await new Promise(resolve => setTimeout(resolve, 500));
 
           // Actualizar el estado de autenticación
           await checkAuth();
@@ -41,7 +52,18 @@ function MagicLinkLogin() {
           }, 2000);
           
         } else {
-          throw new Error('Enlace de acceso inválido');
+          // Si no hay tokens, verificar si ya hay una sesión activa
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            console.log('Session already exists, redirecting...');
+            setStatus('success');
+            setMessage('¡Ya tienes una sesión activa! Redirigiendo al dashboard...');
+            setTimeout(() => {
+              navigate('/dashboard');
+            }, 1000);
+          } else {
+            throw new Error('Enlace de acceso inválido o expirado');
+          }
         }
       } catch (error: any) {
         console.error('Error en magic link:', error);
