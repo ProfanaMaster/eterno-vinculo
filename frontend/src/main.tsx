@@ -10,11 +10,8 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js', {
       scope: '/'
     })
-      .then((registration) => {
-        console.log('SW registrado exitosamente: ', registration);
-      })
       .catch((registrationError) => {
-        console.log('SW registro falló: ', registrationError);
+        console.error('SW registro falló: ', registrationError);
       });
   });
 }

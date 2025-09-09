@@ -248,17 +248,44 @@ router.post('/users', requireAdmin, async (req, res) => {
     let loginLink = null;
     if (send_magic_link) {
       try {
+        console.log('Generando magic link para:', email);
+        console.log('Redirect URL:', `${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/magic-link`);
+        
         // Generar un token temporal para login directo
         const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-          type: 'signup',
+          type: 'magiclink',
           email: email,
           options: {
             redirectTo: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/magic-link`
           }
         });
         
+        console.log('Link data:', linkData);
+        console.log('Link error:', linkError);
+        
         if (!linkError && linkData?.properties?.action_link) {
           loginLink = linkData.properties.action_link;
+          console.log('Magic link generado exitosamente:', loginLink);
+        } else {
+          console.log('No se pudo generar el magic link con Supabase, intentando método alternativo...');
+          
+          // Método alternativo: crear un enlace personalizado
+          try {
+            const { data: customLinkData, error: customLinkError } = await supabaseAdmin.auth.admin.generateLink({
+              type: 'recovery',
+              email: email,
+              options: {
+                redirectTo: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/magic-link`
+              }
+            });
+            
+            if (!customLinkError && customLinkData?.properties?.action_link) {
+              loginLink = customLinkData.properties.action_link;
+              console.log('Magic link alternativo generado:', loginLink);
+            }
+          } catch (altError) {
+            console.error('Error en método alternativo:', altError);
+          }
         }
       } catch (error) {
         console.error('Error generating magic link:', error);
