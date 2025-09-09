@@ -1,26 +1,15 @@
 // Service Worker para Eterno Vínculo Admin
 const CACHE_NAME = 'eterno-vinculo-admin-v1';
-const urlsToCache = [
-  '/',
-  '/admin',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
-  '/logo-eterno-vinculo.png'
-];
 
 // Instalación del Service Worker
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Cache abierto');
-        return cache.addAll(urlsToCache);
-      })
-  );
+  console.log('Service Worker instalado');
+  self.skipWaiting();
 });
 
 // Activación del Service Worker
 self.addEventListener('activate', (event) => {
+  console.log('Service Worker activado');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -35,17 +24,18 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Interceptar requests
+// Interceptar requests solo para recursos estáticos
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Cache hit - devolver respuesta
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      }
-    )
-  );
+  // Solo cachear recursos estáticos, no APIs
+  if (event.request.url.includes('/static/') || event.request.url.includes('.js') || event.request.url.includes('.css')) {
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          if (response) {
+            return response;
+          }
+          return fetch(event.request);
+        })
+    );
+  }
 });
