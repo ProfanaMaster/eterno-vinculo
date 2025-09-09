@@ -6,6 +6,7 @@ function Examples() {
   const navigate = useNavigate();
   const { settings } = useSettings();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isYouTubeModalOpen, setIsYouTubeModalOpen] = useState(false);
   const [memorialProfiles, setMemorialProfiles] = useState<Array<{
     profile_name: string;
     profile_image_url: string;
@@ -21,6 +22,11 @@ function Examples() {
       setMemorialProfiles(settings.examples_section.memorial_profiles);
     }
   }, [settings.examples_section]);
+
+  const handleYouTubeRedirect = () => {
+    window.open('https://www.youtube.com/shorts/LXH6S22PJNk', '_blank');
+    setIsYouTubeModalOpen(false);
+  };
 
   return (
     <section id="ejemplos" className="py-20 bg-white">
@@ -40,6 +46,27 @@ function Examples() {
           >
             Ver Ejemplos Reales
           </button>
+
+          {/* Sección de ayuda */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 max-w-4xl mx-auto">
+            <div className="text-center">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                ¿No sabes cómo empezar?
+              </h3>
+              <p className="text-lg text-gray-700 mb-6">
+                Mira nuestros videos sobre cómo Registrarte y Comenzar a Crear Perfiles Memoriales.
+              </p>
+              <button
+                onClick={() => setIsYouTubeModalOpen(true)}
+                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-3 mx-auto"
+              >
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+                Ver Videos Tutoriales
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="bg-gradient-to-r from-primary/5 to-accent/5 rounded-2xl p-8 text-center">
@@ -187,6 +214,45 @@ function Examples() {
                   <p className="text-gray-600 text-lg">Los administradores pueden configurar ejemplos de memoriales desde el panel de control.</p>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación para YouTube */}
+      {isYouTubeModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl border border-gray-100">
+            <div className="text-center">
+              {/* Icono de YouTube */}
+              <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+              </div>
+              
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                Redirección a YouTube
+              </h3>
+              
+              <p className="text-gray-600 mb-8 leading-relaxed">
+                Serás redirigido al canal de YouTube de Eterno Vínculo donde podrás encontrar videos que te ayudarán en todo lo que necesites.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  onClick={() => setIsYouTubeModalOpen(false)}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-all duration-200"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleYouTubeRedirect}
+                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                >
+                  Ir a YouTube
+                </button>
+              </div>
             </div>
           </div>
         </div>

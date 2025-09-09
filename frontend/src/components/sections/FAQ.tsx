@@ -6,7 +6,7 @@ function FAQ() {
   const faqs = [
     {
       question: "¿Cómo funciona el código QR?",
-      answer: "Cada memorial incluye un código QR único que puedes imprimir y colocar en la lápida, tarjetas de recordatorio o cualquier lugar. Al escanearlo con un teléfono, las personas acceden directamente al memorial digital."
+      answer: "Cada perfil memorial digital incluye un código QR único que se entrega impreso en una lamina de alumino de 6x6 dentro de una hermosa caja, puedes colocar en la lápida o imprimir en tarjetas de recordatorio o cualquier lugar. Al escanearlo con un teléfono, las personas acceden directamente al memorial digital."
     },
     {
       question: "¿El memorial estará disponible para siempre?",
@@ -24,7 +24,7 @@ function FAQ() {
     ,
     {
       question: "¿Cómo se comparte el memorial?",
-      answer: "Puedes compartir tu memorial a través de un enlace único, código QR, redes sociales, email, o imprimiendo tarjetas con el código QR incluido."
+      answer: "Puedes compartir tu memorial a través de un enlace único que esta disponible en tu dashboard o simplemente copiando la URL del navegador, puedes compartirlo en redes sociales, email, o imprimiendo tarjetas con el código QR incluido."
     }
   ]
 
