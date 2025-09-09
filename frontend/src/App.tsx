@@ -20,6 +20,8 @@ import ViewCoupleProfile from '@/pages/admin/ViewCoupleProfile'
 import PublicCoupleProfile from '@/pages/profile/PublicCoupleProfile'
 import { api } from '@/services/api'
 import { FamilyTemplate } from '@/modules/family/components'
+import SetPasswordModal from '@/components/SetPasswordModal'
+import { usePasswordSetup } from '@/hooks/usePasswordSetup'
 
 // Wrapper component para manejar la ruta
 function MuroDeRecuerdosPage() {
@@ -141,6 +143,7 @@ function FamilyProfilePage() {
 
 function App() {
   const { checkAuth } = useAuthStore()
+  const { showModal, handlePasswordSet, handleSkip } = usePasswordSetup()
 
   useEffect(() => {
     // Verificar autenticación inicial
@@ -176,6 +179,13 @@ function App() {
 
         </Routes>
       </Router>
+      
+      {/* Modal para establecer contraseña */}
+      <SetPasswordModal
+        isOpen={showModal}
+        onClose={handleSkip}
+        onSuccess={handlePasswordSet}
+      />
     </SettingsProvider>
   )
 }

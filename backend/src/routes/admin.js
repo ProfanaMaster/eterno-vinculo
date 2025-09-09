@@ -206,7 +206,7 @@ router.get('/users', requireAdmin, async (req, res) => {
  */
 router.post('/users', requireAdmin, async (req, res) => {
   try {
-    const { email, first_name, last_name, role = 'user', password } = req.body;
+    const { email, first_name, last_name, role = 'user', password, send_magic_link = false } = req.body;
 
     // Validar datos requeridos
     if (!email || !password || !first_name || !last_name) {
@@ -232,16 +232,37 @@ router.post('/users', requireAdmin, async (req, res) => {
     // Crear usuario en Supabase Auth
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
-      password,
+      password: password, // Siempre crear con contraseña
       email_confirm: true,
       user_metadata: { 
         first_name,
         last_name,
-        full_name: `${first_name} ${last_name}` 
+        full_name: `${first_name} ${last_name}`,
+        needs_password_setup: send_magic_link // Marcar si necesita configurar contraseña
       }
     });
 
     if (authError) throw authError;
+
+    // Generar enlace de login directo si se solicita
+    let loginLink = null;
+    if (send_magic_link) {
+      try {
+        const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'magiclink',
+          email: email,
+          options: {
+            redirectTo: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard`
+          }
+        });
+        
+        if (!linkError && linkData?.properties?.action_link) {
+          loginLink = linkData.properties.action_link;
+        }
+      } catch (error) {
+        // No fallar la creación del usuario por error en generación de enlace
+      }
+    }
 
     // Crear registro en la tabla users
     const { data: user, error } = await supabaseAdmin
@@ -261,10 +282,14 @@ router.post('/users', requireAdmin, async (req, res) => {
     res.status(201).json({
       success: true,
       data: user,
-      message: 'Usuario creado exitosamente'
+      loginLink: loginLink, // Incluir el enlace en la respuesta
+      message: send_magic_link 
+        ? (loginLink 
+            ? 'Usuario creado exitosamente. Copia y envía este enlace al usuario para que inicie sesión automáticamente.'
+            : 'Usuario creado exitosamente. No se pudo generar el enlace de login.')
+        : 'Usuario creado exitosamente'
     });
   } catch (error) {
-    console.error('Error creating user:', error);
     res.status(500).json({ error: 'Error al crear usuario' });
   }
 });
@@ -728,7 +753,159 @@ router.put('/orders/:id/verify', requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * POST /api/admin/orders
+ * Crear nueva orden manualmente
+ */
+router.post('/orders', requireAdmin, async (req, res) => {
+  try {
+    const {
+      user_id,
+      package_id,
+      payment_method,
+      payment_intent_id,
+      total_amount,
+      currency = 'COP',
+      status = 'completed',
+      paid_at,
+      payer_name
+    } = req.body;
 
+    // Validaciones
+    if (!user_id || !package_id || !payment_method || !payment_intent_id || !total_amount) {
+      return res.status(400).json({ 
+        error: 'Faltan campos requeridos: user_id, package_id, payment_method, payment_intent_id, total_amount' 
+      });
+    }
+
+    // Verificar que el usuario existe
+    const { data: user, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('id, email, first_name, last_name')
+      .eq('id', user_id)
+      .single();
+
+    if (userError || !user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Verificar que el paquete existe
+    const { data: packageData, error: packageError } = await supabaseAdmin
+      .from('packages')
+      .select('id, name, price, package_type')
+      .eq('id', package_id)
+      .single();
+
+    if (packageError || !packageData) {
+      return res.status(404).json({ error: 'Paquete no encontrado' });
+    }
+
+    // Validar método de pago
+    const validPaymentMethods = ['Nequi', 'Transfiya', 'Bancolombia'];
+    if (!validPaymentMethods.includes(payment_method)) {
+      return res.status(400).json({ 
+        error: 'Método de pago inválido. Debe ser: Nequi, Transfiya o Bancolombia' 
+      });
+    }
+
+    // Validar monto
+    const amount = parseFloat(total_amount);
+    if (isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ error: 'El monto debe ser un número mayor a 0' });
+    }
+
+    // Crear la orden
+    const orderData = {
+      user_id,
+      package_id,
+      payment_method,
+      payment_intent_id,
+      total_amount: amount,
+      currency,
+      status,
+      paid_at: paid_at || new Date().toISOString(),
+      created_at: new Date().toISOString()
+    };
+
+    const { data: newOrder, error: orderError } = await supabaseAdmin
+      .from('orders')
+      .insert(orderData)
+      .select(`
+        id,
+        user_id,
+        package_id,
+        payment_method,
+        payment_intent_id,
+        total_amount,
+        currency,
+        status,
+        paid_at,
+        created_at,
+        users (
+          id,
+          email,
+          first_name,
+          last_name
+        ),
+        packages (
+          id,
+          name,
+          price,
+          package_type
+        )
+      `)
+      .single();
+
+    if (orderError) {
+      return res.status(500).json({ error: 'Error al crear la orden' });
+    }
+
+    res.status(201).json({
+      success: true,
+      data: newOrder,
+      message: 'Orden creada exitosamente'
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+/**
+ * GET /api/admin/users/search
+ * Buscar usuarios por email
+ */
+router.get('/users/search', requireAdmin, async (req, res) => {
+  try {
+    const { email } = req.query;
+    
+    if (!email || email.length < 3) {
+      return res.json({
+        success: true,
+        users: []
+      });
+    }
+
+    const { data: users, error } = await supabaseAdmin
+      .from('users')
+      .select('id, email, first_name, last_name')
+      .ilike('email', `%${email}%`)
+      .limit(10)
+      .order('email');
+
+    if (error) {
+      return res.status(500).json({ error: 'Error al buscar usuarios' });
+    }
+
+    res.json({
+      success: true,
+      users: users || []
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
 
 /**
  * GET /api/admin/stats

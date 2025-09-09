@@ -32,6 +32,7 @@ interface UserFormData {
   role: 'user' | 'admin' | 'super_admin'
   password?: string
   confirmPassword?: string
+  send_magic_link?: boolean
 }
 
 function UsersManagement() {
@@ -43,15 +44,18 @@ function UsersManagement() {
   const [totalUsers, setTotalUsers] = useState(0)
   const [showModal, setShowModal] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [generatedLoginLink, setGeneratedLoginLink] = useState<string | null>(null)
   const [formData, setFormData] = useState<UserFormData>({
     email: '',
     first_name: '',
     last_name: '',
     role: 'user',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    send_magic_link: false
   })
   const [showPasswordFields, setShowPasswordFields] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [userToDelete, setUserToDelete] = useState<User | null>(null)
   const [showProfilesModal, setShowProfilesModal] = useState(false)
@@ -88,7 +92,7 @@ function UsersManagement() {
 
   const handleCreate = () => {
     setEditingUser(null)
-    setFormData({ email: '', first_name: '', last_name: '', role: 'user', password: '', confirmPassword: '' })
+    setFormData({ email: '', first_name: '', last_name: '', role: 'user', password: '', confirmPassword: '', send_magic_link: false })
     setShowPasswordFields(true)
     setShowModal(true)
   }
@@ -101,7 +105,8 @@ function UsersManagement() {
       last_name: user.last_name || '',
       role: user.role,
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      send_magic_link: false
     })
     setShowPasswordFields(false)
     setShowModal(true)
@@ -128,13 +133,23 @@ function UsersManagement() {
       if (editingUser) {
         await api.put(`/admin/users/${editingUser.id}`, submitData)
         toast.success('Usuario actualizado exitosamente')
+        setShowModal(false)
+        setShowPasswordFields(false)
+        fetchUsers()
       } else {
-        await api.post('/admin/users', submitData)
-        toast.success('Usuario creado exitosamente')
+        const response = await api.post('/admin/users', submitData)
+        
+        // Si se generó un enlace de login, mostrarlo
+        if (response.data.loginLink) {
+          setGeneratedLoginLink(response.data.loginLink)
+          toast.success(response.data.message)
+        } else {
+          toast.success('Usuario creado exitosamente')
+          setShowModal(false)
+          setShowPasswordFields(false)
+          fetchUsers()
+        }
       }
-      setShowModal(false)
-      setShowPasswordFields(false)
-      fetchUsers()
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Error al guardar usuario')
     }
@@ -190,6 +205,34 @@ function UsersManagement() {
     }
   }
 
+  const copyLoginLink = async () => {
+    if (generatedLoginLink) {
+      try {
+        await navigator.clipboard.writeText(generatedLoginLink)
+        toast.success('Enlace copiado al portapapeles')
+      } catch (error) {
+        toast.error('Error al copiar el enlace')
+      }
+    }
+  }
+
+  const closeModalWithReset = () => {
+    setShowModal(false)
+    setEditingUser(null)
+    setFormData({
+      email: '',
+      first_name: '',
+      last_name: '',
+      role: 'user',
+      password: '',
+      confirmPassword: '',
+      send_magic_link: false
+    })
+    setShowPasswordFields(false)
+    setErrors({})
+    setGeneratedLoginLink(null)
+  }
+
   const handleOpenProfile = (profile: Profile) => {
     if (profile.is_published && profile.slug) {
       window.open(`/memorial/${profile.slug}`, '_blank')
@@ -231,22 +274,25 @@ function UsersManagement() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Gestión de Usuarios</h2>
-          <p className="text-gray-600 mt-1">{totalUsers} usuarios registrados</p>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">Gestión de Usuarios</h2>
+          <p className="text-sm md:text-base text-gray-600 mt-1">{totalUsers} usuarios registrados</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="w-64">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+          <div className="w-full sm:w-64">
             <Input
               placeholder="Buscar usuarios..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Button onClick={handleCreate}>
+          <Button onClick={handleCreate} className="w-full sm:w-auto">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
             Crear Usuario
           </Button>
         </div>
@@ -269,22 +315,22 @@ function UsersManagement() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Usuario
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Rol
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Estado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actividad
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Registro
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
@@ -292,7 +338,7 @@ function UsersManagement() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {users.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
                           {user.name}
@@ -300,13 +346,13 @@ function UsersManagement() {
                         <div className="text-sm text-gray-500">{user.email}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       {getRoleBadge(user.role)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(user.is_active)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         {user.orders_count || 0} órdenes
                       </div>
@@ -314,17 +360,18 @@ function UsersManagement() {
                         {user.profiles_count || 0} perfiles
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         {new Date(user.created_at).toLocaleDateString()}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2">
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handleEdit(user)}
+                          className="text-xs sm:text-sm"
                         >
                           Editar
                         </Button>
@@ -335,7 +382,7 @@ function UsersManagement() {
                             variant="outline"
                             onClick={() => handleViewMemorial(user)}
                             disabled={loadingProfiles}
-                            className="text-blue-600 hover:text-blue-700"
+                            className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm"
                           >
                             {loadingProfiles ? 'Cargando...' : 'Ver Memorial'}
                           </Button>
@@ -345,7 +392,7 @@ function UsersManagement() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleDelete(user)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-600 hover:text-red-700 text-xs sm:text-sm"
                         >
                           Eliminar
                         </Button>
@@ -361,7 +408,7 @@ function UsersManagement() {
 
       {/* Paginación */}
       {totalPages > 1 && (
-        <div className="flex justify-center">
+        <div className="flex justify-center px-4">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -373,12 +420,12 @@ function UsersManagement() {
       {/* Modal de Crear/Editar */}
       <Modal
         isOpen={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={closeModalWithReset}
         title={editingUser ? 'Editar Usuario' : 'Crear Usuario'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Nombre
@@ -478,21 +525,87 @@ function UsersManagement() {
               <option value="super_admin">Super Admin</option>
             </select>
           </div>
+
+          {/* Opción de Magic Link - solo para crear usuarios */}
+          {!editingUser && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start">
+                <div className="flex items-center h-5">
+                  <input
+                    id="send_magic_link"
+                    type="checkbox"
+                    checked={formData.send_magic_link}
+                    onChange={(e) => setFormData({ ...formData, send_magic_link: e.target.checked })}
+                    className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                  />
+                </div>
+                <div className="ml-3">
+                  <label htmlFor="send_magic_link" className="text-sm font-medium text-blue-900">
+                    Enviar enlace mágico
+                  </label>
+                  <p className="text-sm text-blue-700 mt-1">
+                    Se generará un enlace que podrás copiar y enviar al usuario por WhatsApp, SMS, etc. 
+                    El usuario podrá iniciar sesión automáticamente haciendo clic en el enlace.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           
 
           
-          <div className="flex justify-end gap-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowModal(false)}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit">
-              {editingUser ? 'Actualizar' : 'Crear'}
-            </Button>
-          </div>
+          {/* Mostrar enlace generado si existe */}
+          {generatedLoginLink && (
+            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h3 className="text-lg font-semibold text-green-800 mb-3">
+                ✅ Enlace de Login Generado
+              </h3>
+              <p className="text-sm text-green-700 mb-3">
+                Copia y envía este enlace al usuario para que inicie sesión automáticamente:
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={generatedLoginLink}
+                  readOnly
+                  className="flex-1 px-3 py-2 border border-green-300 rounded-md bg-white text-sm font-mono"
+                />
+                <Button
+                  type="button"
+                  onClick={copyLoginLink}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Copiar
+                </Button>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeModalWithReset}
+                >
+                  Cerrar
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Botones normales solo si no hay enlace generado */}
+          {!generatedLoginLink && (
+            <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={closeModalWithReset}
+                className="w-full sm:w-auto"
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" className="w-full sm:w-auto">
+                {editingUser ? 'Actualizar' : 'Crear'}
+              </Button>
+            </div>
+          )}
         </form>
       </Modal>
 
@@ -508,17 +621,18 @@ function UsersManagement() {
             Esta acción no se puede deshacer.
           </p>
           
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-col sm:flex-row justify-end gap-2">
             <Button
               variant="outline"
               onClick={() => setShowDeleteModal(false)}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
             <Button
               variant="outline"
               onClick={confirmDelete}
-              className="bg-red-600 text-white hover:bg-red-700"
+              className="bg-red-600 text-white hover:bg-red-700 w-full sm:w-auto"
             >
               Eliminar
             </Button>
@@ -576,6 +690,7 @@ function UsersManagement() {
             <Button
               variant="outline"
               onClick={() => setShowProfilesModal(false)}
+              className="w-full sm:w-auto"
             >
               Cerrar
             </Button>

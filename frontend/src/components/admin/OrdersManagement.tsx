@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { Table, TableHeader, TableBody, TableRow, TableCell, TableHeaderCell } from '@/components/ui/Table'
 import Pagination from '@/components/ui/Pagination'
 import { Input } from '@/components/ui/Input'
+import NewOrderModal from './NewOrderModal'
 
 function OrdersManagement() {
   const { user } = useAuthStore()
@@ -12,6 +13,7 @@ function OrdersManagement() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [showNewOrderModal, setShowNewOrderModal] = useState(false)
 
   const handleSearch = (value: string) => {
     setSearch(value)
@@ -33,8 +35,13 @@ function OrdersManagement() {
         fetchOrders(pagination?.page || 1, search, statusFilter)
       }
     } catch (error) {
-      console.error('Error updating order:', error)
+      // Error silencioso
     }
+  }
+
+  const handleNewOrderSuccess = () => {
+    // Recargar órdenes después de crear una nueva
+    fetchOrders(pagination?.page || 1, search, statusFilter)
   }
 
   const getStatusBadge = (status: string) => {
@@ -89,8 +96,19 @@ function OrdersManagement() {
     >
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Gestión de Órdenes</h2>
-        <div className="text-sm text-gray-500">
-          Total: {pagination?.total || 0} órdenes
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-500">
+            Total: {pagination?.total || 0} órdenes
+          </div>
+          <button
+            onClick={() => setShowNewOrderModal(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Nueva Orden
+          </button>
         </div>
       </div>
 
@@ -245,6 +263,13 @@ function OrdersManagement() {
           onPageChange={(page) => fetchOrders(page, search, statusFilter)}
         />
       )}
+
+      {/* Modal para nueva orden */}
+      <NewOrderModal
+        isOpen={showNewOrderModal}
+        onClose={() => setShowNewOrderModal(false)}
+        onSuccess={handleNewOrderSuccess}
+      />
     </motion.div>
   )
 }
