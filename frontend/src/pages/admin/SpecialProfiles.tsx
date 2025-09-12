@@ -43,7 +43,8 @@ function SpecialProfiles() {
           return;
         }
 
-        const response = await fetch('http://localhost:3002/api/admin/couple-profiles', {
+        const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api';
+        const response = await fetch(`${API_URL}/admin/couple-profiles`, {
           headers: {
             'Authorization': `Bearer ${session.access_token}`
           }

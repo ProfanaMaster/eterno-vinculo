@@ -379,7 +379,8 @@ function CreateCoupleProfile() {
       throw new Error('No hay sesión activa');
     }
 
-    const response = await fetch('http://localhost:3002/api/upload-proxy/proxy', {
+    const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api';
+    const response = await fetch(`${API_URL}/upload-proxy/proxy`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`
@@ -447,7 +448,8 @@ function CreateCoupleProfile() {
         is_published: profileData.is_published
       };
 
-      const response = await fetch('http://localhost:3002/api/admin/couple-profiles', {
+      const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api';
+      const response = await fetch(`${API_URL}/admin/couple-profiles`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -475,7 +477,7 @@ function CreateCoupleProfile() {
           });
         }
 
-        await fetch(`http://localhost:3002/api/admin/couple-profiles/${coupleProfileId}/gallery`, {
+        await fetch(`${API_URL}/admin/couple-profiles/${coupleProfileId}/gallery`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -487,7 +489,7 @@ function CreateCoupleProfile() {
 
       // Agregar canciones favoritas
       if (profileData.favorite_songs.length > 0) {
-        await fetch(`http://localhost:3002/api/admin/couple-profiles/${coupleProfileId}/songs`, {
+        await fetch(`${API_URL}/admin/couple-profiles/${coupleProfileId}/songs`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -508,7 +510,7 @@ function CreateCoupleProfile() {
           });
         }
 
-        await fetch(`http://localhost:3002/api/admin/couple-profiles/${coupleProfileId}/videos`, {
+        await fetch(`${API_URL}/admin/couple-profiles/${coupleProfileId}/videos`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
