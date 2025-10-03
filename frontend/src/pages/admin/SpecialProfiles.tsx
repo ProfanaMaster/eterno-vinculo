@@ -11,6 +11,7 @@ interface CoupleProfile {
   person1_name: string;
   person2_name: string;
   is_published: boolean;
+  slug: string;
   created_at: string;
   visit_count: number;
 }
@@ -20,6 +21,7 @@ function SpecialProfiles() {
   const [selectedProfileType, setSelectedProfileType] = useState<string | null>(null);
   const [coupleProfiles, setCoupleProfiles] = useState<CoupleProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingProfile, setDeletingProfile] = useState<string | null>(null);
 
   const specialProfileTypes = [
     {
@@ -75,6 +77,44 @@ function SpecialProfiles() {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const handleDeleteProfile = async (profileId: string, profileName: string) => {
+    if (!confirm(`¿Estás seguro de que quieres eliminar el perfil "${profileName}"? Esta acción no se puede deshacer y eliminará todos los archivos multimedia.`)) {
+      return;
+    }
+
+    setDeletingProfile(profileId);
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        alert('No tienes permisos para realizar esta acción');
+        return;
+      }
+
+      const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3002/api';
+      const response = await fetch(`${API_URL}/admin/couple-profiles/${profileId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+
+      if (response.ok) {
+        // Actualizar la lista local
+        setCoupleProfiles(prev => prev.filter(profile => profile.id !== profileId));
+        alert('Perfil eliminado exitosamente');
+      } else {
+        const errorData = await response.json();
+        alert(`Error al eliminar el perfil: ${errorData.error || 'Error desconocido'}`);
+      }
+    } catch (error) {
+      console.error('Error eliminando perfil:', error);
+      alert('Error al eliminar el perfil');
+    } finally {
+      setDeletingProfile(null);
+    }
   };
 
   return (
@@ -225,6 +265,20 @@ function SpecialProfiles() {
                         className="flex-1 text-sm"
                       >
                         Editar
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteProfile(profile.id, profile.couple_name)}
+                        disabled={deletingProfile === profile.id}
+                        className="flex-1 text-sm bg-red-500 hover:bg-red-600 text-white border-red-500"
+                      >
+                        {deletingProfile === profile.id ? (
+                          <div className="flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Eliminando...
+                          </div>
+                        ) : (
+                          'Eliminar'
+                        )}
                       </Button>
                     </div>
                   </div>

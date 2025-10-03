@@ -50,8 +50,10 @@ interface CoupleTemplateProps {
     
     // Información adicional
     common_interests?: string
-    in_laws?: string
-    siblings_in_law?: string
+    person1_comidas_favoritas?: string[]
+    person2_comidas_favoritas?: string[]
+    person1_series_peliculas?: string[]
+    person2_series_peliculas?: string[]
     pets?: string
     short_term_goals?: string
     medium_term_goals?: string
@@ -465,7 +467,7 @@ const CoupleTemplate = ({ templateId, profileData }: CoupleTemplateProps) => {
           )}
 
           {/* 5. Más Sobre Nosotros - Liquid Glass Design */}
-          {(profileData.common_interests || profileData.pets || profileData.in_laws || profileData.siblings_in_law) && (
+          {(profileData.common_interests || profileData.pets || profileData.person1_comidas_favoritas || profileData.person2_comidas_favoritas || profileData.person1_series_peliculas || profileData.person2_series_peliculas) && (
             <div className="relative backdrop-blur-xl bg-white/10 rounded-3xl shadow-2xl p-8 mb-8 border border-white/20 overflow-hidden">
               {/* Efecto de vidrio líquido */}
               <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-white/10"></div>
@@ -513,38 +515,76 @@ const CoupleTemplate = ({ templateId, profileData }: CoupleTemplateProps) => {
                       </div>
                     </div>
                   )}
-                  {profileData.in_laws && (
+                  {(profileData.person1_comidas_favoritas?.length || profileData.person2_comidas_favoritas?.length) && (
                     <div className="relative backdrop-blur-lg bg-white/5 rounded-2xl p-6 border border-white/10">
                       <div className="absolute inset-0 bg-black/10 rounded-2xl"></div>
                       <div className="relative z-10">
                         <h3 className="font-bold text-white mb-4 text-xl drop-shadow-2xl flex items-center gap-3 italic" style={{ fontFamily: 'Georgia, serif' }}>
-                          <img src="/suegros.png" alt="Suegros" className="w-6 h-6" />
-                          Suegros
+                          <span className="text-2xl">🍽️</span>
+                          Comidas Favoritas
                         </h3>
-                        <div className="flex flex-wrap gap-2">
-                          {profileData.in_laws.split(',').map((inLaw, index) => (
-                            <span key={index} className="px-4 py-2 bg-gradient-to-r from-blue-500/40 to-cyan-500/40 text-white rounded-full text-base font-medium border border-blue-400/50 backdrop-blur-sm drop-shadow-lg">
-                              {inLaw.trim()}
-                            </span>
-                          ))}
+                        <div className="space-y-4">
+                          {profileData.person1_comidas_favoritas?.length > 0 && (
+                            <div>
+                              <h4 className="text-white/90 text-lg font-semibold mb-2">{profileData.person1_name}</h4>
+                              <div className="flex flex-wrap gap-2">
+                                {profileData.person1_comidas_favoritas.map((comida, index) => (
+                                  <span key={index} className="px-4 py-2 bg-gradient-to-r from-orange-500/40 to-red-500/40 text-white rounded-full text-base font-medium border border-orange-400/50 backdrop-blur-sm drop-shadow-lg">
+                                    {comida}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {profileData.person2_comidas_favoritas?.length > 0 && (
+                            <div>
+                              <h4 className="text-white/90 text-lg font-semibold mb-2">{profileData.person2_name}</h4>
+                              <div className="flex flex-wrap gap-2">
+                                {profileData.person2_comidas_favoritas.map((comida, index) => (
+                                  <span key={index} className="px-4 py-2 bg-gradient-to-r from-orange-500/40 to-red-500/40 text-white rounded-full text-base font-medium border border-orange-400/50 backdrop-blur-sm drop-shadow-lg">
+                                    {comida}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
                   )}
-                  {profileData.siblings_in_law && (
+                  {(profileData.person1_series_peliculas?.length || profileData.person2_series_peliculas?.length) && (
                     <div className="relative backdrop-blur-lg bg-white/5 rounded-2xl p-6 border border-white/10">
                       <div className="absolute inset-0 bg-black/10 rounded-2xl"></div>
                       <div className="relative z-10">
                         <h3 className="font-bold text-white mb-4 text-xl drop-shadow-2xl flex items-center gap-3 italic" style={{ fontFamily: 'Georgia, serif' }}>
-                          <img src="/hermanos.png" alt="Cuñados" className="w-6 h-6" />
-                          Cuñados
+                          <span className="text-2xl">🎬</span>
+                          Series y Películas Favoritas
                         </h3>
-                        <div className="flex flex-wrap gap-2">
-                          {profileData.siblings_in_law.split(',').map((sibling, index) => (
-                            <span key={index} className="px-4 py-2 bg-gradient-to-r from-purple-500/40 to-violet-500/40 text-white rounded-full text-base font-medium border border-purple-400/50 backdrop-blur-sm drop-shadow-lg">
-                              {sibling.trim()}
-                            </span>
-                          ))}
+                        <div className="space-y-4">
+                          {profileData.person1_series_peliculas?.length > 0 && (
+                            <div>
+                              <h4 className="text-white/90 text-lg font-semibold mb-2">{profileData.person1_name}</h4>
+                              <div className="flex flex-wrap gap-2">
+                                {profileData.person1_series_peliculas.map((serie, index) => (
+                                  <span key={index} className="px-4 py-2 bg-gradient-to-r from-purple-500/40 to-pink-500/40 text-white rounded-full text-base font-medium border border-purple-400/50 backdrop-blur-sm drop-shadow-lg">
+                                    {serie}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {profileData.person2_series_peliculas?.length > 0 && (
+                            <div>
+                              <h4 className="text-white/90 text-lg font-semibold mb-2">{profileData.person2_name}</h4>
+                              <div className="flex flex-wrap gap-2">
+                                {profileData.person2_series_peliculas.map((serie, index) => (
+                                  <span key={index} className="px-4 py-2 bg-gradient-to-r from-purple-500/40 to-pink-500/40 text-white rounded-full text-base font-medium border border-purple-400/50 backdrop-blur-sm drop-shadow-lg">
+                                    {serie}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

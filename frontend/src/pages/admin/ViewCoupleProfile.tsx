@@ -19,10 +19,10 @@ interface CoupleProfile {
   relationship_start_date?: string;
   anniversary_date?: string;
   common_interests: string[];
-  person1_suegros: string[];
-  person2_suegros: string[];
-  person1_cunados: string[];
-  person2_cunados: string[];
+  person1_comidas_favoritas: string[];
+  person2_comidas_favoritas: string[];
+  person1_series_peliculas: string[];
+  person2_series_peliculas: string[];
   pets?: string;
   short_term_goals?: string;
   medium_term_goals?: string;
@@ -287,27 +287,27 @@ function ViewCoupleProfile() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               {/* Suegros */}
               <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6">
-                <h4 className="text-lg font-bold text-orange-900 mb-4">👨‍👩‍👧‍👦 Suegros</h4>
+                <h4 className="text-lg font-bold text-orange-900 mb-4">🍽️ Comidas Favoritas</h4>
                 <div className="space-y-3">
-                  {profile.person1_suegros && profile.person1_suegros.length > 0 && (
+                  {profile.person1_comidas_favoritas && profile.person1_comidas_favoritas.length > 0 && (
                     <div>
                       <p className="text-sm font-medium text-orange-800 mb-1">De {profile.person1_name}:</p>
                       <div className="flex flex-wrap gap-1">
-                        {profile.person1_suegros.map((suegro, index) => (
+                        {profile.person1_comidas_favoritas.map((comida, index) => (
                           <span key={index} className="px-2 py-1 bg-orange-200 text-orange-800 rounded text-xs">
-                            {suegro}
+                            {comida}
                           </span>
                         ))}
                       </div>
                     </div>
                   )}
-                  {profile.person2_suegros && profile.person2_suegros.length > 0 && (
+                  {profile.person2_comidas_favoritas && profile.person2_comidas_favoritas.length > 0 && (
                     <div>
                       <p className="text-sm font-medium text-orange-800 mb-1">De {profile.person2_name}:</p>
                       <div className="flex flex-wrap gap-1">
-                        {profile.person2_suegros.map((suegro, index) => (
+                        {profile.person2_comidas_favoritas.map((comida, index) => (
                           <span key={index} className="px-2 py-1 bg-orange-200 text-orange-800 rounded text-xs">
-                            {suegro}
+                            {comida}
                           </span>
                         ))}
                       </div>
@@ -316,29 +316,29 @@ function ViewCoupleProfile() {
                 </div>
               </div>
 
-              {/* Cuñados */}
-              <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6">
-                <h4 className="text-lg font-bold text-indigo-900 mb-4">👫 Cuñados</h4>
+              {/* Series y Películas */}
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6">
+                <h4 className="text-lg font-bold text-purple-900 mb-4">🎬 Series y Películas Favoritas</h4>
                 <div className="space-y-3">
-                  {profile.person1_cunados && profile.person1_cunados.length > 0 && (
+                  {profile.person1_series_peliculas && profile.person1_series_peliculas.length > 0 && (
                     <div>
-                      <p className="text-sm font-medium text-indigo-800 mb-1">De {profile.person1_name}:</p>
+                      <p className="text-sm font-medium text-purple-800 mb-1">De {profile.person1_name}:</p>
                       <div className="flex flex-wrap gap-1">
-                        {profile.person1_cunados.map((cunado, index) => (
-                          <span key={index} className="px-2 py-1 bg-indigo-200 text-indigo-800 rounded text-xs">
-                            {cunado}
+                        {profile.person1_series_peliculas.map((serie, index) => (
+                          <span key={index} className="px-2 py-1 bg-purple-200 text-purple-800 rounded text-xs">
+                            {serie}
                           </span>
                         ))}
                       </div>
                     </div>
                   )}
-                  {profile.person2_cunados && profile.person2_cunados.length > 0 && (
+                  {profile.person2_series_peliculas && profile.person2_series_peliculas.length > 0 && (
                     <div>
-                      <p className="text-sm font-medium text-indigo-800 mb-1">De {profile.person2_name}:</p>
+                      <p className="text-sm font-medium text-purple-800 mb-1">De {profile.person2_name}:</p>
                       <div className="flex flex-wrap gap-1">
-                        {profile.person2_cunados.map((cunado, index) => (
-                          <span key={index} className="px-2 py-1 bg-indigo-200 text-indigo-800 rounded text-xs">
-                            {cunado}
+                        {profile.person2_series_peliculas.map((serie, index) => (
+                          <span key={index} className="px-2 py-1 bg-purple-200 text-purple-800 rounded text-xs">
+                            {serie}
                           </span>
                         ))}
                       </div>

@@ -1632,4 +1632,97 @@ router.get('/couple-profiles/:id', requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * DELETE /api/admin/couple-profiles/:id
+ * Eliminar un perfil de pareja y todos sus archivos multimedia
+ */
+router.delete('/couple-profiles/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log('🗑️ Eliminando perfil de pareja:', id);
+
+    // 1. Obtener todos los archivos multimedia antes de eliminar
+    const { data: galleryPhotos } = await supabaseAdmin
+      .from('couple_gallery_photos')
+      .select('photo_url')
+      .eq('couple_profile_id', id);
+
+    const { data: specialVideos } = await supabaseAdmin
+      .from('couple_special_videos')
+      .select('video_url')
+      .eq('couple_profile_id', id);
+
+    // 2. Obtener la imagen de perfil
+    const { data: coupleProfile } = await supabaseAdmin
+      .from('couple_profiles')
+      .select('profile_image_url')
+      .eq('id', id)
+      .single();
+
+    // 3. Eliminar registros de la base de datos (CASCADE eliminará automáticamente las relaciones)
+    const { error: deleteError } = await supabaseAdmin
+      .from('couple_profiles')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      console.error('Error eliminando perfil de pareja:', deleteError);
+      return res.status(500).json({ error: 'Error al eliminar el perfil de pareja' });
+    }
+
+    // 4. Eliminar archivos de Cloudflare R2
+    const filesToDelete = [];
+    
+    // Agregar imagen de perfil
+    if (coupleProfile?.profile_image_url) {
+      filesToDelete.push(coupleProfile.profile_image_url);
+    }
+    
+    // Agregar fotos de galería
+    if (galleryPhotos) {
+      galleryPhotos.forEach(photo => {
+        if (photo.photo_url) {
+          filesToDelete.push(photo.photo_url);
+        }
+      });
+    }
+    
+    // Agregar videos especiales
+    if (specialVideos) {
+      specialVideos.forEach(video => {
+        if (video.video_url) {
+          filesToDelete.push(video.video_url);
+        }
+      });
+    }
+
+    // Eliminar archivos de Cloudflare R2
+    if (filesToDelete.length > 0) {
+      console.log('🗑️ Eliminando archivos de Cloudflare:', filesToDelete.length);
+      
+      // Importar el servicio de limpieza
+      const { deleteFilesFromR2 } = await import('../services/r2CleanupService.js');
+      
+      try {
+        await deleteFilesFromR2(filesToDelete);
+        console.log('✅ Archivos eliminados de Cloudflare exitosamente');
+      } catch (r2Error) {
+        console.error('⚠️ Error eliminando archivos de Cloudflare:', r2Error);
+        // No fallar la operación si no se pueden eliminar los archivos
+      }
+    }
+
+    console.log('✅ Perfil de pareja eliminado exitosamente');
+    res.json({
+      success: true,
+      message: 'Perfil de pareja eliminado exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error eliminando perfil de pareja:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 export default router;

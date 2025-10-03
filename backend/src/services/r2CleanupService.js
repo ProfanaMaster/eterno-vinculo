@@ -259,3 +259,15 @@ export const cleanupFamilyProfileMedia = async (familyProfile, familyMembers = [
   
   return results
 }
+
+/**
+ * Elimina archivos multimedia de perfiles de pareja
+ */
+export const deleteFilesFromR2 = async (urls) => {
+  if (!urls || !Array.isArray(urls) || urls.length === 0) {
+    return { success: [], failed: [] }
+  }
+  
+  console.log(`🗑️ Eliminando ${urls.length} archivos de R2`)
+  return await deleteR2Files(urls)
+}

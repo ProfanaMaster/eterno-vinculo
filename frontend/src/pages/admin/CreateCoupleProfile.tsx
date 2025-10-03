@@ -49,10 +49,10 @@ interface CoupleProfileData {
   
   // Información adicional
   common_interests: string[];
-  person1_suegros: string[];
-  person2_suegros: string[];
-  person1_cunados: string[];
-  person2_cunados: string[];
+  person1_comidas_favoritas: string[];
+  person2_comidas_favoritas: string[];
+  person1_series_peliculas: string[];
+  person2_series_peliculas: string[];
   pets: string;
   short_term_goals: string;
   medium_term_goals: string;
@@ -89,10 +89,10 @@ function CreateCoupleProfile() {
     favorite_songs: [],
     special_videos: [],
     common_interests: [],
-    person1_suegros: [],
-    person2_suegros: [],
-    person1_cunados: [],
-    person2_cunados: [],
+    person1_comidas_favoritas: [],
+    person2_comidas_favoritas: [],
+    person1_series_peliculas: [],
+    person2_series_peliculas: [],
     pets: '',
     short_term_goals: '',
     medium_term_goals: '',
@@ -186,52 +186,54 @@ function CreateCoupleProfile() {
     }));
   };
 
-  const addSuegro = (person: 'person1' | 'person2') => {
-    const field = person === 'person1' ? 'person1_suegros' : 'person2_suegros';
-    const currentSuegros = profileData[field];
-    if (currentSuegros.length < 2) {
+  const addComidaFavorita = (person: 'person1' | 'person2') => {
+    const field = person === 'person1' ? 'person1_comidas_favoritas' : 'person2_comidas_favoritas';
+    const currentComidas = profileData[field];
+    if (currentComidas.length < 3) {
       setProfileData(prev => ({
         ...prev,
-        [field]: [...currentSuegros, '']
+        [field]: [...currentComidas, '']
       }));
     }
   };
 
-  const updateSuegro = (person: 'person1' | 'person2', index: number, value: string) => {
-    const field = person === 'person1' ? 'person1_suegros' : 'person2_suegros';
+  const updateComidaFavorita = (person: 'person1' | 'person2', index: number, value: string) => {
+    const field = person === 'person1' ? 'person1_comidas_favoritas' : 'person2_comidas_favoritas';
     setProfileData(prev => ({
       ...prev,
-      [field]: prev[field].map((suegro, i) => i === index ? value : suegro)
+      [field]: prev[field].map((comida, i) => i === index ? value : comida)
     }));
   };
 
-  const removeSuegro = (person: 'person1' | 'person2', index: number) => {
-    const field = person === 'person1' ? 'person1_suegros' : 'person2_suegros';
+  const removeComidaFavorita = (person: 'person1' | 'person2', index: number) => {
+    const field = person === 'person1' ? 'person1_comidas_favoritas' : 'person2_comidas_favoritas';
     setProfileData(prev => ({
       ...prev,
       [field]: prev[field].filter((_, i) => i !== index)
     }));
   };
 
-  const addCunado = (person: 'person1' | 'person2') => {
-    const field = person === 'person1' ? 'person1_cunados' : 'person2_cunados';
-    const currentCunados = profileData[field];
+  const addSeriePelicula = (person: 'person1' | 'person2') => {
+    const field = person === 'person1' ? 'person1_series_peliculas' : 'person2_series_peliculas';
+    const currentSeries = profileData[field];
+    if (currentSeries.length < 3) {
+      setProfileData(prev => ({
+        ...prev,
+        [field]: [...currentSeries, '']
+      }));
+    }
+  };
+
+  const updateSeriePelicula = (person: 'person1' | 'person2', index: number, value: string) => {
+    const field = person === 'person1' ? 'person1_series_peliculas' : 'person2_series_peliculas';
     setProfileData(prev => ({
       ...prev,
-      [field]: [...currentCunados, '']
+      [field]: prev[field].map((serie, i) => i === index ? value : serie)
     }));
   };
 
-  const updateCunado = (person: 'person1' | 'person2', index: number, value: string) => {
-    const field = person === 'person1' ? 'person1_cunados' : 'person2_cunados';
-    setProfileData(prev => ({
-      ...prev,
-      [field]: prev[field].map((cunado, i) => i === index ? value : cunado)
-    }));
-  };
-
-  const removeCunado = (person: 'person1' | 'person2', index: number) => {
-    const field = person === 'person1' ? 'person1_cunados' : 'person2_cunados';
+  const removeSeriePelicula = (person: 'person1' | 'person2', index: number) => {
+    const field = person === 'person1' ? 'person1_series_peliculas' : 'person2_series_peliculas';
     setProfileData(prev => ({
       ...prev,
       [field]: prev[field].filter((_, i) => i !== index)
@@ -436,10 +438,10 @@ function CreateCoupleProfile() {
         relationship_start_date: profileData.relationship_start_date,
         anniversary_date: profileData.anniversary_date,
         common_interests: profileData.common_interests,
-        person1_suegros: profileData.person1_suegros,
-        person2_suegros: profileData.person2_suegros,
-        person1_cunados: profileData.person1_cunados,
-        person2_cunados: profileData.person2_cunados,
+        person1_comidas_favoritas: profileData.person1_comidas_favoritas,
+        person2_comidas_favoritas: profileData.person2_comidas_favoritas,
+        person1_series_peliculas: profileData.person1_series_peliculas,
+        person2_series_peliculas: profileData.person2_series_peliculas,
         pets: profileData.pets,
         short_term_goals: profileData.short_term_goals,
         medium_term_goals: profileData.medium_term_goals,
@@ -999,79 +1001,79 @@ function CreateCoupleProfile() {
               </div>
             </div>
             
-            {/* Suegros */}
-            <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-2xl p-6 border border-green-100">
-              <h4 className="text-lg font-bold text-green-800 mb-4 flex items-center">
-                <span className="mr-2">👨‍👩‍👧‍👦</span>
-                Suegros
+            {/* Comidas Favoritas */}
+            <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-100">
+              <h4 className="text-lg font-bold text-orange-800 mb-4 flex items-center">
+                <span className="mr-2">🍽️</span>
+                Comidas Favoritas
               </h4>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Suegros de Persona 1 */}
-                <div className="bg-white rounded-xl p-4 border border-green-200">
-                  <h5 className="font-medium text-green-800 mb-3">
-                    Suegros de {profileData.person1_name || 'Primera Persona'}
+                {/* Comidas Favoritas de Persona 1 */}
+                <div className="bg-white rounded-xl p-4 border border-orange-200">
+                  <h5 className="font-medium text-orange-800 mb-3">
+                    Comidas Favoritas de {profileData.person1_name || 'Primera Persona'}
                   </h5>
                   <div className="space-y-3">
-                    {profileData.person1_suegros.map((suegro, index) => (
+                    {profileData.person1_comidas_favoritas.map((comida, index) => (
                       <div key={index} className="flex items-center gap-3">
                         <Input
-                          value={suegro}
-                          onChange={(e) => updateSuegro('person1', index, e.target.value)}
-                          placeholder="Nombre del suegro"
+                          value={comida}
+                          onChange={(e) => updateComidaFavorita('person1', index, e.target.value)}
+                          placeholder="Comida favorita"
                           className="flex-1"
                         />
                         <button
                           type="button"
-                          onClick={() => removeSuegro('person1', index)}
+                          onClick={() => removeComidaFavorita('person1', index)}
                           className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
                         >
                           🗑️
                         </button>
                       </div>
                     ))}
-                    {profileData.person1_suegros.length < 2 && (
+                    {profileData.person1_comidas_favoritas.length < 3 && (
                       <button
                         type="button"
-                        onClick={() => addSuegro('person1')}
-                        className="w-full py-2 px-4 border-2 border-dashed border-green-300 rounded-lg text-green-600 hover:border-green-400 hover:bg-green-50 transition-colors"
+                        onClick={() => addComidaFavorita('person1')}
+                        className="w-full py-2 px-4 border-2 border-dashed border-orange-300 rounded-lg text-orange-600 hover:border-orange-400 hover:bg-orange-50 transition-colors"
                       >
-                        + Agregar Suegro
+                        + Agregar Comida
                       </button>
                     )}
                   </div>
                 </div>
                 
-                {/* Suegros de Persona 2 */}
-                <div className="bg-white rounded-xl p-4 border border-green-200">
-                  <h5 className="font-medium text-green-800 mb-3">
-                    Suegros de {profileData.person2_name || 'Segunda Persona'}
+                {/* Comidas Favoritas de Persona 2 */}
+                <div className="bg-white rounded-xl p-4 border border-orange-200">
+                  <h5 className="font-medium text-orange-800 mb-3">
+                    Comidas Favoritas de {profileData.person2_name || 'Segunda Persona'}
                   </h5>
                   <div className="space-y-3">
-                    {profileData.person2_suegros.map((suegro, index) => (
+                    {profileData.person2_comidas_favoritas.map((comida, index) => (
                       <div key={index} className="flex items-center gap-3">
                         <Input
-                          value={suegro}
-                          onChange={(e) => updateSuegro('person2', index, e.target.value)}
-                          placeholder="Nombre del suegro"
+                          value={comida}
+                          onChange={(e) => updateComidaFavorita('person2', index, e.target.value)}
+                          placeholder="Comida favorita"
                           className="flex-1"
                         />
                         <button
                           type="button"
-                          onClick={() => removeSuegro('person2', index)}
+                          onClick={() => removeComidaFavorita('person2', index)}
                           className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
                         >
                           🗑️
                         </button>
                       </div>
                     ))}
-                    {profileData.person2_suegros.length < 2 && (
+                    {profileData.person2_comidas_favoritas.length < 3 && (
                       <button
                         type="button"
-                        onClick={() => addSuegro('person2')}
-                        className="w-full py-2 px-4 border-2 border-dashed border-green-300 rounded-lg text-green-600 hover:border-green-400 hover:bg-green-50 transition-colors"
+                        onClick={() => addComidaFavorita('person2')}
+                        className="w-full py-2 px-4 border-2 border-dashed border-orange-300 rounded-lg text-orange-600 hover:border-orange-400 hover:bg-orange-50 transition-colors"
                       >
-                        + Agregar Suegro
+                        + Agregar Comida
                       </button>
                     )}
                   </div>
@@ -1079,31 +1081,31 @@ function CreateCoupleProfile() {
               </div>
             </div>
             
-            {/* Cuñados */}
-            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
-              <h4 className="text-lg font-bold text-indigo-800 mb-4 flex items-center">
-                <span className="mr-2">👫</span>
-                Cuñados
+            {/* Series y Películas Favoritas */}
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
+              <h4 className="text-lg font-bold text-purple-800 mb-4 flex items-center">
+                <span className="mr-2">🎬</span>
+                Series y Películas Favoritas
               </h4>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Cuñados de Persona 1 */}
-                <div className="bg-white rounded-xl p-4 border border-indigo-200">
-                  <h5 className="font-medium text-indigo-800 mb-3">
-                    Cuñados de {profileData.person1_name || 'Primera Persona'}
+                {/* Series y Películas de Persona 1 */}
+                <div className="bg-white rounded-xl p-4 border border-purple-200">
+                  <h5 className="font-medium text-purple-800 mb-3">
+                    Series y Películas de {profileData.person1_name || 'Primera Persona'}
                   </h5>
                   <div className="space-y-3">
-                    {profileData.person1_cunados.map((cunado, index) => (
+                    {profileData.person1_series_peliculas.map((serie, index) => (
                       <div key={index} className="flex items-center gap-3">
                         <Input
-                          value={cunado}
-                          onChange={(e) => updateCunado('person1', index, e.target.value)}
-                          placeholder="Nombre del cuñado"
+                          value={serie}
+                          onChange={(e) => updateSeriePelicula('person1', index, e.target.value)}
+                          placeholder="Serie o película favorita"
                           className="flex-1"
                         />
                         <button
                           type="button"
-                          onClick={() => removeCunado('person1', index)}
+                          onClick={() => removeSeriePelicula('person1', index)}
                           className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
                         >
                           🗑️
@@ -1112,31 +1114,31 @@ function CreateCoupleProfile() {
                     ))}
                     <button
                       type="button"
-                      onClick={() => addCunado('person1')}
-                      className="w-full py-2 px-4 border-2 border-dashed border-indigo-300 rounded-lg text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50 transition-colors"
+                      onClick={() => addSeriePelicula('person1')}
+                      className="w-full py-2 px-4 border-2 border-dashed border-purple-300 rounded-lg text-purple-600 hover:border-purple-400 hover:bg-purple-50 transition-colors"
                     >
-                      + Agregar Cuñado
+                      + Agregar Serie/Película
                     </button>
                   </div>
                 </div>
                 
-                {/* Cuñados de Persona 2 */}
-                <div className="bg-white rounded-xl p-4 border border-indigo-200">
-                  <h5 className="font-medium text-indigo-800 mb-3">
-                    Cuñados de {profileData.person2_name || 'Segunda Persona'}
+                {/* Series y Películas de Persona 2 */}
+                <div className="bg-white rounded-xl p-4 border border-purple-200">
+                  <h5 className="font-medium text-purple-800 mb-3">
+                    Series y Películas de {profileData.person2_name || 'Segunda Persona'}
                   </h5>
                   <div className="space-y-3">
-                    {profileData.person2_cunados.map((cunado, index) => (
+                    {profileData.person2_series_peliculas.map((serie, index) => (
                       <div key={index} className="flex items-center gap-3">
                         <Input
-                          value={cunado}
-                          onChange={(e) => updateCunado('person2', index, e.target.value)}
-                          placeholder="Nombre del cuñado"
+                          value={serie}
+                          onChange={(e) => updateSeriePelicula('person2', index, e.target.value)}
+                          placeholder="Serie o película favorita"
                           className="flex-1"
                         />
                         <button
                           type="button"
-                          onClick={() => removeCunado('person2', index)}
+                          onClick={() => removeSeriePelicula('person2', index)}
                           className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
                         >
                           🗑️
@@ -1145,10 +1147,10 @@ function CreateCoupleProfile() {
                     ))}
                     <button
                       type="button"
-                      onClick={() => addCunado('person2')}
-                      className="w-full py-2 px-4 border-2 border-dashed border-indigo-300 rounded-lg text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50 transition-colors"
+                      onClick={() => addSeriePelicula('person2')}
+                      className="w-full py-2 px-4 border-2 border-dashed border-purple-300 rounded-lg text-purple-600 hover:border-purple-400 hover:bg-purple-50 transition-colors"
                     >
-                      + Agregar Cuñado
+                      + Agregar Serie/Película
                     </button>
                   </div>
                 </div>
@@ -1450,10 +1452,10 @@ function CreateCoupleProfile() {
                     favorite_songs: [],
                     special_videos: [],
                     common_interests: [],
-                    person1_suegros: [],
-                    person2_suegros: [],
-                    person1_cunados: [],
-                    person2_cunados: [],
+                    person1_comidas_favoritas: [],
+                    person2_comidas_favoritas: [],
+                    person1_series_peliculas: [],
+                    person2_series_peliculas: [],
                     pets: '',
                     short_term_goals: '',
                     medium_term_goals: '',

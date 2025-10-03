@@ -1,32 +1,34 @@
+import { getSupabaseUrl } from '@/services/storage';
+
 function Features() {
   const features = [
     {
-      icon: "🎨",
+      icon: getSupabaseUrl('imagenes-pagina', 'diseno.png'),
       title: "Diseño Personalizado",
       description: "Elige entre múltiples plantillas elegantes y selecciona la que más te guste."
     },
     {
-      icon: "📱",
+      icon: getSupabaseUrl('imagenes-pagina', 'qr.png'),
       title: "Código QR Único",
       description: "Cada memorial incluye un código QR personalizado para compartir fácilmente en lápidas o tarjetas."
     },
     {
-      icon: "🖼️",
+      icon: getSupabaseUrl('imagenes-pagina', 'multimedia.png'),
       title: "Galería Multimedia",
       description: "Sube fotos, videos y documentos para crear una galería completa de recuerdos especiales."
     },
     {
-      icon: "🔒",
+      icon: getSupabaseUrl('imagenes-pagina', 'privacidad.png'),
       title: "Privacidad Segura",
       description: "Control total sobre quién puede ver el memorial con opciones de privacidad flexibles."
     },
     {
-      icon: "💬",
+      icon: getSupabaseUrl('imagenes-pagina', 'muro.png'),
       title: "Muro de los Recuerdos",
       description: "Permite que familiares y amigos dejen mensajes de condolencias y compartan recuerdos."
     },
     {
-      icon: "🌐",
+      icon: getSupabaseUrl('imagenes-pagina', 'acceso.png'),
       title: "Acceso Permanente",
       description: "Tu memorial estará disponible 24/7 desde cualquier dispositivo con conexión a internet."
     }
@@ -52,8 +54,12 @@ function Features() {
               className="card text-center group hover:scale-105 transition-all duration-300"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                {feature.icon}
+              <div className="w-16 h-16 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <img 
+                  src={feature.icon}
+                  alt={feature.title}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 {feature.title}

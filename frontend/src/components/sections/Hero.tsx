@@ -111,13 +111,13 @@ function Hero() {
               </button>
               <button 
                 onClick={() => {
-                  // Abrir modal de ejemplos en la sección Examples
+                  // Hacer scroll a la sección de ejemplos
                   const examplesSection = document.getElementById('ejemplos')
                   if (examplesSection) {
                     examplesSection.scrollIntoView({ behavior: 'smooth' })
                     // Simular clic en el botón "Ver Ejemplos Reales" después de un breve delay
                     setTimeout(() => {
-                      const examplesButton = examplesSection.querySelector('button[onclick*="setIsModalOpen"]')
+                      const examplesButton = examplesSection.querySelector('button')
                       if (examplesButton) {
                         examplesButton.click()
                       }

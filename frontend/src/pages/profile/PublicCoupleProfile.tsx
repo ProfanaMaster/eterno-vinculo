@@ -19,10 +19,10 @@ interface CoupleProfile {
   relationship_start_date?: string;
   anniversary_date?: string;
   common_interests: string[];
-  person1_suegros: string[];
-  person2_suegros: string[];
-  person1_cunados: string[];
-  person2_cunados: string[];
+  person1_comidas_favoritas: string[];
+  person2_comidas_favoritas: string[];
+  person1_series_peliculas: string[];
+  person2_series_peliculas: string[];
   pets?: string;
   short_term_goals?: string;
   medium_term_goals?: string;

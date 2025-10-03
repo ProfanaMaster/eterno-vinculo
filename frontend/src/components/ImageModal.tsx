@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getProxiedImageUrl } from '@/utils/imageUtils'
 
 interface ImageModalProps {
   images: string[]
@@ -60,7 +61,7 @@ export default function ImageModal({ images, currentIndex, isOpen, onClose }: Im
       {/* Imagen principal */}
       <div className="max-w-full max-h-full flex items-center justify-center">
         <img
-          src={images[activeIndex]}
+          src={getProxiedImageUrl(images[activeIndex])}
           alt={`Imagen ${activeIndex + 1}`}
           className="max-w-full max-h-full object-contain"
         />
