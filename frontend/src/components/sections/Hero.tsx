@@ -6,6 +6,7 @@ import { useAutoRedirect } from '@/hooks/useAutoRedirect'
 import { useDebugAuth } from '@/hooks/useDebugAuth'
 import { useNavigate } from 'react-router-dom'
 import AuthModal from '@/components/auth/AuthModal'
+import { getSupabaseUrl } from '@/services/storage'
 
 function DashboardButton() {
   const { isAuthenticated } = useAuthStore()
@@ -150,45 +151,61 @@ function Hero() {
           {/* Visual */}
           <div className="relative animate-slide-in">
             <div className="relative">
-              {/* Main mockup */}
-              <div className="bg-white rounded-2xl shadow-xl p-6 transform rotate-3 hover:rotate-0 transition-transform duration-500">
-                <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl h-48 mb-4 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-white rounded-full mx-auto mb-3 flex items-center justify-center shadow-md">
-                      <span className="text-2xl">👤</span>
-                    </div>
-                    <h3 className="font-semibold text-gray-800">Memorial Digital</h3>
-                    <p className="text-sm text-gray-600">Honrando la memoria</p>
-                  </div>
+              {/* Imagen principal del producto */}
+              <div className="relative bg-white rounded-3xl shadow-2xl p-4 transform hover:scale-105 transition-all duration-500 overflow-hidden group">
+                {/* Efecto de brillo en hover */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 group-hover:translate-x-full transform -translate-x-full"></div>
+                
+                {/* Contenedor de la imagen */}
+                <div className="relative rounded-2xl overflow-hidden shadow-lg">
+                  <img 
+                    src={getSupabaseUrl('imagenes-pagina', 'img-portada.png')}
+                    alt="Placa Memorial Eterno Vínculo"
+                    className="w-full h-auto object-cover"
+                  />
+                  
+                  {/* Overlay gradiente sutil */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
-                <div className="space-y-2">
-                  <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+
+              </div>
+
+              {/* Floating elements mejorados */}
+              <div className="absolute -top-6 -right-6 bg-white rounded-2xl shadow-2xl p-4 animate-float border-2 border-primary-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 3a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V4a1 1 0 00-1-1h-3zm1 2v1h1V5h-1z" clipRule="evenodd" />
+                      <path d="M11 4a1 1 0 10-2 0v1a1 1 0 002 0V4zM10 7a1 1 0 011 1v1h2a1 1 0 110 2h-3a1 1 0 01-1-1V8a1 1 0 011-1zM16 9a1 1 0 100 2 1 1 0 000-2zM9 13a1 1 0 011-1h1a1 1 0 110 2v2a1 1 0 11-2 0v-3zM7 11a1 1 0 100-2H4a1 1 0 100 2h3zM17 13a1 1 0 01-1 1h-2a1 1 0 110-2h2a1 1 0 011 1zM16 17a1 1 0 100-2h-3a1 1 0 100 2h3z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 font-medium">Código QR</div>
+                    <div className="text-sm font-bold text-gray-900">Personalizado</div>
+                  </div>
                 </div>
               </div>
 
-              {/* Floating elements */}
-              <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg p-3 animate-pulse">
-                <div className="w-8 h-8 bg-gradient rounded-lg flex items-center justify-center">
-                  <span className="text-white text-sm">QR</span>
-                </div>
-              </div>
-
-              <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg p-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs">✓</span>
+              <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-2xl p-4 animate-bounce-slow border-2 border-green-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                   </div>
-                  <span className="text-sm font-medium">Publicado</span>
+                  <div>
+                    <div className="text-xs text-gray-500 font-medium">Hechos en</div>
+                    <div className="text-sm font-bold text-gray-900">Aluminio Premium</div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Background decoration */}
+            {/* Background decoration mejorado */}
             <div className="absolute inset-0 -z-10">
-              <div className="absolute top-10 left-10 w-20 h-20 bg-primary/10 rounded-full"></div>
-              <div className="absolute bottom-10 right-10 w-32 h-32 bg-accent/10 rounded-full"></div>
-              <div className="absolute top-1/2 left-0 w-16 h-16 bg-secondary/10 rounded-full"></div>
+              <div className="absolute top-10 left-10 w-24 h-24 bg-primary/10 rounded-full blur-xl animate-pulse"></div>
+              <div className="absolute bottom-10 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-pulse delay-75"></div>
+              <div className="absolute top-1/2 left-0 w-20 h-20 bg-secondary/10 rounded-full blur-xl animate-pulse delay-150"></div>
             </div>
           </div>
         </div>
