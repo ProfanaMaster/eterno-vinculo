@@ -171,7 +171,7 @@ function Hero() {
               </div>
 
               {/* Floating elements mejorados */}
-              <div className="absolute -top-6 -right-6 bg-white rounded-2xl shadow-2xl p-4 animate-float border-2 border-primary-100">
+              <div className="absolute -bottom-10 -left-6 bg-white rounded-2xl shadow-2xl p-4 animate-bounce-slow border-2 border-primary-100">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg">
                     <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -182,20 +182,6 @@ function Hero() {
                   <div>
                     <div className="text-xs text-gray-500 font-medium">Código QR</div>
                     <div className="text-sm font-bold text-gray-900">Personalizado</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-2xl p-4 animate-bounce-slow border-2 border-green-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-500 font-medium">Hechos en</div>
-                    <div className="text-sm font-bold text-gray-900">Aluminio Premium</div>
                   </div>
                 </div>
               </div>
